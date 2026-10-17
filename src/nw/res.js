@@ -80,8 +80,22 @@ var byWeapon={},ICO={'dp.tukhi':'s7','cg.vukhi':'s2','dan.tukhi':'o4'};
 WEAPONS.forEach(function(w){byWeapon[w.id]=w;ICO[w.id]=w.ico;MISC[w.id]={dec:WLS[w.tier]};BAG.sz[w.id]=3;});
 /* thú cưỡi: spd = nhân tốc độ khi chạy, fspd = khi bay (linh thú bay được, phàm thú chỉ chạy) */
 var MOUNTS=[{id:'mt.tuyet_van',el:'thuy',fly:true,spd:1.7,fspd:2.6,n:['Tuyết Vân Kỳ Lân','雪雲麒麟','雪云麒麟']}];
-var OUTFITS=[{id:'tb.tu_dien.h',part:'head',el:'kim',def:4,n:['Mũ Tử Điện','紫電戰盔','紫电战盔']},{id:'tb.tu_dien.o',part:'torso',el:'kim',def:5,n:['Giáp Tử Điện','紫電戰甲','紫电战甲']},{id:'tb.tu_dien.g',part:'boot',el:'kim',def:3,n:['Hài Tử Điện','紫電戰靴','紫电战靴']}];
-var SLOT={head:'h',torso:'o',boot:'g'};   /* bộ trang phục GPT #1 (outfit/) */
+var OUTFITS=[
+ {id:'tb.tu_dien.h',part:'head',set:'A',el:'kim',def:4,n:['Mũ Tử Điện','紫電戰盔','紫电战盔']},{id:'tb.tu_dien.o',part:'torso',set:'A',el:'kim',def:5,n:['Giáp Tử Điện','紫電戰甲','紫电战甲']},{id:'tb.tu_dien.g',part:'boot',set:'A',el:'kim',def:3,n:['Hài Tử Điện','紫電戰靴','紫电战靴']},
+ {id:'tb.xich_diem.h',part:'head',set:'B',el:'hoa',def:4,n:['Mũ Xích Diệm','赤焰戰盔','赤焰战盔']},{id:'tb.xich_diem.o',part:'torso',set:'B',el:'hoa',def:5,n:['Giáp Xích Diệm','赤焰戰甲','赤焰战甲']},{id:'tb.xich_diem.g',part:'boot',set:'B',el:'hoa',def:3,n:['Hài Xích Diệm','赤焰戰靴','赤焰战靴']},
+ {id:'nh.thuy',part:'ring',ic:0,el:'thuy',def:0,n:['Băng Hải Giới','冰海戒','冰海戒']},{id:'nh.hoa',part:'ring',ic:1,el:'hoa',def:0,n:['Xích Viêm Giới','赤炎戒','赤炎戒']},{id:'nh.kim',part:'ring',ic:2,el:'kim',def:0,n:['Kim Linh Giới','金靈戒','金灵戒']},{id:'nh.tho',part:'ring',ic:3,el:'tho',def:0,n:['Tử Địa Giới','紫地戒','紫地戒']},{id:'nh.moc',part:'ring',ic:4,el:'moc',def:0,n:['Thanh Mộc Giới','青木戒','青木戒']},
+ {id:'lq.hoang_diem',part:'aura',el:'hoa',def:0,n:['Linh Quang Hoàng Diễm','靈光皇焰','灵光皇焰']}
+];
+var SLOT={head:'h',torso:'o',boot:'g',ring:'r',aura:'l'};
+var PARTN={head:['mũ','盔','盔'],torso:['giáp','甲','甲'],boot:['hài','靴','靴'],ring:['nhẫn','戒指','戒指'],aura:['linh quang','靈光','灵光']};
+/* ---- chỉ số ngẫu nhiên (thức tỉnh): mỗi dòng = (chỉ số, giá trị 1-50). Hệ số quy đổi + màu theo giá trị ---- */
+var STATS=['atk','def','hp','spd','aspd','bag'];
+var STU={atk:1,def:1,hp:3,spd:.5,aspd:.5,bag:2};          /* hệ số: atk/def/hp cộng thẳng; spd/aspd = % ; bag = ô */
+var RAR=[{max:3,c:'#58d66a'},{max:6,c:'#4aa3ff'},{max:9,c:'#b36bff'},{max:12,c:'#ff9a2e'},{max:15,c:'#ffd93a'},{max:19,c:'#ff4a4a'},{max:50,c:'#16121c',edge:'#ff2a2a'}];
+var RARW=[40,26,16,9,5.5,3,.5];                              /* xác suất mỗi bậc — càng cao càng hiếm */
+function rarOf(v){for(var i=0;i<RAR.length;i++)if(v<=RAR[i].max)return i;return RAR.length-1;}
+function rollVal(){var r=Math.random()*100,i=0,acc=0;for(;i<RARW.length-1;i++){acc+=RARW[i];if(r<acc)break;}
+  var lo=i?RAR[i-1].max+1:1,hi=RAR[i].max;return i===6?lo+Math.floor(Math.pow(Math.random(),3)*(hi-lo+1)):lo+Math.floor(Math.random()*(hi-lo+1));}
 var byOutfit={};OUTFITS.forEach(function(o){byOutfit[o.id]=o;MISC[o.id]={dec:10};BAG.sz[o.id]=1;});
 var byMount={};MOUNTS.forEach(function(m){byMount[m.id]=m;MISC[m.id]={dec:0,keep:1};BAG.sz[m.id]=4;});
 /* công thức chế vũ khí: 6/8/12 vật liệu cùng hệ (quặng hoặc gỗ) + Linh Thạch. '@mat:hệ:bậc tối thiểu' = vật liệu bất kỳ của hệ đó */
@@ -181,6 +195,15 @@ var S=[ /* chuỗi giao diện mới: [vi, zh-Hant, zh-Hans] */
  ['ui.h1','Hạ yêu thú ngũ hành để thu nguyên liệu, rồi luyện hóa vào Linh Căn.','擊敗五行妖獸取得材料，再煉化入靈根。','击败五行妖兽取得材料，再炼化入灵根。'],
  ['ui.h2','Linh Căn đủ đầy mới thức tỉnh được; tu vi tăng dần theo thời gian.','靈根圓滿方可覺醒；修為隨時間增長。','灵根圆满方可觉醒；修为随时间增长。'],
  ['ui.h3','Đủ tu vi thì đột phá để lên tầng cảnh giới mới.','修為足夠即可突破，晉升新境界。','修为足够即可突破，晋升新境界。'],
+ ['toast.equip.g','Đã trang bị {name}','已裝備{name}','已装备{name}'],['toast.awk','Thức tỉnh: {line}','覺醒：{line}','觉醒：{line}'],['toast.awk.no','Chưa đủ nguyên liệu thức tỉnh','覺醒材料不足','觉醒材料不足'],['toast.awk.max','Đã mở hết dòng chỉ số','屬性已全部開啟','属性已全部开启'],
+ ['st.atk','Tấn công','攻擊','攻击'],['st.def','Phòng thủ','防禦','防御'],['st.hp','Khí huyết','氣血','气血'],['st.spd','Tốc chạy','移速','移速'],['st.aspd','Tốc đánh','攻速','攻速'],['st.bag','Sức chứa kho','倉庫容量','仓库容量'],
+ ['rar.0','Lục','綠','绿'],['rar.1','Lam','藍','蓝'],['rar.2','Tím','紫','紫'],['rar.3','Cam','橙','橙'],['rar.4','Vàng','金','金'],['rar.5','Đỏ','紅','红'],['rar.6','Huyền Bí','玄秘','玄秘'],
+ ['eq.title','Trang bị','裝備','装备'],['eq.base','Cơ bản','基礎','基础'],['eq.lines','Thức tỉnh {n}/{cap}','覺醒 {n}/{cap}','觉醒 {n}/{cap}'],['eq.empty','Chưa mở dòng nào','尚未開啟','尚未开启'],['eq.locked','（chưa mở）','（未開）','（未开）'],
+ ['eq.unequip','Tháo','卸下','卸下'],['eq.replace','Thay thế','更換','更换'],['eq.awake','Thức tỉnh','覺醒','觉醒'],['eq.awake.cost','Cần {lt} Linh Thạch + {n} nguyên liệu hệ {el} ({have} có)','需 {lt} 靈石 + {n} 個{el}系材料（現有 {have}）','需 {lt} 灵石 + {n} 个{el}系材料（现有 {have}）'],['eq.awake.full','Đã mở hết','已全開','已全开'],
+ ['eq.none','Không có món phù hợp trong kho','倉庫中沒有合適的','仓库中没有合适的'],['eq.pick','Chọn món để thay','選擇要更換的裝備','选择要更换的装备'],['eq.close','Đóng','關閉','关闭'],
+ ['eq.slot.head','Mũ','頭盔','头盔'],['eq.slot.body','Giáp','護甲','护甲'],['eq.slot.boot','Hài','靴子','靴子'],['eq.slot.wp','Vũ khí','武器','武器'],['eq.slot.ring','Nhẫn','戒指','戒指'],['eq.slot.aura','Linh quang','靈光','灵光'],['eq.slot.pet','Pet','寵物','宠物'],['eq.slot.mount','Linh thú','靈獸','灵兽'],
+ ['eq.pet.info','Linh thú đồng hành hệ {el}','同行靈寵，{el}系','同行灵宠，{el}系'],['eq.mount.info','Chạy ×{run} · Bay ×{fly} · hệ {el}','奔跑 ×{run} · 飛行 ×{fly} · {el}系','奔跑 ×{run} · 飞行 ×{fly} · {el}系'],['eq.ride','Cưỡi','騎乘','骑乘'],['eq.unride','Xuống','下騎','下骑'],
+ ['sx.run','Tốc chạy','移速','移速'],['sx.bagcap','Sức chứa kho','倉庫容量','仓库容量'],
  ['toast.equip.o','Đã mặc {name}: +{def} phòng thủ','已穿上{name}：防禦 +{def}','已穿上{name}：防御 +{def}'],['of.stat','Bộ Tử Điện · +{def} phòng thủ · hệ {el}','紫電套裝 · 防禦 +{def} · {el}系','紫电套装 · 防御 +{def} · {el}系'],
  ['cat.all','Tất cả','全部','全部'],
  ['cat.duoc','Linh dược','靈藥','灵药'],
@@ -316,14 +339,14 @@ WEAPONS.forEach(function(w){
   var e=EL.filter(function(x){return x.id===w.el;})[0];
   for(var k=0;k<3;k++){
     add[LG[k]]['item.'+w.id]=w.n[k];
-    add[LG[k]]['itemdesc.'+w.id]=[ '{name}: vũ khí {tier} hệ {el}. Trang bị: +{atk} sát thương mỗi đòn. Chế tạo bằng Cuộn Giản; rã: {ls} Linh Thạch.',
-      '{name}：{tier}，{el}系武器。裝備：每次攻擊傷害 +{atk}。以卷簡鍛造；分解：靈石 {ls}。','{name}：{tier}，{el}系武器。装备：每次攻击伤害 +{atk}。以卷简锻造；分解：灵石 {ls}。'][k]
+    add[LG[k]]['itemdesc.'+w.id]=[ '{name}: vũ khí {tier} hệ {el}. Cuộn Giản chỉ tạo ra hình dáng; chỉ số do Thức Tỉnh mở ngẫu nhiên. Rã: {ls} Linh Thạch.',
+      '{name}：{tier}，{el}系武器。卷簡只鍛造外形；屬性由覺醒隨機開啟。分解：靈石 {ls}。','{name}：{tier}，{el}系武器。卷简只锻造外形；属性由觉醒随机开启。分解：灵石 {ls}。'][k]
       .replace(/\{name\}/g,w.n[k]).replace(/\{tier\}/g,WTIER[w.tier-1][k]).replace(/\{el\}/g,e.n[k]).replace(/\{atk\}/g,w.atk).replace(/\{ls\}/g,WLS[w.tier]);
   }});
 OUTFITS.forEach(function(o){var e=EL.filter(function(x){return x.id===o.el;})[0];
   for(var k=0;k<3;k++){add[LG[k]]['item.'+o.id]=o.n[k];
-    add[LG[k]]['itemdesc.'+o.id]=['{name}: một món trong bộ Tử Điện (mũ · giáp · giày), hệ {el}. Mặc/tháo riêng từng món; +{def} phòng thủ. Gỡ ra là lộ lại nhân vật gốc; rã: 10 Linh Thạch.','{name}：紫電套裝之一（盔·甲·靴），{el}系。可單獨穿脫；防禦 +{def}。卸下即恢復原本角色；分解：靈石 10。','{name}：紫电套装之一（盔·甲·靴），{el}系。可单独穿脱；防御 +{def}。卸下即恢复原本角色；分解：灵石 10。'][k]
-      .replace(/\{name\}/g,o.n[k]).replace(/\{el\}/g,e.n[k]).replace(/\{def\}/g,o.def);}});
+    add[LG[k]]['itemdesc.'+o.id]=['{name}: {part} hệ {el}. Chỉ số ngẫu nhiên mở dần qua Thức Tỉnh (cần nguyên liệu). Mặc/tháo riêng từng món; rã: 10 Linh Thạch.','{name}：{el}系{part}。隨機屬性透過覺醒逐條開啟（需材料）。可單獨穿脫；分解：靈石 10。','{name}：{el}系{part}。随机属性通过觉醒逐条开启（需材料）。可单独穿脱；分解：灵石 10。'][k]
+      .replace(/\{name\}/g,o.n[k]).replace(/\{el\}/g,e.n[k]).replace(/\{part\}/g,PARTN[o.part][k]);}});
 MONS.forEach(function(m){for(var k=0;k<3;k++)add[LG[k]]['monster.'+m.id]=m.n[k];});
 MOUNTS.forEach(function(m){var e=EL.filter(function(x){return x.id===m.el;})[0];
   for(var k=0;k<3;k++){add[LG[k]]['item.'+m.id]=m.n[k];
@@ -332,5 +355,5 @@ MOUNTS.forEach(function(m){var e=EL.filter(function(x){return x.id===m.el;})[0];
       .replace(/\{name\}/g,m.n[k]).replace(/\{el\}/g,e.n[k]).replace(/\{run\}/g,String(m.spd).replace('.',k?'.':',')).replace(/\{fly\}/g,String(m.fspd).replace('.',k?'.':','));}});
 WTIER.forEach(function(t,i){for(var k=0;k<3;k++)add[LG[k]]['wtier.'+(i+1)]=t[k];});
 for(var k=0;k<3;k++)I18N.add(LG[k],add[LG[k]]);
-window.TTData={EL:EL,RES:RES,byItem:byItem,byId:byId,PEARL:PEARL,PCAP:PCAP,PFUSE:PFUSE,PT:PT,pearlId:pearlId,byPearl:byPearl,MONS:MONS,MOUNTS:MOUNTS,byMount:byMount,OUTFITS:OUTFITS,SLOT:SLOT,byOutfit:byOutfit,REALM:REALM,WEAPONS:WEAPONS,byWeapon:byWeapon,ICO:ICO,WTIER:WTIER,catOf:catOf,BAG:BAG,AFF:AFF,BASE:BASE,DAN:DAN,RECIPES:RECIPES,NEED:NEED,HITS:HITS,PTS:PTS,RESPAWN:300000,misc:MISC};
+window.TTData={EL:EL,RES:RES,byItem:byItem,byId:byId,PEARL:PEARL,PCAP:PCAP,PFUSE:PFUSE,PT:PT,pearlId:pearlId,byPearl:byPearl,MONS:MONS,MOUNTS:MOUNTS,byMount:byMount,OUTFITS:OUTFITS,SLOT:SLOT,STATS:STATS,STU:STU,RAR:RAR,rarOf:rarOf,rollVal:rollVal,PARTN:PARTN,byOutfit:byOutfit,REALM:REALM,WEAPONS:WEAPONS,byWeapon:byWeapon,ICO:ICO,WTIER:WTIER,catOf:catOf,BAG:BAG,AFF:AFF,BASE:BASE,DAN:DAN,RECIPES:RECIPES,NEED:NEED,HITS:HITS,PTS:PTS,RESPAWN:300000,misc:MISC};
 })();

@@ -61,9 +61,9 @@ function drawMounted(t){
   const atking=t-P.atkT<430;let row,fr;
   if(P.dead){row=NC.rows.hit;fr=1;}else if(atking){row=NC.rows.atk;fr=Math.min(7,Math.floor((t-P.atkT)/430*8));}
   else if(t-P.hurtT<260){row=NC.rows.hit;fr=(t-P.hurtT)<130?0:1;}else{row=NC.rows.idle;fr=ncIdle(t);}
-  ctx.save();ctx.translate(0,seatY+(NC.FEET-65)*PX);
+  ctx.save();ctx.translate(0,seatY+(NC.FEET-65)*PX);OF.aura(t,0);
   const sw=NC.W,sh=NC.H,sx=fr*sw,sy=row*sh,CUT=65,LX=34,RX=39;   /* bỏ chân phải ảnh (cột 21-25 = x34..38) */
-  const ofx=OF.on()&&IMG.outfit.complete;
+  const ofx=OF.on();
   if(ofx){OF.draw(row,fr,{cut:CUT});}else ctx.drawImage(IMG.player,sx,sy,sw,CUT,-NC.CX*PX,-NC.FEET*PX,sw*PX,CUT*PX);
   ctx.drawImage(IMG.player,sx,sy+CUT,LX,sh-CUT,-NC.CX*PX,(CUT-NC.FEET)*PX,LX*PX,(sh-CUT)*PX);
   ctx.drawImage(IMG.player,sx+RX,sy+CUT,sw-RX,sh-CUT,(RX-NC.CX)*PX,(CUT-NC.FEET)*PX,(sw-RX)*PX,(sh-CUT)*PX);

@@ -181,6 +181,14 @@ def ic_robe():
 def ic_belt():
     return pad(ascii_img(["wwwwwwwwww","wwwwwwwwww",".....ww...","....wwww..","....wwww.."][:3],{'w':'w'}),12,12)
 for n,f in [('sl_wp',icon_sword),('sl_ring',ic_ring),('sl_boot',icon_boot),('sl_head',ic_crown),('sl_body',ic_robe),('sl_belt',ic_belt)]: save(ghost(f),n)
+def ic_aura():
+    return pad(ascii_img([".....ww.....","....wwww....","..w..ww..w..",".w..wwww..w.","w..w....w..w","w.w......w.w","w.w......w.w","ww........ww",".w........w."],{'w':'w'}),12,12)
+def ic_paw():
+    return pad(ascii_img(["..w....w..",".www..www.",".www..www.","..w.ww.w..","....ww....","..wwwwww..",".wwwwwwww.",".www..www.","..w....w.."],{'w':'w'}),12,12)
+def ic_mount():
+    return pad(ascii_img(["....w.ww..","...wwwww..","..wwwwwww.","..wwwwwwww",".wwwwwwwww","wwwwww.www","www.ww.ww.",".w..w..w..","....w..w.."][:9],{'w':'w'}),12,12)
+for n,f in [('sl_aura',ic_aura),('sl_pet',ic_paw),('sl_mount',ic_mount)]: save(ghost(f),n)
+
 # ---- biểu tượng menu 16×16 ----
 def m_pouch():
     PAL={'o':'k0','P':'b0','L':'b1','d':'b0','g':'g1','G':'g3','r':'r1'}
