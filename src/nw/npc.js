@@ -15,13 +15,13 @@ const NPCS=[];
 function npcMk(i){
   const a=Math.random()*6.283,r=30+Math.random()*60;
   return{i,x:NPC_PLAZA[0]+Math.cos(a)*r,y:NPC_PLAZA[1]+Math.sin(a)*r,f:1,rl:1+Math.floor(Math.random()*3),qi:0,lt:20+Math.floor(Math.random()*120),
-    inv:{},eq:{w:null,h:null,o:null,g:null,r:null,l:null,p:null},hp:100,mhp:100,st:'idle',t0:0,tgt:null,atkT:-999,mv:false,ph:Math.random()*4000,say:null,sayT:0,want:6+Math.floor(Math.random()*5),cdA:0};
+    inv:{},eq:{w:null,h:null,o:null,g:null,r:null,l:null,p:null},hp:100,mhp:100,st:'idle',t0:0,tgt:null,atkT:-999,mv:false,ph:Math.random()*4000,say:null,sayT:0,want:6+Math.floor(Math.random()*5),cdA:0,kills:0};
 }
-function npcSave(){try{localStorage.setItem(NPC_KEY,JSON.stringify({ts:Date.now(),n:NPCS.map(n=>({rl:n.rl,qi:n.qi,lt:n.lt,eq:n.eq,inv:n.inv}))}));}catch(e){}}
+function npcSave(){try{localStorage.setItem(NPC_KEY,JSON.stringify({ts:Date.now(),n:NPCS.map(n=>({rl:n.rl,qi:n.qi,lt:n.lt,eq:n.eq,inv:n.inv,kills:n.kills|0}))}));}catch(e){}}
 function npcLoad(){
   let d=null;try{d=JSON.parse(localStorage.getItem(NPC_KEY)||'null');}catch(e){}
   for(let i=0;i<NPC_NAMES.length;i++){const n=npcMk(i);NPCS.push(n);
-    const s=d&&d.n&&d.n[i];if(s){n.rl=Math.max(1,Math.min(TD.REALM.max,s.rl|0||1));n.qi=+s.qi||0;n.lt=+s.lt||0;n.inv=s.inv&&typeof s.inv==='object'?s.inv:{};
+    const s=d&&d.n&&d.n[i];if(s){n.rl=Math.max(1,Math.min(TD.REALM.max,s.rl|0||1));n.qi=+s.qi||0;n.lt=+s.lt||0;n.inv=s.inv&&typeof s.inv==='object'?s.inv:{};n.kills=Math.max(0,s.kills|0);
       for(const k in n.eq)n.eq[k]=(s.eq&&NPC_GEAR.some(g=>g.id===s.eq[k]))?s.eq[k]:null;}
     else{n.eq.h=null;}
     if(d&&d.ts)npcOffline(n,Math.min(8*3600,(Date.now()-d.ts)/1000));}
@@ -90,7 +90,7 @@ function npcStep(n,dt,t){
        const dmg=Math.round((7+Math.floor(Math.random()*6)+npcPow(n))*Math.pow(TD.REALM.mul,n.rl-1));
        m.hp=Math.max(0,m.hp-dmg);m.flash=.12;floaters.push({x:m.x,y:m.y-m.d.sc*38,t0:t,s:String(dmg),c:'#9fd8ff'});
        n.hp-=(3+Math.random()*7)*Math.max(.35,1-npcDef(n)*.04);
-       if(m.hp<=0){m.st='die';m.t0=t;m.sk=null;m.dieMs=m.d.die?m.d.die.length*260+500:1000;n.lt+=12+Math.floor(Math.random()*10);n.qi+=25;
+       if(m.hp<=0){m.st='die';m.t0=t;m.sk=null;m.dieMs=m.d.die?m.d.die.length*260+500:1000;n.lt+=12+Math.floor(Math.random()*10);n.qi+=25;n.kills++;
          npcSay(n,T('npc.kill'));n.st='idle';n.t0=t;}
        if(n.hp<n.mhp*.3){n.st='rest';n.t0=t;}}
      break;}
@@ -124,4 +124,7 @@ function drawNpc(n,t){
     ctx.fillStyle='#07060ccc';ctx.fillRect(x-w/2,by-7,w,10);ctx.fillStyle='#ffe9b0';ctx.fillText(n.say,x,by);}
   ctx.restore();
 }
+/* dữ liệu cho bảng xếp hạng: NPC là người chơi có tiến trình thật (đang chạy trên máy này) */
+function npcTotalQi(n){let s=0;for(let l=1;l<n.rl;l++)s+=npcNeed(l);return Math.round(s+n.qi);}
+function npcRank(){return NPCS.map(n=>({name:NPC_NAMES[n.i][npcLang()],pid:'NPC-0'+(n.i+1),realm:n.rl,qi_total:npcTotalQi(n),kills:n.kills|0,npc:1}));}
 npcLoad();

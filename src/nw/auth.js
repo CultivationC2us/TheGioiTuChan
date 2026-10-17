@@ -120,6 +120,26 @@ function fetchSave(){
   },function(){return{ok:false,net:true};});
 }
 
+/* ---------- BẢNG XẾP HẠNG (public.leaderboard + lb_history, xem supabase_leaderboard.sql) ---------- */
+var lbOff=false,lbLast='';
+function pubId(){return S?'TC-'+String(S.uid).replace(/-/g,'').slice(0,6).toUpperCase():'';}
+function pushRank(keep){
+  if(!S||lbOff||!G.rankStat)return;var r=G.rankStat(),j=r.realm+'|'+r.qi_total+'|'+r.kills;if(j===lbLast)return;
+  req('/rest/v1/leaderboard?on_conflict=user_id','POST',{user_id:S.uid,name:S.name,pid:pubId(),realm:r.realm,qi_total:r.qi_total,kills:r.kills},S.at,keep,'resolution=merge-duplicates,return=minimal')
+    .then(function(x){if(x.ok)lbLast=j;else if(x.status===404||x.status===400&&/relation|schema cache|leaderboard/i.test(rawErr(x)))lbOff=true;},function(){});
+}
+window.TTRank={
+  me:function(){return S?{name:S.name,pid:pubId()}:null;},
+  fetch:function(order,cb){
+    if(lbOff)return cb({off:1});
+    req('/rest/v1/leaderboard?select=name,pid,realm,qi_total,kills,score&order='+order+'.desc,updated_at.desc&limit=100','GET',null,S&&S.at).then(function(r){
+      if(r.ok&&Array.isArray(r.j))cb({rows:r.j});
+      else{if(r.status===404||/relation|schema cache|leaderboard/i.test(rawErr(r)))lbOff=true;cb({off:1});}
+    },function(){cb({off:1,net:1});});
+  },
+  push:pushRank
+};
+
 /* ---------- đẩy save lên ---------- */
 var lastSt=null;
 function status(k,p,bad){lastSt=[k,p,bad];var e=$('accS');if(e){e.textContent=I18N.t(k,p);e.style.color=bad?'#ffb0a0':'#bfe6ff';}}
@@ -136,7 +156,7 @@ function push(keep,force){
     return req('/rest/v1/saves?on_conflict=user_id','POST',{user_id:S.uid,version:SAVE_V,data:d,updated_at:new Date().toISOString()},S.at,keep,'resolution=merge-duplicates,return=minimal')
       .then(function(r){
         pushing=false;
-        if(r.ok){lastJson=j;lastOk=Date.now();status('st.saved',{t:hh()});}
+        if(r.ok){lastJson=j;lastOk=Date.now();status('st.saved',{t:hh()});pushRank(keep);}
         else status('st.saverr',{m:rawErr(r).slice(0,40)},1);
       },function(){pushing=false;status('st.offline',null,1);});
   });

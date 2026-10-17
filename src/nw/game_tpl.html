@@ -205,8 +205,9 @@ function iconCanvas(item,scale){const g=TD.byItem[item];let img,f;
 
 /* ---------- THỦY LONG ---------- */
 const DR={W:90,H:77,ax:49,ay:72,mouth:[79,45],idx:{{DRIDX}}};  /* quái vẽ theo lưới pixel gốc (1px = DPX đơn vị) */
-const HOME={x:LAKE.x*TILE+8,y:LAKE.y*TILE+8};
-const M={x:HOME.x,y:HOME.y,f:-1,hp:90,maxHp:90,st:'sub',t0:0,cd1:0,cd2:0,tele:null,beam:null,hold:1500,seen:false,dead:0,flash:0,kx:0,fired:false,surgeHit:false,deadAt:0};
+let HOME={x:LAKE.x*TILE+8,y:LAKE.y*TILE+8};
+const M0={x:HOME.x,y:HOME.y,f:-1,hp:90,maxHp:90,st:'sub',t0:0,cd1:0,cd2:0,tele:null,beam:null,hold:1500,seen:false,dead:0,flash:0,kx:0,fired:false,surgeHit:false,deadAt:0};
+let M=M0;
 const SURF=new Set(['rise','idle','swim','wind','fire','recover','hurt','surge']);
 function mTargetable(){const e=now()-M.t0;if(M.st==='rise')return e>380;if(M.st==='surge')return e>250;return SURF.has(M.st);}
 function setSt(s){M.st=s;M.t0=now();M.fired=false;M.surgeHit=false;}
@@ -287,15 +288,28 @@ function mUpdate(dt){const t=now(),e=t-M.t0,dist=Math.hypot(P.x-M.x,P.y-M.y);
     break;}
   case'hurt':{if(e>360){setSt(M.prev||'idle');if(M.st==='wind'||M.st==='fire')setSt('idle');M.hold=500;}break;}
   case'die':{if(e>1900){setSt('dead');M.deadAt=t;
-      drops.push({x:M.x,y:M.y-6,t0:t,n:'Thủy Long Châu'});}
+      if(Math.random()<.5)drops.push({x:M.x,y:M.y-6,t0:t,n:'Thủy Long Châu'});}
     break;}
-  case'dead':{if(t-M.deadAt>25000){M.hp=M.maxHp;M.x=HOME.x;M.y=HOME.y;setSt('sub');}break;}
+  case'dead':{if(t-M.deadAt>8000){M.hp=M.maxHp;M.x=HOME.x;M.y=HOME.y;setSt('sub');}break;}
   }
 }
 function mHit(d){if(!mTargetable()||M.st==='die')return;M.hp=Math.max(0,M.hp-d);M.flash=.14;
   floaters.push({x:M.x,y:M.y-44,t0:now(),s:String(d),c:'#fff'});addSplash(M.x,M.y-18,6);
   if(M.hp<=0){stats.kills++;tameRoll('thuylong');setSt('die');addSplash(M.x,M.y,30);toast(T('toast.kill'));return;}
   if(M.st==='idle'||M.st==='swim'||M.st==='recover'||M.st==='rise'){M.prev=M.st==='rise'?'idle':M.st;setSt('hurt');}}
+
+/* ---- Thủy Long: một đàn rải khắp dòng sông (mỗi con có hang riêng; hàm dùng chung M/HOME nên hoán đổi tạm qua withDr) ---- */
+const DRG=[M0];M0.home=HOME;M0.dr=1;
+function withDr(d,fn){const sm=M,sh=HOME;M=d;HOME=d.home;try{return fn();}finally{M=sm;HOME=sh;}}
+(function(){
+  const wt=(x,y)=>x>=0&&y>=0&&x<MW&&y<MH&&tiles[y][x]===W,cand=[];
+  for(let y=4;y<MH-4;y++)for(let x=4;x<MW-4;x++)if(wt(x,y)&&wt(x-1,y)&&wt(x+1,y)&&wt(x,y-1)&&wt(x,y+1)&&Math.hypot(x-SPAWN.x,y-SPAWN.y)>16)cand.push([x,y,hash(x*3+1,y*7+5)]);
+  cand.sort((a,b)=>a[2]-b[2]);
+  const pick=[[LAKE.x,LAKE.y]];
+  for(const md of[17,13,10,8,6]){for(const c of cand){if(pick.length>=10)break;if(pick.every(p=>Math.hypot(p[0]-c[0],p[1]-c[1])>=md))pick.push(c);}if(pick.length>=10)break;}
+  for(let i=1;i<pick.length;i++){const x=pick[i][0]*TILE+8,y=pick[i][1]*TILE+8;
+    DRG.push({x,y,f:-1,hp:90,maxHp:90,st:'sub',t0:0,cd1:0,cd2:0,tele:null,beam:null,hold:1500+i*300,seen:false,dead:0,flash:0,kx:0,fired:false,surgeHit:false,deadAt:0,home:{x,y},dr:1});}
+})();
 
 {{MON_JS}}
 {{OF_JS}}
@@ -337,8 +351,8 @@ function update(dt){
     // đòn đánh: chém tay không, trúng ở khung 5/8
     if(!P.hitDone&&t-P.atkT>=270){P.hitDone=true;
       let hitM=false;
-      if(mTargetable()&&M.st!=='die'){const cx=M.x,cy=M.y-18,dx=(cx-P.x)*P.f,dy=cy-(P.y-6);
-        if(dx>-10&&Math.hypot(cx-P.x,cy-(P.y-6))<54){mHit(dmgRoll());hitM=true;}}
+      for(const d of DRG){if(hitM)break;withDr(d,()=>{if(mTargetable()&&M.st!=='die'){const cx=M.x,cy=M.y-18,dx=(cx-P.x)*P.f,dy=cy-(P.y-6);
+        if(dx>-10&&Math.hypot(cx-P.x,cy-(P.y-6))<54){mHit(dmgRoll());hitM=true;}}});}
       if(!hitM)hitM=hitMons2(dmgRoll());
       if(!hitM)harvest(t);
 }
@@ -348,7 +362,7 @@ function update(dt){
   if(cult.eq.p!=='bach_khuyen'){dog.x=P.x-18;dog.y=P.y+4;dog.run=false;}else {const tx=P.x-P.f*20,ty=P.y+3,dx=tx-dog.x,dy=ty-dog.y,d=Math.hypot(dx,dy);
     if(d>14){const sp=Math.min(d*3.2,92)*dt;dog.x+=dx/d*sp;dog.y+=dy/d*sp;dog.rt=t;}
     dog.run=t-dog.rt<170;if(Math.abs(dx)>6)dog.f=dx>0?1:-1;if(d>260){dog.x=P.x;dog.y=P.y;}}
-  mtTick(dt,t);mUpdate(dt);respawnTick(t);
+  mtTick(dt,t);for(const d of DRG)withDr(d,()=>mUpdate(dt));respawnTick(t);
   mon2Update(dt,t);
   npcUpdate(dt,t);
   qiTick(dt);   /* tu luyện thường: mọi lúc mọi nơi (kể cả khi chết); xem mon2.js */
@@ -490,11 +504,12 @@ function drawWorld(t,hw,hh,ph){   /* ph=0: mặt đất · ph=1: vật thể (t�
   for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++)tileDeco(tiles[y][x],x,y,tm);return;}
   drawWorldFx(t);drawDrops(t);drawAutoRing(t);
   // xếp theo y: quái, người, chó
-  const L=[{y:M.y,f:()=>drawMonster(t)},{y:P.y+(P.fly?5000:0),f:()=>drawPlayer(t)},{y:dog.y,f:()=>{if(cult.eq.p==='bach_khuyen')drawDog(t);}}];
+  const L=[{y:P.y+(P.fly?5000:0),f:()=>drawPlayer(t)},{y:dog.y,f:()=>{if(cult.eq.p==='bach_khuyen')drawDog(t);}}];
   {const rcx=Math.ceil(hw/TILE/4)+1,rcy=Math.ceil(hh/TILE/4)+1,ccx=cam.x/TILE>>2,ccy=cam.y/TILE>>2;
    for(let i=-rcx;i<=rcx;i++)for(let j=-rcy;j<=rcy;j++){const a=nodeCell.get((ccx+i)+','+(ccy+j));if(!a)continue;
     for(const n of a)if(Math.abs(n.x-cam.x)<hw+30&&Math.abs(n.y-cam.y)<hh+30)L.push({y:n.y,f:()=>drawNode(n,t)});}}
   for(const m of mons2)if(m.st!=='dead'&&Math.abs(m.x-cam.x)<hw+90&&Math.abs(m.y-cam.y)<hh+90)L.push({y:m.y,f:()=>drawMon2(m,t)});
+  for(const d of DRG)if(Math.abs(d.x-cam.x)<hw+140&&Math.abs(d.y-cam.y)<hh+140)L.push({y:d.y,f:()=>withDr(d,()=>drawMonster(t))});
   for(const o of petObjs)L.push({y:o.y,f:()=>drawPet(o,t)});
   for(const n of NPCS)if(Math.abs(n.x-cam.x)<hw+60&&Math.abs(n.y-cam.y)<hh+60)L.push({y:n.y,f:()=>drawNpc(n,t)});
   L.sort((a,b)=>a.y-b.y);
@@ -515,15 +530,16 @@ function draw(){
   ctx.globalAlpha=1;
   // HUD
   document.querySelector('#hp i').style.width=(P.hp/P.maxHp*100)+'%';
-  const show=(M.st!=='sub'&&M.st!=='tele'&&M.st!=='dead'&&M.st!=='die')?1:0;
+  let bm=null,bq=1e9;for(const d of DRG){if(d.st==='sub'||d.st==='tele'||d.st==='dead'||d.st==='die')continue;const q=Math.hypot(d.x-P.x,d.y-P.y);if(q<bq){bq=q;bm=d;}}
+  const show=bm?1:0;
   document.getElementById('mon').style.opacity=show;document.getElementById('monN').style.opacity=show;
-  document.querySelector('#mon i').style.width=(M.hp/M.maxHp*100)+'%';
+  document.querySelector('#mon i').style.width=(bm?bm.hp/bm.maxHp*100:0)+'%';
 }
 let last=performance.now();
 function loop(n){const dt=Math.min(.05,(n-last)/1000);last=n;if(window.__pause){requestAnimationFrame(loop);return;}try{update(dt);draw();}catch(e){window.dispatchEvent(new ErrorEvent('error',{message:e.message,lineno:0}));return;}requestAnimationFrame(loop);}
 requestAnimationFrame(loop);
 function dogIcon(s){const c=document.createElement('canvas');c.width=26*s/3|0||26;c.height=24*s/3|0||24;const x=c.getContext('2d');x.imageSmoothingEnabled=true;if(IMG.dog&&IMG.dog.complete)x.drawImage(IMG.dog,0,0,64,59,0,0,c.width,c.height);return c;}
-window.G={NPCS,npcShop,dogIcon,GS,setEq,awakenGear,awakeCost,gearRec,gearBase,lineText,saveEq,loadEq,atkCd,regIns,mkGear,baseId,OF,rideToggle,dismount,flyToggle,dashGo,MTM,P,M,dog,fx:()=>fxs,drops,update,draw,tiles,cam,now,attack,setSt,mHit,DR,loot,SPAWN,LAKE,HOME,toast,keys,joy,lootUI,stats,cult,nodes,IMG,redeem,breakthrough,craft,ingHave,equipToggle,wAtk,bagUsed,bagFree,itemSize,defVal,BAG:()=>({cap:TD.BAG.cap+(cult.bc|0)+GS.bag}),craftMax,realmNeed,realmMul,qiRate,respawnQ,S:STT,recalc,pearlInfo,swallow,fuse,mons2,MD,petObjs,PETS,addPet,setPets,tameRoll,AUTO,setAuto,monHit,fx2,projs,setTameP:v=>{TAME_P=v;},useItem,decompose,dropItem,itemInfo,RES:TD.RES,TD,RMETA,harvest,refineEl,awaken,canAwake,iconCanvas,nodesNear};
+window.G={rankStat,npcRank,DRG,withDr,NPCS,npcShop,dogIcon,GS,setEq,awakenGear,awakeCost,gearRec,gearBase,lineText,saveEq,loadEq,atkCd,regIns,mkGear,baseId,OF,rideToggle,dismount,flyToggle,dashGo,MTM,P,M:M0,dog,fx:()=>fxs,drops,update,draw,tiles,cam,now,attack,setSt,mHit,DR,loot,SPAWN,LAKE,HOME,toast,keys,joy,lootUI,stats,cult,nodes,IMG,redeem,breakthrough,craft,ingHave,equipToggle,wAtk,bagUsed,bagFree,itemSize,defVal,BAG:()=>({cap:TD.BAG.cap+(cult.bc|0)+GS.bag}),craftMax,realmNeed,realmMul,qiRate,respawnQ,S:STT,recalc,pearlInfo,swallow,fuse,mons2,MD,petObjs,PETS,addPet,setPets,tameRoll,AUTO,setAuto,monHit,fx2,projs,setTameP:v=>{TAME_P=v;},useItem,decompose,dropItem,itemInfo,RES:TD.RES,TD,RMETA,harvest,refineEl,awaken,canAwake,iconCanvas,nodesNear};
 toast(T('toast.welcome'));
 })();
 </script>

@@ -28,6 +28,7 @@ function qiTick(dt){
   if(!cult.dpg&&!(loot['dp.tukhi']>0)){loot['dp.tukhi']=1;loot['cg.tuyet_van']=Math.max(1,loot['cg.tuyet_van']|0);cult.dpg=true;lootUI();}   /* tặng đan phương đầu tiên (1 lần) */
   if(!cult.aw||cult.rl>=TD.REALM.max)return;const nd=realmNeed(cult.rl);if(cult.qi<nd)cult.qi=Math.min(nd,cult.qi+dt*qiRate());
 }
+function rankStat(){let s=0;for(let l=1;l<cult.rl;l++)s+=realmNeed(l);return{realm:cult.rl|0,qi_total:Math.round(s+(cult.aw?cult.qi:0)),kills:stats.kills|0};}
 function breakthrough(){
   if(!cult.aw||cult.rl>=TD.REALM.max||cult.qi<realmNeed(cult.rl)){toast(T('toast.nobreak'));return false;}
   cult.qi-=realmNeed(cult.rl);cult.rl++;recalc();P.hp=P.maxHp;
@@ -252,7 +253,7 @@ for(const id in MD){const d=MD[id];
     mons2.push({id,d,x:h.x,y:h.y,hx:h.x,hy:h.y,f:i%2?1:-1,hp:mh,maxHp:mh,st:'idle',t0:0,cd:[0,0],sk:null,flash:0,hold:i*150,deadAt:0,dieMs:900,tx:0,ty:0});}}
 function packSpot(m){for(let k=0;k<12;k++){const a=Math.random()*6.283,r=14+Math.random()*50,x=m.hx+Math.cos(a)*r,y=m.hy+Math.sin(a)*r;
   if(!isWater(x,y)&&!isWater(x,y+8)&&tiles[y/TILE|0]&&[G,D,R].includes(tiles[y/TILE|0][x/TILE|0]))return{x,y};}return{x:m.hx,y:m.hy};}
-const monAlive=m=>m===M?(mTargetable()&&M.st!=='die'):(m.st!=='dead'&&m.st!=='die');
+const monAlive=m=>m.dr?withDr(m,()=>mTargetable()&&M.st!=='die'):(m.st!=='dead'&&m.st!=='die');
 const pearlOf=el=>TD.pearlId(el,1);
 
 /* ---------- THUẦN HÓA · LINH THÚ ---------- */
@@ -272,7 +273,7 @@ function petsUpdate(dt,t){
     if(tg&&t>o.cd&&Math.hypot(tg.x-o.x,tg.y-o.y)<60){
       o.cd=t+1100;const dmg=4+Math.floor(STT.dmg/2),el=(TD.MONS.find(m=>m.id===o.id)||{}).el;
       fx2.push({k:'bolt',x0:o.x,y0:o.y-8,x1:tg.x,y1:tg.y-16,t0:t,dur:200,col:TD.PEARL[el].col});
-      if(tg===M)mHit(dmg);else monHit(tg,dmg);
+      monHit(tg,dmg);
     }
     if(d>320){o.x=P.x;o.y=P.y;}
   });
@@ -334,7 +335,7 @@ function stepMon(m,dt,t){
   }
 }
 function monHit(m,dmg){
-  if(m===M){mHit(dmg);return;}
+  if(m.dr){withDr(m,()=>mHit(dmg));return;}
   if(!monAlive(m))return;const t=now();
   m.hp=Math.max(0,m.hp-dmg);m.flash=.12;floaters.push({x:m.x,y:m.y-m.d.sc*38,t0:t,s:String(dmg),c:'#fff'});
   if(m.st==='idle'||m.st==='return'){m.st='chase';m.t0=t;m.hold=t;}
@@ -425,7 +426,7 @@ function pickTarget(t){
   const inR=(x,y)=>Math.hypot(x-AUTO.ax,y-AUTO.ay)<=AUTO.R;let best=null,bd=1e9;
   for(const d of drops){if(d.exp||!inR(d.x,d.y))continue;const dd=Math.hypot(d.x-P.x,d.y-P.y);if(dd<bd){bd=dd;best={k:'drop',ref:d,x:d.x,y:d.y,reach:5};}}
   if(best)return best;
-  for(const m of mons2.concat([M])){if(!monAlive(m)||!inR(m.x,m.y))continue;const dd=Math.hypot(m.x-P.x,m.y-P.y);if(dd<bd){bd=dd;best={k:'mon',ref:m,x:m.x,y:m.y-14,reach:38};}}
+  for(const m of mons2.concat(DRG)){if(!monAlive(m)||!inR(m.x,m.y))continue;const dd=Math.hypot(m.x-P.x,m.y-P.y);if(dd<bd){bd=dd;best={k:'mon',ref:m,x:m.x,y:m.y-14,reach:38};}}
   if(best)return best;
   for(const n of nodesNear(AUTO.ax,AUTO.ay,Math.ceil(AUTO.R/64)+1)){if(n.gone||!inR(n.x,n.y))continue;const dd=Math.hypot(n.x-P.x,n.y-P.y);if(dd<bd){bd=dd;best={k:'node',ref:n,x:n.x,y:n.y-6,reach:24};}}
   return best;

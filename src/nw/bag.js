@@ -168,6 +168,52 @@ pTu.bd.innerHTML='<div class="sc"><div id="tuScene"></div><div id="bagR" class="
 pCh.bd.innerHTML='<div class="sc"><div class="parch" id="chTop"></div><div class="card" id="chStats"><div id="bagS"></div></div></div>';
 $('tuScene').appendChild(uimg('tu_scene'));
 
+/* ----- Bảng xếp hạng ----- */
+var pRk=mkPanel('rkPan','rank.title','rkX');
+pRk.bd.innerHTML='<div id="rkTabs"></div><div id="rkList"></div><div id="rkHint"></div>';
+var rkTab=0,rkT=0,rkSeq=0;
+var rkCss=document.createElement('style');rkCss.textContent=
+'#rkTabs{display:flex;gap:4px;margin-bottom:6px}#rkTabs button{flex:1;height:28px;font-size:11px;font-weight:900;color:#9fb6d6;background:#0d1628;border:2px solid #27456f;cursor:pointer;padding:0}'+
+'#rkTabs button.on{color:#3a2208;background:#e8bb48;border-color:#ffe9a8}'+
+'#rkList{max-height:calc(100% - 64px);overflow-y:auto;-webkit-overflow-scrolling:touch}'+
+'#rkList .rw{display:flex;align-items:center;gap:8px;padding:5px 6px;border-top:2px solid #1b3052;font-size:12px;color:#dbe8fa}'+
+'#rkList .rw.me{background:#1c3358;outline:2px solid #e8bb48;outline-offset:-2px;position:sticky;top:0;bottom:0;z-index:2}'+
+'#rkList .rn{width:26px;flex:none;text-align:center;font-weight:900;font-size:13px;color:#7f93b3}'+
+'#rkList .r1 .rn{color:#ffd54a}#rkList .r2 .rn{color:#d9dee8}#rkList .r3 .rn{color:#e08a4a}'+
+'#rkList .nm{flex:1;min-width:0;font-weight:800;line-height:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}'+
+'#rkList .nm small{display:block;font-size:9px;font-weight:700;color:#6f86a8}#rkList .rw.np .nm{color:#9fe3ff}'+
+'#rkList .tg{display:inline-block;font-size:8px;font-weight:900;padding:0 3px;margin-left:4px;border:1px solid currentColor;vertical-align:middle}'+
+'#rkList .vl{text-align:right;line-height:14px;font-weight:900;color:#fff;white-space:nowrap}#rkList .vl small{display:block;font-size:9px;color:#8fb0d6;font-weight:700}'+
+'#rkHint{font-size:9px;color:#6f86a8;text-align:center;margin-top:6px;line-height:12px}#rkList .msg{padding:14px 6px;text-align:center;font-size:11px;color:#9fb6d6;line-height:15px}';
+document.head.appendChild(rkCss);
+function rkVal(r,t){return t===1?r.qi_total:t===2?r.kills:(r.qi_total+r.kills*10);}
+function renderRank(rows,off){
+  var L=$('rkList'),tabs=$('rkTabs');
+  if(!tabs.firstChild){['rank.t0','rank.t1','rank.t2'].forEach(function(k,i){var b=document.createElement('button');b.type='button';b.setAttribute('data-t',i);b.onclick=function(){rkTab=i;loadRank();};tabs.appendChild(b);});}
+  Array.prototype.forEach.call(tabs.children,function(b,i){b.textContent=T('rank.t'+i);b.className=i===rkTab?'on':'';});
+  $('rkHint').textContent=T('rank.hint');
+  if(!rows){L.innerHTML='<div class="msg">'+esc(T('rank.load'))+'</div>';return;}
+  var me=window.TTRank&&TTRank.me(),st=G.rankStat(),all=rows.slice();
+  all=all.filter(function(r){return !(me&&r.pid===me.pid);});
+  if(me)all.push({name:me.name,pid:me.pid,realm:st.realm,qi_total:st.qi_total,kills:st.kills,me:1});
+  G.npcRank().forEach(function(n){all.push(n);});
+  all.sort(function(a,b){return rkVal(b,rkTab)-rkVal(a,rkTab)||b.realm-a.realm;});
+  var h=off?'<div class="msg">'+esc(T('rank.off'))+'</div>':'';
+  all.slice(0,100).forEach(function(r,i){
+    h+='<div class="rw r'+(i+1)+(r.me?' me':'')+(r.npc?' np':'')+'"><div class="rn">'+(i+1)+'</div><div class="nm">'+esc(r.name)+(r.me?'<span class="tg" style="color:#ffd54a">'+esc(T('rank.me'))+'</span>':'')+(r.npc?'<span class="tg" style="color:#7be0c6">'+esc(T('rank.npc'))+'</span>':'')+'<small>ID '+esc(r.pid||'')+'</small></div>'+
+      '<div class="vl">'+rkVal(r,rkTab)+'<small>'+esc(T('rank.rl',{n:r.realm})+' · '+T('rank.k',{n:r.kills}))+'</small></div></div>';});
+  L.innerHTML=h||'<div class="msg">'+esc(T('rank.empty'))+'</div>';
+}
+function loadRank(){
+  var seq=++rkSeq;renderRank(null);
+  var order=['score','qi_total','kills'][rkTab];
+  if(!window.TTRank){renderRank([],1);return;}
+  TTRank.fetch(order,function(r){if(seq!==rkSeq||pRk.el.style.display!=='flex')return;renderRank(r.rows||[],!!r.off);});
+}
+function openRank(){closeAll();pRk.el.style.display='flex';fit(pRk);loadRank();clearInterval(rkT);
+  rkT=setInterval(function(){if(pRk.el.style.display!=='flex'){clearInterval(rkT);return;}if(window.TTRank)TTRank.fetch(['score','qi_total','kills'][rkTab],function(r){if(pRk.el.style.display==='flex')renderRank(r.rows||[],!!r.off);});},20000);}
+I18N.on(function(){if(pRk.el.style.display==='flex')loadRank();});
+
 /* nút túi cũ (ẩn, cầu nối với HUD/test) */
 var btn=document.createElement('button');btn.id='bagBtn';btn.type='button';btn.setAttribute('aria-label',I18N.t('bag.title'));
 btn.appendChild(pouch(3));var cnt=document.createElement('span');cnt.className='cnt';cnt.style.display='none';btn.appendChild(cnt);document.body.appendChild(btn);
@@ -467,5 +513,5 @@ I18N.apply(document.body);
 /* cầu nối cho test cũ: #tabT/#tabR/#tabS (ẩn) */
 ['T','R','S'].forEach(function(t){var b=document.createElement('button');b.id='tab'+t;b.type='button';b.style.display='none';b.onclick=function(){show(t);};document.body.appendChild(b);});
 I18N.on(function(){btn.setAttribute('aria-label',I18N.t('bag.title'));for(var k in panels)I18N.apply(panels[k].el);lastKeys='';rootSig='';refresh();});
-window.TTBag={show:function(v){var ab=document.getElementById('autoBtn');if(ab)ab.style.display=v?'block':'none';btn.style.display=v?'flex':'none';if(!v)closeAll();else updBadge();},open:open,close:closeAll,openTab:function(t){show(t);},select:function(n){sel=n;}};
+window.TTBag={openRank:openRank,show:function(v){var ab=document.getElementById('autoBtn');if(ab)ab.style.display=v?'block':'none';btn.style.display=v?'flex':'none';if(!v)closeAll();else updBadge();},open:open,close:closeAll,openTab:function(t){show(t);},select:function(n){sel=n;}};
 })();
