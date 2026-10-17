@@ -203,7 +203,7 @@ function showAuth(msg){
   $('aErr').textContent=msg?I18N.t(msg):'';busy=false;$('aGo').disabled=false;
 }
 function enter(){
-  ov.style.display='none';acc.style.display='block';if(window.TTBag)TTBag.show(true);if(window.TTSet)TTSet.show(true);$('accN').textContent=S.name;status('st.loaded');
+  ov.style.display='none';acc.style.display='block';if(window.TTBag)TTBag.show(true);if(window.TTSet)TTSet.show(true);$('accN').textContent=S.name;G.pname=S.name;status('st.loaded');
   window.__pause=false;
   clearInterval(timer);timer=setInterval(function(){push(false,false);},10000);
 }

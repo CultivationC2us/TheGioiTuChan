@@ -43,6 +43,7 @@ function mtFrame(t){
 function mDraw(name,x,y,sc,al){const F=MTM[name];if(!F)return;if(al!==undefined)ctx.globalAlpha=al;ctx.drawImage(IMG.mnt,F[0],F[1],F[2],F[3],x,y,F[2]*PX*sc,F[3]*PX*sc);ctx.globalAlpha=1;}
 const MS=1.25;   /* thú cưỡi to ~2,5–3,5 lần nhân vật */
 const MT_SEAT_DY=1.5, MT_FRONT=6, MT_CHIN=9;   /* hông lún nhẹ vào đệm yên (px) · phần thú đè lên người bắt đầu từ trước tâm yên (px) */
+function mtLift(t){const F=MTM[mtFrame(t)];return F?(F[6]-F[5])*PX*MS-MT_SEAT_DY*PX-(NC.FEET-65)*PX:0;}   /* rider cao hơn mặt đất bao nhiêu (để kiếm khí, tên khớp) */
 function drawMounted(t){
   const fm=mtFrame(t),F=MTM[fm];if(!F||!IMG.mnt.complete)return;
   const hv=P.flyH+(P.fly?Math.sin(t/240)*1.2:0),ax=F[4],ay=F[5],gy=F[6];
@@ -80,6 +81,7 @@ function drawMounted(t){
     if(k==='down'||k==='land'){const s=MTM.spike;mDraw('spike',P.x-s[2]*PX/2,P.y-s[3]*PX+2,1,Math.max(0,1-u*1.3));}
     ctx.restore();}
   ctx.restore();
+  drawTag(t,mtLift(t));
 }
 /* ---------- nút CƯỠI · BAY · LƯỚT ---------- */
 (function(){

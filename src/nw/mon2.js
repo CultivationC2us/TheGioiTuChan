@@ -119,13 +119,6 @@ function drawHeld(t,atking,row,fr){
   }
   ctx.save();ctx.translate(ox,oy);ctx.rotate(th);ctx.imageSmoothingEnabled=false;
   ctx.drawImage(IMG.it,f[0],f[1],f[2],f[3],-pvx*sc,-pvy*sc,f[2]*sc,f[3]*sc);ctx.restore();
-  if(thr>.05){  /* vệt sáng + tia lửa ở mũi kiếm (toạ độ cục bộ của người chơi) */
-    const L=Math.hypot(f[2]*.84,f[3]*.84)*sc*1.3;   /* mũi kiếm: hướng (0,-1) xoay (th-UP) */
-        const tipx=ox+Math.sin(th-UP)*L,tipy=oy-Math.cos(th-UP)*L;
-    const g=ctx.createLinearGradient(ox,oy,tipx,tipy);g.addColorStop(0,'rgba(200,240,255,0)');g.addColorStop(1,'rgba(240,252,255,'+(.8*thr)+')');
-    ctx.save();ctx.strokeStyle=g;ctx.lineWidth=2.4;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(ox-Math.sin(th-UP)*L*.2,oy+Math.cos(th-UP)*L*.2);ctx.lineTo(tipx+Math.sin(th-UP)*6*thr,tipy-Math.cos(th-UP)*6*thr);ctx.stroke();
-    ctx.fillStyle='rgba(255,255,255,'+(.9*thr)+')';ctx.beginPath();ctx.arc(tipx+Math.sin(th-UP)*7*thr,tipy-Math.cos(th-UP)*7*thr,1.6+1.6*thr,0,7);ctx.fill();ctx.restore();
-  }
 }
 
 /* ---------- NGỌC: nuốt (trần 10/bậc) · hợp nhất 10 → 1 ---------- */

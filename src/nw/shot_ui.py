@@ -9,7 +9,7 @@ with sync_playwright() as p:
     pg.click('#tReg'); pg.fill('#aName','ui_t'); pg.fill('#aPw','abcdef'); pg.fill('#aPw2','abcdef'); pg.click('#aGo'); pg.wait_for_timeout(1000)
     pg.evaluate("G.redeem('tuchan');G.equipToggle('w.han_bang')"); pg.wait_for_timeout(300)
     o=lambda n: S.replace('game.html',n+'.png')
-    pg.screenshot(path=o('ui_hud'),clip={'x':0,'y':0,'width':390,'height':260})
+    pg.screenshot(path=o('ui_hud'),clip={'x':0,'y':0,'width':390,'height':200})
     pg.evaluate("TTBag.openTab('T')"); pg.wait_for_timeout(500); pg.screenshot(path=o('ui_bag'))
     pg.evaluate("TTBag.openTab('S')"); pg.wait_for_timeout(500); pg.screenshot(path=o('ui_char'))
     pg.evaluate("TTBag.openTab('R')"); pg.wait_for_timeout(500); pg.screenshot(path=o('ui_tu'))
