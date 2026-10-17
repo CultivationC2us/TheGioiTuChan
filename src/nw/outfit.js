@@ -52,7 +52,7 @@ const OF={SLEEVE:false,
   /* linh quang: hào quang sau lưng, to bằng nhân vật, tâm ở giữa lưng; 5 khung nhấp nháy (qua lại) */
   aura(t,lift){
     const l=cult.eq.l;if(!l||!(loot[l]>0)||!IMG.aura||!IMG.aura.complete||!IMG.aura.naturalWidth)return;
-    const fr=[0,1,2,3,4,3,2,1][Math.floor(t/120)%8],W=30,H=W*156/128,cy=-12-(lift||0);
+    const fr=[0,1,2,3,4,3,2,1][Math.floor(t/120)%8],W=30,H=W*156/128,cy=-21-(lift||0);
     ctx.save();ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';ctx.globalAlpha=.95;
     ctx.drawImage(IMG.aura,fr*128,0,128,156,-W/2,cy-H/2,W,H);
     ctx.globalCompositeOperation='lighter';ctx.globalAlpha=.4;ctx.drawImage(IMG.aura,fr*128,0,128,156,-W/2,cy-H/2,W,H);ctx.restore();},

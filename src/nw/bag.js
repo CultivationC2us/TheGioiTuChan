@@ -198,6 +198,7 @@ function renderAlc(){
 function afterAlc(){lastKeys='';renderAlc();refresh();if(window.TT&&TT.push)TT.push(false,false);}
 
 
+function petList(){return ['bach_khuyen'].concat(G.PETS);}
 var CATS=['all','duoc','vl','dan','pp','vk','tb','mount','pet'],cat='all';
 var sel='',tab='T',tmr=0,lastKeys='',rootSig='',chSig='';
 function elOf(id){var E=G.TD.EL;for(var i=0;i<E.length;i++)if(E[i].id===id)return E[i];return E[0];}
@@ -210,15 +211,18 @@ function renderStage(){
   renderCats();
   var l=G.loot,k=Object.keys(l).filter(function(n){return l[n]>0&&(cat==='all'||G.TD.catOf(n)===cat);}),st=$('bagStage');
   if(cat==='pet'){k=[];}
-  var sig=cat+'#'+k.map(function(n){return n+':'+l[n]+(isEq(n)?'E':'')+(G.P.mt===n?'M':'');}).join('|')+(cat==='pet'?G.PETS.join(','):'');
-  var none=cat==='pet'?!G.PETS.length:!k.length;
+  var sig=cat+'#'+k.map(function(n){return n+':'+l[n]+(isEq(n)?'E':'')+(G.P.mt===n?'M':'');}).join('|')+(cat==='pet'?petList().join(',')+'@'+G.cult.eq.p:'');
+  var none=cat==='pet'?false:!k.length;
   var em=$('bagEmpty');em.style.display=none?'block':'none';
   if(none){if(cat==='all')em.setAttribute('data-i18n-html','bag.empty'),I18N.apply(em);else{em.removeAttribute('data-i18n-html');em.textContent=T(cat==='tb'||cat==='mount'||cat==='pet'?'cat.empty.'+cat:'cat.empty');}}
   pBag.cap.textContent=T('bag.cap2',{n:G.bagUsed(),cap:G.BAG().cap});
   if(sig===lastKeys)return;lastKeys=sig;
   var fl=$('bagFl');fl.innerHTML='';
-  if(cat==='pet'){G.PETS.forEach(function(id){var pe=elOf((G.TD.MONS.filter(function(m){return m.id===id;})[0]||{}).el||'moc'),e=document.createElement('div');e.className='it';
-    e.innerHTML='<div class="orb" style="background:radial-gradient(circle at 35% 30%,#fff,'+pe.c+' 42%,'+pe.c+'88);box-shadow:0 0 16px '+pe.c+'"><i></i></div><div class="nm">'+esc(T('monster.'+id))+'</div>';fl.appendChild(e);});}
+  if(cat==='pet'){petList().forEach(function(id){var pe=elOf(((G.gearBase(id))||{}).el||'moc'),e=document.createElement('div');e.className='it'+(G.cult.eq.p===id?' sel':'');
+    var br=bestRar(id);if(br>=0){var rc=G.TD.RAR[br];e.style.setProperty('--rp',rc.edge||rc.c);e.classList.add('rp');}
+    if(id==='bach_khuyen'){e.innerHTML='<div class="orb ic" style="filter:drop-shadow(0 0 5px '+pe.c+'aa)"></div>'+(G.cult.eq.p===id?'<span class="eq">✓</span>':'');var dc=G.dogIcon(3);dc.style.cssText='display:block;max-width:100%;max-height:100%;image-rendering:pixelated';e.firstChild.appendChild(dc);}
+    else e.innerHTML='<div class="orb" style="background:radial-gradient(circle at 35% 30%,#fff,'+pe.c+' 42%,'+pe.c+'88);box-shadow:0 0 16px '+pe.c+'"><i></i></div>'+(G.cult.eq.p===id?'<span class="eq">✓</span>':'');
+    e.onclick=function(){G.setEq('p',id);afterEq();openEq('p');};fl.appendChild(e);});}
   k.forEach(function(n){
     var it=ITEMS[n]||DEF,rs=G.TD&&G.TD.byItem[n],pb=G.TD&&G.TD.byPearl[n],e=document.createElement('div');
     if(pb){var pp=G.TD.PEARL[pb.el];it={col:pp.col,glow:pp.glow,tier:pb.tier};}
@@ -294,7 +298,7 @@ function portrait(cv,rows,sc){ /* sprite nhân vật đứng, cắt hàng 1..row
 /* ===== Trang bị: ô, bảng thông tin, thay thế, thức tỉnh ===== */
 var SLOTS=[['sl_wp',0,0,'w'],['sl_ring',0,1,'r'],['sl_boot',0,2,'g'],['sl_pet',0,3,'p'],['sl_head',1,0,'h'],['sl_body',1,1,'o'],['sl_aura',1,2,'l'],['sl_mount',1,3,'m']];
 var SLBL={w:'eq.slot.wp',r:'eq.slot.ring',g:'eq.slot.boot',p:'eq.slot.pet',h:'eq.slot.head',o:'eq.slot.body',l:'eq.slot.aura',m:'eq.slot.mount'};
-function curOf(k){var C=G.cult;if(k==='m'){var m=C.mtSel;return(m&&G.loot[m]>0)?m:'';}if(k==='p')return C.eq.p&&G.PETS.indexOf(C.eq.p)>=0?C.eq.p:'';var id=C.eq[k];return(id&&G.loot[id]>0)?id:'';}
+function curOf(k){var C=G.cult;if(k==='m'){var m=C.mtSel;return(m&&G.loot[m]>0)?m:'';}if(k==='p')return C.eq.p&&petList().indexOf(C.eq.p)>=0?C.eq.p:'';var id=C.eq[k];return(id&&G.loot[id]>0)?id:'';}
 function rarCss(i){var r=G.TD.RAR[i];return r.edge?'color:#0b0910;text-shadow:1px 0 '+r.edge+',-1px 0 '+r.edge+',0 1px '+r.edge+',0 -1px '+r.edge:'color:'+r.c;}
 function bestRar(id){var r=G.gearRec(id);if(!r||!r.a.length)return -1;var b=0;r.a.forEach(function(x){b=Math.max(b,G.TD.rarOf(x[1]));});return b;}
 function glowOf(id){var b=bestRar(id);if(b<0)return '#e8bb48';var r=G.TD.RAR[b];return r.edge||r.c;}
@@ -310,7 +314,7 @@ function linesHtml(id){
 function awkHtml(id){var c=G.awakeCost(id);if(!c)return '';if(c.full)return '<div class="gl lk">'+esc(T('eq.awake.full'))+'</div>';
   var ok=(G.loot.lt|0)>=c.lt&&c.have>=c.n;
   return '<div class="gl aw" style="color:'+(ok?'#9fe3b0':'#f0907f')+'">'+esc(T('eq.awake.cost',{lt:c.lt,n:c.n,el:T('el.'+c.el),have:c.have}))+'</div>';}
-function petOrb(id){var e=elOf((G.TD.MONS.filter(function(m){return m.id===id;})[0]||{}).el||'moc'),d=document.createElement('div');
+function petOrb(id){if(id==='bach_khuyen'){var dc=G.dogIcon(3);dc.style.cssText='max-width:22px;max-height:22px;display:block;image-rendering:pixelated';return dc;}var e=elOf((G.TD.MONS.filter(function(m){return m.id===id;})[0]||{}).el||'moc'),d=document.createElement('div');
   d.style.cssText='width:22px;height:22px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff,'+e.c+' 45%,'+e.c+'88);box-shadow:0 0 6px '+e.c;return d;}
 function itemIcon(k,id){if(k==='p')return petOrb(id);var c=G.iconCanvas(id,3);if(c){c.style.cssText='max-width:22px;max-height:22px;display:block;image-rendering:pixelated';}return c;}
 function itemName(k,id){return k==='p'?T('monster.'+id):I18N.itemName(id);}
@@ -324,7 +328,7 @@ function openEq(k){eqS={k:k,mode:curOf(k)?'info':'pick',pick:''};pop.style.displ
 function closeEq(){pop.style.display='none';afterEq();}
 function candidates(k){
   var l=G.loot,out=[];
-  if(k==='p')return G.PETS.filter(function(id){return id!==curOf('p');});
+  if(k==='p')return petList().filter(function(id){return id!==curOf('p');});
   Object.keys(l).forEach(function(n){if(!(l[n]>0))return;
     if(k==='m'){if(G.TD.byMount[n]&&n!==curOf('m'))out.push(n);return;}
     var o=k==='w'?G.TD.byWeapon[n]:G.TD.byOutfit[n];if(!o)return;
@@ -333,11 +337,11 @@ function candidates(k){
 function ebtn(cls,id,txt,dis){return '<button type="button" class="eb '+cls+'" id="'+id+'"'+(dis?' disabled':'')+'>'+esc(txt)+'</button>';}
 function infoBlock(k,id){
   var h='';
-  if(k==='p'){var e=elOf((G.TD.MONS.filter(function(m){return m.id===id;})[0]||{}).el||'moc');h+='<div class="gl">'+esc(T('eq.pet.info',{el:T('el.'+e.id)}))+'</div>';}
-  else if(k==='m'){var d=G.TD.byMount[id];h+='<div class="gl">'+esc(T('eq.mount.info',{run:String(d.spd).replace('.',I18N.lang==='vi'?',':'.'),fly:String(d.fspd).replace('.',I18N.lang==='vi'?',':'.'),el:T('el.'+d.el)}))+'</div>';}
+  if(k==='p'){var e=elOf((G.gearBase(id)||{}).el||'moc');h+='<div class="gl">'+esc(id==='bach_khuyen'?T('eq.dog.info'):T('eq.pet.info',{el:T('el.'+e.id)}))+'</div>'+linesHtml(id);}
+  else if(k==='m'){var d=G.TD.byMount[id];h+='<div class="gl">'+esc(T('eq.mount.info',{run:String(d.spd).replace('.',I18N.lang==='vi'?',':'.'),fly:String(d.fspd).replace('.',I18N.lang==='vi'?',':'.'),el:T('el.'+d.el)}))+'</div>'+linesHtml(id);}
   else h+=linesHtml(id);
   return h;}
-function nameStyle(k,id){if(k==='p'||k==='m')return '';var b=bestRar(id);return b<0?'':'style="'+rarCss(b)+'"';}
+function nameStyle(k,id){var b=bestRar(id);return b<0?'':'style="'+rarCss(b)+'"';}
 function renderEq(){
   var k=eqS.k,box=$('eqBody'),cur=curOf(k),h='';
   h+='<div class="eqx"><button type="button" class="xb" id="eqX" aria-label="×"></button></div>';

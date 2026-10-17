@@ -1,0 +1,27 @@
+from playwright.sync_api import sync_playwright
+import sys
+sys.path.insert(0,'.')
+from test_auth import *
+with sync_playwright() as p:
+    b=p.chromium.launch(); ctx=b.new_context(viewport={'width':390,'height':844},device_scale_factor=2)
+    mock=Mock(); ctx.route(f'https://{HOST}/**',mock.handle)
+    pg=ctx.new_page(); errs=[]; pg.on('pageerror',lambda e:errs.append(str(e)))
+    pg.goto('file://'+S); pg.wait_for_timeout(300)
+    pg.click('#tReg'); pg.fill('#aName','q_p'); pg.fill('#aPw','abcdef'); pg.fill('#aPw2','abcdef'); pg.click('#aGo'); pg.wait_for_timeout(1000)
+    print('dog eq',pg.evaluate("G.cult.eq.p"))
+    pg.evaluate("G.redeem('tuchan')")
+    pg.evaluate("(()=>{const id=Object.keys(G.loot).find(k=>k.startsWith('lq.'));G.equipToggle(id);G.P.x+=0})()")
+    pg.wait_for_timeout(600); pg.screenshot(path='p_world.png')
+    pg.evaluate("TTBag.openTab('T')"); pg.wait_for_timeout(300)
+    pg.evaluate("document.querySelector('#bagCats [data-c=pet]').click()");pg.wait_for_timeout(300); pg.screenshot(path='p_tab.png')
+    pg.evaluate("document.querySelector('#bagFl .it').click()");pg.wait_for_timeout(400); pg.screenshot(path='p_pop.png')
+    pg.evaluate("document.getElementById('eqAw').click()");pg.wait_for_timeout(300)
+    print('lines',pg.evaluate("G.gearRec('bach_khuyen').a"))
+    pg.screenshot(path='p_aw.png')
+    pg.evaluate("document.getElementById('eqX').click()")
+    pg.evaluate("TTBag.openTab('T')");pg.evaluate("document.querySelector('#bagCats [data-c=mount]').click()");pg.wait_for_timeout(300)
+    pg.evaluate("document.querySelector('#bagFl .it').click()");pg.wait_for_timeout(300)
+    print('mount aw btn',pg.evaluate("!!document.getElementById('biAw')"))
+    pg.evaluate("document.getElementById('biAw').click()");pg.wait_for_timeout(200)
+    print('mount lines',pg.evaluate("G.gearRec(G.cult.mtSel||Object.keys(G.loot).find(k=>G.TD.byMount[k])).a"))
+    pg.screenshot(path='p_mount.png'); print(errs)

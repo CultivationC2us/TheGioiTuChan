@@ -202,7 +202,7 @@ var S=[ /* chuỗi giao diện mới: [vi, zh-Hant, zh-Hans] */
  ['eq.unequip','Tháo','卸下','卸下'],['eq.replace','Thay thế','更換','更换'],['eq.awake','Thức tỉnh','覺醒','觉醒'],['eq.awake.cost','Cần {lt} Linh Thạch + {n} nguyên liệu hệ {el} ({have} có)','需 {lt} 靈石 + {n} 個{el}系材料（現有 {have}）','需 {lt} 灵石 + {n} 个{el}系材料（现有 {have}）'],['eq.awake.full','Đã mở hết','已全開','已全开'],
  ['eq.none','Không có món phù hợp trong kho','倉庫中沒有合適的','仓库中没有合适的'],['eq.pick','Chọn món để thay','選擇要更換的裝備','选择要更换的装备'],['eq.close','Đóng','關閉','关闭'],
  ['eq.slot.head','Mũ','頭盔','头盔'],['eq.slot.body','Giáp','護甲','护甲'],['eq.slot.boot','Hài','靴子','靴子'],['eq.slot.wp','Vũ khí','武器','武器'],['eq.slot.ring','Nhẫn','戒指','戒指'],['eq.slot.aura','Linh quang','靈光','灵光'],['eq.slot.pet','Pet','寵物','宠物'],['eq.slot.mount','Linh thú','靈獸','灵兽'],
- ['eq.pet.info','Linh thú đồng hành hệ {el}','同行靈寵，{el}系','同行灵宠，{el}系'],['eq.mount.info','Chạy ×{run} · Bay ×{fly} · hệ {el}','奔跑 ×{run} · 飛行 ×{fly} · {el}系','奔跑 ×{run} · 飞行 ×{fly} · {el}系'],['eq.ride','Cưỡi','騎乘','骑乘'],['eq.unride','Xuống','下騎','下骑'],
+ ['monster.bach_khuyen','Bạch Khuyển','白犬','白犬'],['eq.dog.info','Bạn đồng hành trung thành, luôn theo sau chủ nhân','忠誠的夥伴，始終跟隨主人','忠诚的伙伴，始终跟随主人'],['eq.pet.info','Linh thú đồng hành hệ {el}','同行靈寵，{el}系','同行灵宠，{el}系'],['eq.mount.info','Chạy ×{run} · Bay ×{fly} · hệ {el}','奔跑 ×{run} · 飛行 ×{fly} · {el}系','奔跑 ×{run} · 飞行 ×{fly} · {el}系'],['eq.ride','Cưỡi','騎乘','骑乘'],['eq.unride','Xuống','下騎','下骑'],
  ['sx.run','Tốc chạy','移速','移速'],['sx.bagcap','Sức chứa kho','倉庫容量','仓库容量'],
  ['toast.equip.o','Đã mặc {name}: +{def} phòng thủ','已穿上{name}：防禦 +{def}','已穿上{name}：防御 +{def}'],['of.stat','Bộ Tử Điện · +{def} phòng thủ · hệ {el}','紫電套裝 · 防禦 +{def} · {el}系','紫电套装 · 防御 +{def} · {el}系'],
  ['cat.all','Tất cả','全部','全部'],

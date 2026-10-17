@@ -99,11 +99,17 @@ function regIns(id){const b=baseId(id);if(b===id)return;[TD.byWeapon,TD.byOutfit
 let insN=0;
 function mkGear(b){const u=Date.now().toString(36)+(insN++).toString(36)+Math.floor(Math.random()*1296).toString(36),id=b+'#'+u;
   cult.ins[u]={a:[],cap:5+Math.floor(Math.random()*6)};regIns(id);loot[id]=1;return id;}
-const gearRec=id=>cult.ins[uidOf(id)]||null;
-const gearBase=id=>TD.byOutfit[baseId(id)]||TD.byWeapon[baseId(id)]||null;
+const DOGID='bach_khuyen';
+const isBeast=id=>!!id&&(!!TD.byMount[id]||id===DOGID||PETS.includes(id));
+function gearRec(id){const u=uidOf(id);if(u)return cult.ins[u]||null;
+  if(isBeast(id))return cult.ins[id]||(cult.ins[id]={a:[],cap:5+Math.floor(Math.random()*6)});return null;}
+const gearBase=id=>TD.byOutfit[baseId(id)]||TD.byWeapon[baseId(id)]||TD.byMount[id]||(id===DOGID?{el:'kim'}:null)||(PETS.includes(id)?TD.MONS.find(m=>m.id===id)||null:null);
 function gearStats(){
   GS.atk=GS.def=GS.hp=GS.spd=GS.aspd=GS.bag=0;
-  for(const k of GKEYS){const id=cult.eq[k];if(!id||!(loot[id]>0))continue;const r=gearRec(id);if(!r)continue;
+  const own=GKEYS.map(k=>cult.eq[k]).filter(id=>id&&loot[id]>0);
+  if(cult.eq.p&&isBeast(cult.eq.p))own.push(cult.eq.p);
+  if(cult.mtSel&&loot[cult.mtSel]>0)own.push(cult.mtSel);
+  for(const id of own){const r=gearRec(id);if(!r)continue;
     for(const [st,v] of r.a)GS[st]+=v*TD.STU[st]*((st==='spd'||st==='aspd')?.01:1);}
   GS.atk=Math.round(GS.atk);GS.def=Math.round(GS.def);GS.hp=Math.round(GS.hp);GS.bag=Math.round(GS.bag);
 }
@@ -121,8 +127,9 @@ function awakenGear(id){
 }
 const EQSAVE={w:'eq',o:'eo',h:'eh',g:'eg',r:'er',l:'el',p:'ep',m:'em'};
 function saveEq(){
-  const o={};for(const k in EQSAVE)o[EQSAVE[k]]=(k==='m'?cult.mtSel:cult.eq[k])||'';
-  const ins={};for(const id in loot){if(loot[id]>0&&id.indexOf('#')>0){const u=uidOf(id);if(cult.ins[u])ins[u]=cult.ins[u];}}
+  const o={};for(const k in EQSAVE)o[EQSAVE[k]]=(k==='m'?cult.mtSel:cult.eq[k])||(k==='p'?'none':'');
+  const ins={};for(const id in loot){if(loot[id]>0&&id.indexOf('#')>0){const u=uidOf(id);if(cult.ins[u])ins[u]=cult.ins[u];}else if(loot[id]>0&&TD.byMount[id]&&cult.ins[id])ins[id]=cult.ins[id];}
+  for(const id of [DOGID,...PETS])if(cult.ins[id])ins[id]=cult.ins[id];
   o.ins=ins;return o;
 }
 function loadEq(u){
@@ -138,9 +145,10 @@ function loadEq(u){
     if(map[id]){if(id==='tb.tu_dien'){const need={h:0,o:1,g:2};id=map[id][need[k]]||'';}else id=map[id][0];}
     else if(id==='tb.tu_dien'){id='';}
     if(k==='m'){if(TD.byMount[id]&&loot[id]>0)cult.mtSel=id;continue;}
-    if(k==='p'){if(PETS.includes(id))cult.eq.p=id;continue;}
+    if(k==='p'){if(id==='none')continue;if(id===DOGID||PETS.includes(id))cult.eq.p=id;continue;}
     if(!(loot[id]>0))continue;
     if(k==='w'?TD.byWeapon[baseId(id)]:(TD.byOutfit[baseId(id)]&&TD.SLOT[TD.byOutfit[baseId(id)].part]===k))cult.eq[k]=id;}
+  if(!u.ep)cult.eq.p=DOGID;
   if(map['tb.tu_dien']&&u.eo==='tb.tu_dien'){cult.eq.h=map['tb.tu_dien'][0];cult.eq.o=map['tb.tu_dien'][1];cult.eq.g=map['tb.tu_dien'][2];}
   recalc();
 }
@@ -155,8 +163,8 @@ function equipToggle(id){
 }
 /* gán / bỏ trực tiếp một ô (dùng cho bảng thông tin trang bị) */
 function setEq(k,id){
-  if(k==='m'){cult.mtSel=id||null;return true;}
-  if(k==='p'){cult.eq.p=id||null;return true;}
+  if(k==='m'){cult.mtSel=id||null;recalc();return true;}
+  if(k==='p'){cult.eq.p=id||null;recalc();return true;}
   if(id&&!(loot[id]>0))return false;cult.eq[k]=id||null;recalc();return true;
 }
 function drawHeld(t,atking,row,fr){
