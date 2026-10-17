@@ -14,12 +14,43 @@ const MON_RESPAWN=45000;         /* quái hồi sinh sau 45 giây */
 
 /* ---------- CHỈ SỐ NHÂN VẬT ---------- */
 const STT={dmg:0,hp:0,red:0,spd:0,qi:0};
+/* ---------- TU VI · CẢNH GIỚI (Luyện Khí 1-10) ----------
+   Tu vi cần để qua tầng n = base·2^(n-1) (gấp đôi mỗi tầng). Mỗi lần đột phá, máu & sát thương nhân thêm ×1,2 (cộng dồn).
+   Tu luyện thường chậm (REALM.rate + Thủy châu); thảo dược thô không cho tu vi — phải luyện thành đan (đan phương). */
+const realmNeed=l=>l>=TD.REALM.max?Infinity:TD.REALM.base*Math.pow(2,l-1);
+const realmMul=l=>Math.pow(TD.REALM.mul,(l||cult.rl)-1);
+const qiRate=()=>TD.REALM.rate+STT.qi;
+function qiTick(dt){
+  if(!cult.dpg&&!(loot['dp.tukhi']>0)){loot['dp.tukhi']=1;cult.dpg=true;lootUI();}   /* tặng đan phương đầu tiên (1 lần) */
+  if(!cult.aw||cult.rl>=TD.REALM.max)return;const nd=realmNeed(cult.rl);if(cult.qi<nd)cult.qi=Math.min(nd,cult.qi+dt*qiRate());
+}
+function breakthrough(){
+  if(!cult.aw||cult.rl>=TD.REALM.max||cult.qi<realmNeed(cult.rl)){toast(T('toast.nobreak'));return false;}
+  cult.qi-=realmNeed(cult.rl);cult.rl++;recalc();P.hp=P.maxHp;
+  toast(T('toast.break',{n:cult.rl,m:(Math.round(TD.REALM.mul*100)/100).toString().replace('.',',')}));return true;
+}
+function eatDan(n){
+  const d=TD.DAN[n];if(!d||!(loot[n]>0))return false;
+  if(!cult.aw){toast(T('toast.dan.asleep'));return false;}
+  if(cult.rl>=TD.REALM.max){toast(T('toast.dan.max'));return false;}
+  if(cult.qi>=realmNeed(cult.rl)){toast(T('toast.dan.full'));return false;}
+  lootDec(n);cult.qi+=d.qi;lootUI();toast(T('toast.dan',{name:I18N.itemName(n),n:d.qi}));return true;
+}
+function craftMax(rid){const r=TD.RECIPES[rid];if(!r)return 0;return Math.min(...r.ing.map(([k,q])=>Math.floor((loot[k]|0)/q)));}
+function craft(rid,n){
+  const r=TD.RECIPES[rid];if(!r||!(loot[rid]>0))return 0;n=Math.min(n||1,craftMax(rid));
+  if(n<1){toast(T('toast.alc.no'));return 0;}
+  r.ing.forEach(([k,q])=>{loot[k]-=q*n;if(loot[k]<=0)delete loot[k];});
+  loot[r.out]=(loot[r.out]|0)+n;lootUI();toast(T('toast.alc',{name:I18N.itemName(r.out),n}));return n;
+}
+
 function recalc(){
   const sum=el=>cult.pl[el].reduce((a,b)=>a+b,0),pe=TD.PEARL,rd=x=>Math.round(x*1000)/1000;
   STT.dmg=rd(sum('kim')*pe.kim.per);STT.hp=rd(sum('moc')*pe.moc.per);STT.red=Math.min(.6,rd(sum('tho')*pe.tho.per));STT.spd=rd(sum('hoa')*pe.hoa.per);STT.qi=rd(sum('thuy')*pe.thuy.per);
-  const mx=100+STT.hp,old=P.maxHp;P.maxHp=mx;P.hp=mx>old?Math.min(mx,P.hp+(mx-old)):Math.min(P.hp,mx);
+  if(cult.qi>realmNeed(cult.rl)+TD.DAN['dan.tukhi'].qi)cult.qi=realmNeed(cult.rl);   /* save cũ: tu vi vượt trần → về trần */
+  const mx=Math.round((100+STT.hp)*realmMul()),old=P.maxHp;P.maxHp=mx;P.hp=mx>old?Math.min(mx,P.hp+(mx-old)):Math.min(P.hp,mx);
 }
-const dmgRoll=()=>7+Math.floor(Math.random()*6)+STT.dmg;
+const dmgRoll=()=>Math.round((7+Math.floor(Math.random()*6)+STT.dmg)*realmMul());
 const atkCd=()=>470/(1+STT.spd);
 
 /* ---------- NGỌC: nuốt (trần 10/bậc) · hợp nhất 10 → 1 ---------- */

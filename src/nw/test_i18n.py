@@ -50,7 +50,7 @@ def run3():
         pg.click('#bagBtn'); pg.wait_for_timeout(400)
         ok(pg.inner_text('#bag h2')=='儲物袋' and '袋中空間' in pg.inner_text('#bagCap'),'túi: 儲物袋 + "袋中空間 …"')
         ok('水龍珠' in pg.inner_text('#bagStage'),'tên vật phẩm hiển thị 水龍珠 (id nội bộ vẫn giữ nguyên)')
-        pg.click('#bagStage .it',force=True); pg.wait_for_timeout(150)
+        pg.click('#bagStage .it[data-n="Thủy Long Châu"]',force=True); pg.wait_for_timeout(150)
         ok('水' in pg.inner_text('#bagInfo') and '龍珠' in pg.inner_text('#bagInfo'),'mô tả vật phẩm bằng tiếng Trung')
         pg.screenshot(path=S.replace('game.html','i18n_bag.png'))
         pg.click('#tabJ'); pg.wait_for_timeout(200)

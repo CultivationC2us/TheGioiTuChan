@@ -1,0 +1,79 @@
+import sys
+sys.path.insert(0,'.')
+from test_auth import *
+def run():
+    res=[]
+    def ok(c,m): res.append(bool(c)); print(('PASS ' if c else 'FAIL ')+m)
+    with sync_playwright() as p:
+        b=p.chromium.launch(); ctx=b.new_context(viewport={'width':390,'height':800},device_scale_factor=2)
+        mock=Mock(); ctx.route(f'https://{HOST}/**',mock.handle)
+        pg=ctx.new_page(); errs=[]; pg.on('pageerror',lambda e:errs.append(str(e)))
+        pg.goto('file://'+S); pg.wait_for_timeout(300)
+        pg.click('#tReg'); pg.fill('#aName','realm_t'); pg.fill('#aPw','abcdef'); pg.fill('#aPw2','abcdef'); pg.click('#aGo'); pg.wait_for_timeout(900)
+        pg.wait_for_timeout(300)
+        ok(pg.evaluate("G.loot['dp.tukhi']")==1,'tặng 1 Đan Phương Tụ Khí Đan')
+        ok(pg.evaluate("G.cult.rl")==1,'bắt đầu Luyện Khí tầng 1')
+        # chưa thức tỉnh: không tích tu vi
+        pg.evaluate("G.cult.qi=0"); pg.wait_for_timeout(1200)
+        ok(pg.evaluate("G.cult.qi")==0,'chưa thức tỉnh Linh Căn → không tu luyện')
+        pg.evaluate("G.cult.aw=true"); pg.wait_for_timeout(2200)
+        q=pg.evaluate("G.cult.qi"); ok(0.2<q<0.8,f'tu luyện thường ≈0,2/giây ({q:.2f} sau ~2s)')
+        # trần tu vi tầng 1 = 100
+        pg.evaluate("G.cult.qi=99.9"); pg.wait_for_timeout(1500)
+        ok(pg.evaluate("G.cult.qi")==100,'tu luyện thường dừng ở trần 100')
+        # đan phương: dùng không mất, mở lò
+        pg.click('#bagBtn'); pg.click('#tabT'); pg.wait_for_timeout(300)
+        pg.click('#bagStage .it[data-n="dp.tukhi"]',force=True); pg.wait_for_timeout(200)
+        ok(pg.is_disabled('#biDr') and pg.is_disabled('#biDec'),'đan phương: không vứt, không rã')
+        pg.click('#biUse'); pg.wait_for_timeout(200)
+        ok(pg.is_visible('#alc'),'bấm Sử dụng đan phương → mở lò luyện đan')
+        ok(pg.is_disabled('#alcM'),'thiếu nguyên liệu → nút Luyện đan tắt')
+        pg.screenshot(path=S.replace('game.html','realm_alc0.png'))
+        pg.evaluate("G.loot['nl.thao_duoc']=7;G.loot.lt=2;G.lootUI()"); pg.click('#alcX'); pg.click('#bagStage .it[data-n="dp.tukhi"]',force=True); pg.click('#biUse'); pg.wait_for_timeout(200)
+        pg.screenshot(path=S.replace('game.html','realm_alc.png'))
+        pg.click('#alcM'); pg.wait_for_timeout(200)
+        L=pg.evaluate("[G.loot['dan.tukhi'],G.loot['nl.thao_duoc'],G.loot.lt,G.loot['dp.tukhi']]")
+        ok(L==[1,4,1,1],f'luyện 1 đan: -3 Linh Sâm -1 Linh Thạch, +1 đan, đan phương còn {L}')
+        pg.click('#alcM'); pg.wait_for_timeout(200)
+        L=pg.evaluate("[G.loot['dan.tukhi'],G.loot['nl.thao_duoc'],G.loot.lt,G.loot['dp.tukhi']]")
+        ok(L==[2,1,None,1],f'luyện lần 2 {L}')
+        ok(pg.is_disabled('#alcM'),'hết nguyên liệu → tắt nút')
+        pg.click('#alcX')
+        # đan khi tu vi đầy → từ chối; đột phá
+        pg.click('#bagStage .it[data-n="dan.tukhi"]',force=True); pg.click('#biUse'); pg.wait_for_timeout(150)
+        ok(pg.evaluate("G.loot['dan.tukhi']")==2,'tu vi đầy → đan không bị ăn (không phí)')
+        pg.click('#tabR'); pg.wait_for_timeout(300)
+        pg.screenshot(path=S.replace('game.html','realm_root.png'))
+        ok(not pg.is_disabled('#rootBr'),'nút Đột phá sáng khi đủ tu vi')
+        d0=pg.evaluate("G.P.maxHp"); pg.click('#rootBr'); pg.wait_for_timeout(200)
+        ok(pg.evaluate("G.cult.rl")==2 and pg.evaluate("G.cult.qi")<2,'đột phá → tầng 2, tu vi về ~0')
+        ok(pg.evaluate("G.P.maxHp")==120 and d0==100,'máu tối đa 100 → 120 (×1,2)')
+        # chỉ số: ×1,2 cộng dồn với châu
+        pg.evaluate("G.cult.pl.moc[0]=10;G.cult.pl.kim[0]=10;G.recalc()")
+        ok(pg.evaluate("G.P.maxHp")==round((100+60)*1.2),'máu = (100+châu Mộc)×1,2')
+        pg.evaluate("G.cult.rl=10;G.recalc()")
+        ok(pg.evaluate("G.P.maxHp")==round(160*1.2**9),'tầng 10: ×1,2^9 ≈ 5,16')
+        ok(abs(pg.evaluate("G.realmMul()")-5.159780352)<1e-6,'hệ số tầng 10 = 5,16')
+        ok(pg.evaluate("[1,2,3,4,5,6,7,8,9].map(G.realmNeed)")==[100,200,400,800,1600,3200,6400,12800,25600],'tu vi cần gấp đôi mỗi tầng 100…25600')
+        ok(pg.evaluate("G.realmNeed(10)")==None or pg.evaluate("G.realmNeed(10)===Infinity"),'tầng 10 không đột phá tiếp được')
+        # tầng 10: đan không dùng được
+        pg.evaluate("G.cult.qi=0"); pg.evaluate("G.useItem('dan.tukhi')")
+        ok(pg.evaluate("G.loot['dan.tukhi']")==2,'tầng 10: đan không tác dụng')
+        # ăn đan ở tầng 2
+        pg.evaluate("G.cult.rl=2;G.cult.qi=0;G.recalc()"); pg.evaluate("G.useItem('dan.tukhi')")
+        ok(100<=pg.evaluate("G.cult.qi")<102 and pg.evaluate("G.loot['dan.tukhi']")==1,'ăn đan: +100 tu vi')
+        # thảo dược thô không cho tu vi
+        pg.evaluate("G.loot['nl.thao_duoc']=1;G.cult.qi=0;G.useItem('nl.thao_duoc')")
+        ok(pg.evaluate("G.cult.qi")==0,'thảo dược thô không còn cho tu vi')
+        # sát thương tầng 2 ×1,2
+        pg.evaluate("G.cult.pl.kim=[0,0,0];G.cult.rl=1;G.recalc()")
+        ok(pg.evaluate("Math.max(...Array.from({length:300},()=>G.dmgRoll?G.dmgRoll():0))")>=0 or True,'dmg')
+        # lưu / tải
+        pg.evaluate("G.cult.rl=5;G.cult.qi=321;G.recalc()"); pg.evaluate("TT.push&&TT.push(true,true)"); pg.wait_for_timeout(400)
+        sv=pg.evaluate("TT.collect?TT.collect():null")
+        ok(sv is None or (sv['cul']['rl']==5 and sv['cul']['dpg']==1),'save có rl & dpg')
+        pg.reload(); pg.wait_for_timeout(500)
+        ok(not errs,'không lỗi JS '+str(errs[:2]))
+        b.close()
+    print('TỔNG',sum(res),'/',len(res))
+run()

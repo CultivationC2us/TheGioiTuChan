@@ -115,7 +115,7 @@ function lootUI(){const e=document.getElementById('loot');const k=Object.keys(lo
 
 /* ---------- TÀI NGUYÊN · NGŨ HÀNH · LINH CĂN ---------- */
 const TD=window.TTData,RMETA={{RESMETA}};
-const cult={r:{kim:0,moc:0,thuy:0,hoa:0,tho:0},pl:{kim:[0,0,0],moc:[0,0,0],thuy:[0,0,0],hoa:[0,0,0],tho:[0,0,0]},aw:false,qi:0};
+const cult={r:{kim:0,moc:0,thuy:0,hoa:0,tho:0},pl:{kim:[0,0,0],moc:[0,0,0],thuy:[0,0,0],hoa:[0,0,0],tho:[0,0,0]},aw:false,qi:0,rl:1,dpg:false};
 const nodes=[],nodeCell=new Map(),respawnQ=[];   /* node: {g,x,y,h,gone,shk}; chia ô 4x4 để tìm nhanh */
 const ckey=n=>(n.x/TILE>>2)+','+(n.y/TILE>>2);
 function cellAdd(n){const k=ckey(n);let a=nodeCell.get(k);if(!a)nodeCell.set(k,a=[]);a.push(n);}
@@ -179,13 +179,13 @@ function refineEl(el){ /* nguyên liệu hệ el → điểm hệ el (tối đa 
   return gain;
 }
 function lootDec(n){loot[n]--;if(!(loot[n]>0))delete loot[n];}
-function itemInfo(n){const g=TD.byItem[n],m=TD.misc[n],p=pearlInfo(n);return {use:!!g||!!(p&&p.can),dec:g?g.ls:(m?m.dec:0),pearl:p,fuse:!!(p&&p.next)};}
+function itemInfo(n){const g=TD.byItem[n],m=TD.misc[n],p=pearlInfo(n);return {use:!!g||!!(p&&p.can)||!!TD.RECIPES[n]||!!TD.DAN[n],dec:g?g.ls:(m?m.dec:0),pearl:p,fuse:!!(p&&p.next),keep:!!(m&&m.keep),recipe:!!TD.RECIPES[n]};}
 function useItem(n){ /* nguyên liệu: luyện hóa 1 cái vào hệ của nó */
-  const g=TD.byItem[n];if(!g)return TD.byPearl[n]?swallow(n):false;if(!(loot[n]>0))return false;
+  const g=TD.byItem[n];if(!g)return TD.byPearl[n]?swallow(n):TD.DAN[n]?eatDan(n):TD.RECIPES[n]?true:false;if(!(loot[n]>0))return false;
   if(cult.r[g.el]>=TD.NEED){toast(T('toast.full',{el:T('el.'+g.el)}));return false;}
   const add=Math.min(g.pts,TD.NEED-cult.r[g.el]);cult.r[g.el]+=add;lootDec(n);lootUI();toast(T('toast.refine',{n:add,el:T('el.'+g.el)}));return true;}
 function decompose(n){const v=itemInfo(n).dec;if(!(loot[n]>0)||!(v>0))return false;lootDec(n);loot.lt=(loot.lt|0)+v;lootUI();toast(T('toast.dec',{name:I18N.itemName(n),n:v}));return true;}
-function dropItem(n){if(!(loot[n]>0))return false;lootDec(n);const g=TD.byItem[n],t=now();
+function dropItem(n){if(!(loot[n]>0)||(TD.misc[n]&&TD.misc[n].keep))return false;lootDec(n);const g=TD.byItem[n],t=now();
   drops.push({x:P.x+P.f*40,y:P.y-2,t0:t,n,ic:g?g.id:undefined,pa:t+1800,exp:t+60000});lootUI();toast(T('toast.drop',{name:I18N.itemName(n)}));return true;}
 function canAwake(){return !cult.aw&&TD.EL.every(e=>cult.r[e.id]>=TD.NEED);}
 function awaken(){if(!canAwake())return false;cult.aw=true;toast(T('toast.awake'));return true;}
@@ -334,7 +334,7 @@ function update(dt){
     dog.run=t-dog.rt<170;if(Math.abs(dx)>6)dog.f=dx>0?1:-1;if(d>260){dog.x=P.x;dog.y=P.y;}}
   mUpdate(dt);respawnTick(t);
   mon2Update(dt,t);
-  if(cult.aw)cult.qi+=dt*(1+STT.qi);   /* linh khí +1/giây, mọi lúc mọi nơi (kể cả khi chết) */
+  qiTick(dt);   /* tu luyện thường: mọi lúc mọi nơi (kể cả khi chết); xem mon2.js */
   // nhặt vật phẩm
   for(let i=drops.length-1;i>=0;i--){const d=drops[i];if(d.exp&&t>d.exp){drops.splice(i,1);continue;}if(t-d.t0>(d.ic?250:500)&&(!d.pa||t>d.pa)&&Math.hypot(P.x-d.x,P.y-d.y)<(d.ic?24:16)){loot[d.n]=(loot[d.n]||0)+1;drops.splice(i,1);lootUI();toast(T('toast.pick',{name:I18N.itemName(d.n)}));}}
   fxs=fxs.filter(f=>t-f.t0<f.dur);floaters=floaters.filter(f=>t-f.t0<900);
@@ -484,7 +484,7 @@ function draw(){
 let last=performance.now();
 function loop(n){const dt=Math.min(.05,(n-last)/1000);last=n;if(window.__pause){requestAnimationFrame(loop);return;}try{update(dt);draw();}catch(e){window.dispatchEvent(new ErrorEvent('error',{message:e.message,lineno:0}));return;}requestAnimationFrame(loop);}
 requestAnimationFrame(loop);
-window.G={P,M,dog,fx:()=>fxs,drops,update,draw,tiles,cam,now,attack,setSt,mHit,DR,loot,SPAWN,LAKE,HOME,toast,keys,joy,lootUI,stats,cult,nodes,respawnQ,S:STT,recalc,pearlInfo,swallow,fuse,mons2,MD,petObjs,PETS,addPet,setPets,tameRoll,AUTO,setAuto,monHit,fx2,projs,setTameP:v=>{TAME_P=v;},useItem,decompose,dropItem,itemInfo,RES:TD.RES,TD,RMETA,harvest,refineEl,awaken,canAwake,iconCanvas,nodesNear};
+window.G={P,M,dog,fx:()=>fxs,drops,update,draw,tiles,cam,now,attack,setSt,mHit,DR,loot,SPAWN,LAKE,HOME,toast,keys,joy,lootUI,stats,cult,nodes,breakthrough,craft,craftMax,realmNeed,realmMul,qiRate,respawnQ,S:STT,recalc,pearlInfo,swallow,fuse,mons2,MD,petObjs,PETS,addPet,setPets,tameRoll,AUTO,setAuto,monHit,fx2,projs,setTameP:v=>{TAME_P=v;},useItem,decompose,dropItem,itemInfo,RES:TD.RES,TD,RMETA,harvest,refineEl,awaken,canAwake,iconCanvas,nodesNear};
 toast(T('toast.welcome'));
 })();
 </script>

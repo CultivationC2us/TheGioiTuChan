@@ -12,7 +12,9 @@ var G=window.G;
 var CAP=30; /* số loại vật phẩm tối đa trong túi (tạm) */
 var ITEMS={
   'Thủy Long Châu':{col:'#7fd8ff',glow:'#3aa9ff'},
-  'lt':{col:'#e8f6ff',glow:'#6fd3ff'}
+  'lt':{col:'#e8f6ff',glow:'#6fd3ff'},
+  'dp.tukhi':{col:'#ffffff',glow:'#b58cff'},
+  'dan.tukhi':{col:'#b8f5a0',glow:'#2fbf5a'}
 };
 var DEF={col:'#ffe58f',glow:'#ffb347'};
 var T=function(k,p){return I18N.t(k,p);};
@@ -119,6 +121,25 @@ document.body.appendChild(bag);
 $('bagIc').appendChild(pouch(2));
 function $(id){return document.getElementById(id);}
 
+/* ----- lò luyện đan (đan phương) ----- */
+var alc=document.createElement('div');alc.id='alc';
+alc.style.cssText='position:fixed;inset:0;z-index:950;display:none;align-items:center;justify-content:center;background:#000c;padding:14px;box-sizing:border-box';
+alc.innerHTML='<div style="width:100%;max-width:340px;background:linear-gradient(#1b1236,#0b0818);border:1px solid #6b4a9a;border-radius:18px;padding:14px;color:#efe6ff"><h3 id="alcT" style="margin:0 0 8px;font-size:16px"></h3><div id="alcB"></div></div>';
+document.body.appendChild(alc);
+var alcR='';var cs=document.createElement('style');cs.textContent='#alc button{padding:9px 6px;border-radius:10px;border:1px solid #6b4a9a;background:#241a45;color:#fff;font-size:13px}#alc button[disabled]{opacity:.4}';document.head.appendChild(cs);
+function openAlc(rid){alcR=rid;alc.style.display='flex';renderAlc();}
+function renderAlc(){
+  var r=G.TD.RECIPES[alcR];if(!r)return;var l=G.loot,mx=G.craftMax?G.craftMax(alcR):0,h='';
+  $('alcT').textContent=I18N.itemName(alcR)+' · '+T('alc.title');
+  r.ing.forEach(function(g){var have=l[g[0]]|0;h+='<div class="row" style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #2a1f4d;font-size:13px"><span>'+esc(I18N.itemName(g[0]))+' ×'+g[1]+'</span><b style="color:'+(have>=g[1]?'#9bf0a8':'#ff9b8a')+'">'+esc(T('alc.have',{n:have}))+'</b></div>';});
+  h+='<div style="margin:9px 0;font-size:12.5px;color:#cbbbee">'+esc(T('alc.out',{name:I18N.itemName(r.out),eff:'+'+G.TD.DAN[r.out].qi+' '+T('realm.exp')}))+'<br>'+esc(T('alc.keep'))+'</div>'+
+   '<div style="display:flex;gap:6px"><button type="button" id="alcX" style="flex:1">'+esc(T('bag.close'))+'</button><button type="button" id="alcM" style="flex:1.2;background:#6b3fb4;border-color:#c58bf0"'+(mx>0?'':' disabled')+'>'+esc(T('alc.make'))+'</button><button type="button" id="alcA" style="flex:1.4"'+(mx>1?'':' disabled')+'>'+esc(T('alc.makeall',{n:mx}))+'</button></div>';
+  $('alcB').innerHTML=h;
+  $('alcX').onclick=function(){alc.style.display='none';lastKeys='';refresh();};
+  $('alcM').onclick=function(){G.craft(alcR,1);afterAlc();};
+  $('alcA').onclick=function(){G.craft(alcR,mx);afterAlc();};
+}
+function afterAlc(){lastKeys='';renderAlc();refresh();if(window.TT&&TT.push)TT.push(false,false);}
 var sel='',tab='T',tmr=0,raf=0,stars=[],lastKeys='';
 function hhmm(t){var d=new Date(t);return ('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2);}
 function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
@@ -157,14 +178,14 @@ function showInfo(){
   var inf=G.itemInfo(sel),sg=sel,pi=inf.pearl,ps='';
   if(pi){ps='<div class="pl">'+esc(T('pl.status',{t:pi.tier,n:pi.done,cap:pi.cap}))+(pi.reason?' — '+esc(T('pl.'+pi.reason,{cap:pi.cap})):'')+'</div>';}
   box.innerHTML='<b>'+esc(I18N.itemName(sel))+' ×'+l[sel]+'</b>'+esc(I18N.itemDesc(sel))+ps+
-    '<div class="acts"><button type="button" class="dr" id="biDr">'+esc(T('act.drop'))+'</button>'+
+    '<div class="acts"><button type="button" class="dr" id="biDr"'+(inf.keep?' disabled':'')+'>'+esc(T('act.drop'))+'</button>'+
     '<button type="button" class="mid" id="biDec"'+(inf.dec>0?'':' disabled')+'>'+esc(T('act.dec',{n:inf.dec}))+'</button>'+
     '<button type="button" class="us" id="biUse"'+(inf.use?'':' disabled')+'>'+esc(T('act.use'))+'</button></div>'+
     (inf.fuse?'<div class="acts two"><button type="button" class="mid" id="biFuse"'+((l[sel]|0)>=G.TD.PFUSE?'':' disabled')+'>'+esc(T('act.fuse',{n:G.TD.PFUSE,name:I18N.itemName(pi.next)}))+'</button></div>':'');
   function after(){lastKeys='';refresh();if(window.TT&&TT.push)TT.push(false,false);}
   $('biDr').onclick=function(){G.dropItem(sg);after();};
   $('biDec').onclick=function(){G.decompose(sg);after();};
-  $('biUse').onclick=function(){G.useItem(sg);after();};
+  $('biUse').onclick=function(){if(inf.recipe){openAlc(sg);return;}G.useItem(sg);after();};
   if($('biFuse'))$('biFuse').onclick=function(){G.fuse(sg);after();};
 }
 function renderJournal(){
@@ -186,19 +207,27 @@ function renderJournal(){
 var rootSig='';
 function matCount(el){var n=0;G.TD.RES.forEach(function(g){if(g.el===el)n+=G.loot[g.item]|0;});return n;}
 function renderRoot(force){
-  var C=G.cult,N=G.TD.NEED,sig=G.TD.EL.map(function(e){return C.r[e.id]+':'+matCount(e.id);}).join('|')+(C.aw?'A':G.canAwake()?'C':'-')+I18N.lang;
-  if(!force&&sig===rootSig){var q=$('rootQi');if(q)q.textContent=Math.floor(C.qi);return;}
+  var C=G.cult,N=G.TD.NEED,sig=G.TD.EL.map(function(e){return C.r[e.id]+':'+matCount(e.id);}).join('|')+(C.aw?'A'+C.rl:G.canAwake()?'C':'-')+I18N.lang;
+  if(!force&&sig===rootSig){var q=$('rootQi');if(q)q.textContent=Math.floor(C.qi);var br=$('rootBr');if(br)br.disabled=!(C.qi>=G.realmNeed(C.rl));return;}
   rootSig=sig;var h='<div class="hint">'+esc(T('cul.hint',{n:N}))+'</div>';
   G.TD.EL.forEach(function(e){
     var v=C.r[e.id],m=matCount(e.id),full=v>=N;
     h+='<div class="er"><div class="el" style="background:'+e.c+';box-shadow:0 0 10px '+e.c+'88">'+esc(T('el.'+e.id))+'</div><div class="mid"><div class="nm"><span>'+esc(T('el.'+e.id))+'</span><span>'+v+' / '+N+'</span></div><div class="bar2"><i style="width:'+Math.min(100,v/N*100)+'%;background:'+e.c+'"></i></div><small>'+esc(T('cul.mat',{n:m}))+'</small></div>'+
        '<button type="button" data-el="'+e.id+'"'+((full||!m)?' disabled':'')+'>'+esc(full?T('cul.full'):T('cul.refine'))+'</button></div>';
   });
-  if(C.aw)h+='<div class="done">'+esc(T('cul.done'))+'<b>'+esc(T('cul.qi'))+': <span id="rootQi">'+Math.floor(C.qi)+'</span></b>'+esc(T('cul.rate'))+'</div>';
+  if(C.aw){
+    var nd=G.realmNeed(C.rl),mx=C.rl>=G.TD.REALM.max,pc=mx?100:Math.min(100,C.qi/nd*100),ready=!mx&&C.qi>=nd;
+    h+='<div class="done"><span style="font-size:12px;color:#cbbbee">'+esc(T('realm.cur'))+'</span><b>'+esc(T('realm.n',{n:C.rl}))+'</b>'+
+      (mx?esc(T('realm.full')):'<div class="bar2"><i style="width:'+pc+'%;background:#ffe58f"></i></div><span id="rootQi">'+Math.floor(C.qi)+'</span> / '+nd+' '+esc(T('realm.exp'))+
+        '<br><span style="color:#a999d0;font-size:12px">'+esc(T('cul.rate',{n:(I18N.lang==='vi'?G.qiRate().toFixed(2).replace('.',','):G.qiRate().toFixed(2))}))+'</span>'+
+        '<br><button type="button" class="aw" id="rootBr" style="margin-top:8px"'+(ready?'':' disabled')+'>'+esc(T('act.break',{n:C.rl+1}))+'</button>')+
+      '<br><span style="color:#a999d0;font-size:12px">'+esc(T('realm.bonus',{m:'1,2'.replace(',',I18N.lang==='vi'?',':'.')}))+'</span></div>';
+  }
   else h+='<button type="button" class="aw" id="rootAw"'+(G.canAwake()?'':' disabled')+'>'+esc(G.canAwake()?T('cul.awake'):T('cul.need',{n:N}))+'</button>';
   $('bagR').innerHTML=h;
   var b=$('bagR').querySelectorAll('button[data-el]');
   for(var i=0;i<b.length;i++)b[i].onclick=function(){G.refineEl(this.getAttribute('data-el'));renderRoot(true);updBadge();if(window.TT&&TT.push)TT.push(false,false);};
+  var rb=$('rootBr');if(rb)rb.onclick=function(){if(G.breakthrough()){renderRoot(true);if(window.TT&&TT.push)TT.push(false,false);}};
   var a=$('rootAw');if(a)a.onclick=function(){if(G.awaken()){renderRoot(true);if(window.TT&&TT.push)TT.push(false,false);}};
 }
 function renderStats(){
@@ -208,11 +237,12 @@ function renderStats(){
   var pets=G.PETS.length?G.PETS.map(function(id){return esc(T('monster.'+id));}).join(', '):T('sx.none');
   $('bagS').innerHTML=
    row('sx.hp',Math.round(P.hp)+' / '+P.maxHp)+
-   row('sx.dmg',(7+S.dmg)+' – '+(12+S.dmg))+
+   row('sx.realm',esc(T('realm.n',{n:C.rl}))+' (×'+N(G.realmMul().toFixed(2))+')')+
+   row('sx.dmg',Math.round((7+S.dmg)*G.realmMul())+' – '+Math.round((12+S.dmg)*G.realmMul()))+
    row('sx.spd',T('sx.spd.v',{n:N((1000/cd).toFixed(2))}))+
    row('sx.red',N((S.red*100).toFixed(1))+'%')+
-   row('sx.qi',C.aw?T('sx.qi.v',{n:N((1+S.qi).toFixed(1))}):T('j.asleep'))+
-   row('sx.qitotal',Math.floor(C.qi))+
+   row('sx.qi',C.aw?T('sx.qi.v',{n:N(G.qiRate().toFixed(2))}):T('j.asleep'))+
+   row('sx.qitotal',Math.floor(C.qi)+' / '+(C.rl>=G.TD.REALM.max?'MAX':G.realmNeed(C.rl)))+
    row('sx.roots',G.TD.EL.map(function(e){return T('el.'+e.id)+' '+C.r[e.id];}).join(' · '))+
    '<div class="row" style="border:0;padding-bottom:0"><span>'+T('sx.pearls')+'</span></div>'+pl+
    row('sx.pets',pets)+row('sx.kills',G.stats.kills)+row('sx.lt',G.loot.lt|0);
@@ -249,7 +279,7 @@ setInterval(function(){if(btn.style.display!=='none')updBadge();},1500);
 I18N.apply(bag);
 /* HUD linh khí (góc trái dưới) */
 var qi=document.createElement('div');qi.id='qi';document.body.appendChild(qi);
-setInterval(function(){var C=G.cult;if(btn.style.display==='none'||!C.aw){qi.style.display='none';return;}qi.style.display='block';qi.textContent='✦ '+T('hud.qi',{n:Math.floor(C.qi)});},250);
+setInterval(function(){var C=G.cult;if(btn.style.display==='none'||!C.aw){qi.style.display='none';return;}qi.style.display='block';qi.textContent='✦ '+T('realm.n',{n:C.rl})+' · '+Math.floor(C.qi)+(C.rl>=G.TD.REALM.max?'':'/'+G.realmNeed(C.rl));},250);
 I18N.on(function(){btn.setAttribute('aria-label',I18N.t('bag.title'));I18N.apply(bag);lastKeys='';rootSig='';refresh();});
 window.TTBag={show:function(v){var ab=document.getElementById('autoBtn');if(ab)ab.style.display=v?'block':'none';btn.style.display=v?'flex':'none';if(!v)close();else updBadge();},open:open,close:close,select:function(n){sel=n;}};
 })();

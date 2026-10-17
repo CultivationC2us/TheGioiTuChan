@@ -284,7 +284,11 @@ var RES=[ /* kind: tree|herb|ore (quyết định nơi mọc), sc: tỉ lệ v�
  {id:'da_linh',     el:'tho', tier:3,kind:'ore', sc:.8333}
 ];
 var HITS={1:3,2:4,3:5}, PTS={1:5,2:15,3:40}, LS={1:1,2:3,3:8}, NEED=100;
-var MISC={'Thủy Long Châu':{dec:20},'lt':{dec:0}};
+var MISC={'Thủy Long Châu':{dec:20},'lt':{dec:0},'dp.tukhi':{dec:0,keep:1},'dan.tukhi':{dec:10}};
+/* ---- TU VI (Luyện Khí 1-10) ---- */
+var REALM={max:10,base:100,mul:1.2,rate:.2};  /* tu vi cần để qua tầng n = base*2^(n-1); mỗi tầng nhân ×mul máu & sát thương; tu luyện thường rate/giây */
+var DAN={'dan.tukhi':{qi:100}};                          /* đan -> tu vi cộng thêm */
+var RECIPES={'dp.tukhi':{out:'dan.tukhi',ing:[['nl.thao_duoc',3],['lt',1]]}};  /* đan phương: không mất khi dùng */
 var NAMES={ /* vi, zh-Hant, zh-Hans */
  cay_coi:['Linh Mộc','靈木','灵木'], cay_cao:['Đào Hoa Mộc','桃花木','桃花木'], tre:['Linh Trúc','靈竹','灵竹'],
  thao_duoc:['Linh Sâm','靈參','灵参'], da:['Thanh Ngọc Thạch','青玉石','青玉石'],
@@ -303,7 +307,7 @@ var PCAP=10, PFUSE=10, PT=3;                 /* mỗi bậc nuốt tối đa 10;
 var PEARL={ /* hệ -> tên gốc [vi,hant,hans], chỉ số, mức cộng mỗi viên, màu */
  kim: {n:['Kim Tinh','金精','金精'],  stat:'dmg',per:1,   col:'#f2d36b',glow:'#e0a82e'},
  moc: {n:['Mộc Linh','木靈','木灵'],  stat:'hp', per:6,   col:'#8be57a',glow:'#3fae3a'},
- thuy:{n:['Thủy Long','水龍','水龙'], stat:'qi', per:.1,  col:'#7fd8ff',glow:'#3aa9ff'},
+ thuy:{n:['Thủy Long','水龍','水龙'], stat:'qi', per:.02,  col:'#7fd8ff',glow:'#3aa9ff'},
  hoa: {n:['Hỏa Diễm','火焰','火焰'],  stat:'spd',per:.02, col:'#ff9b6a',glow:'#ff5a2a'},
  tho: {n:['Thổ Nguyên','土元','土元'],stat:'red',per:.015,col:'#d9b06a',glow:'#a9743a'}
 };
@@ -312,7 +316,7 @@ var PDEC=[20,200,2000];                      /* rã ra Linh Thạch theo bậc *
 var EFF={ /* mô tả tác dụng: [vi,hant,hans] */
  kim:['+1 sát thương mỗi đòn đánh','每次攻擊傷害 +1','每次攻击伤害 +1'],
  moc:['+6 máu tối đa','最大生命 +6','最大生命 +6'],
- thuy:['+0,1 linh khí/giây (khi đã thức tỉnh Linh Căn)','靈氣吸收 +0.1／秒（覺醒靈根後）','灵气吸收 +0.1／秒（觉醒灵根后）'],
+ thuy:['+0,02 tu vi/giây (khi đã thức tỉnh Linh Căn)','修為吸收 +0.02／秒（覺醒靈根後）','修为吸收 +0.02／秒（觉醒灵根后）'],
  hoa:['+2% tốc độ đánh','攻擊速度 +2%','攻击速度 +2%'],
  tho:['giảm 1,5% sát thương nhận','受到傷害 −1.5%','受到伤害 −1.5%']
 };
@@ -338,7 +342,28 @@ var S=[ /* chuỗi giao diện mới: [vi, zh-Hant, zh-Hans] */
  ['cul.need','Cần đủ 5 hệ đạt {n} để thức tỉnh','需五行皆達 {n} 才能覺醒','需五行皆达 {n} 才能觉醒'],
  ['cul.done','Linh Căn đã thức tỉnh','靈根已覺醒','灵根已觉醒'],
  ['cul.qi','Linh khí','靈氣','灵气'],
- ['cul.rate','Mỗi giây hấp thu +1, mọi lúc mọi nơi','每秒吸收 +1，隨時隨地','每秒吸收 +1，随时随地'],
+ ['cul.rate','Tu luyện thường {n} tu vi/giây — muốn nhanh hơn phải dùng đan dược','平時修煉每秒 {n} 修為——想更快須服用丹藥','平时修炼每秒 {n} 修为——想更快须服用丹药'],
+ ['realm.n','Luyện Khí tầng {n}','練氣第 {n} 層','练气第 {n} 层'],
+ ['realm.full','Luyện Khí viên mãn — cần đan dược để vào cảnh giới sau','練氣圓滿——需丹藥方能進入下一境界','练气圆满——需丹药方能进入下一境界'],
+ ['realm.cur','Cảnh giới','境界','境界'],['realm.mul','Hệ số cảnh giới','境界倍率','境界倍率'],
+ ['realm.exp','Tu vi','修為','修为'],
+ ['act.break','⚡ Đột phá tầng {n}','⚡ 突破第 {n} 層','⚡ 突破第 {n} 层'],
+ ['realm.bonus','Đột phá: máu và sát thương ×{m} (cộng dồn)','突破：生命與傷害 ×{m}（累乘）','突破：生命与伤害 ×{m}（累乘）'],
+ ['toast.break','Đột phá thành công! Luyện Khí tầng {n} — máu & sát thương ×{m}','突破成功！練氣第 {n} 層——生命與傷害 ×{m}','突破成功！练气第 {n} 层——生命与伤害 ×{m}'],
+ ['toast.nobreak','Tu vi chưa đủ để đột phá','修為不足，無法突破','修为不足，无法突破'],
+ ['toast.dan','Dùng {name}: +{n} tu vi','服用{name}：修為 +{n}','服用{name}：修为 +{n}'],
+ ['toast.dan.full','Tu vi tầng này đã đầy — hãy đột phá trước','此層修為已滿——請先突破','此层修为已满——请先突破'],
+ ['toast.dan.max','Luyện Khí đã viên mãn, đan này không còn tác dụng','練氣已圓滿，此丹無效','练气已圆满，此丹无效'],
+ ['toast.dan.asleep','Cần thức tỉnh Linh Căn trước','需先覺醒靈根','需先觉醒灵根'],
+ ['alc.title','Luyện đan','煉丹','炼丹'],['alc.have','có {n}','擁有 {n}','拥有 {n}'],['alc.make','Luyện đan','煉製','炼制'],['alc.makeall','Luyện tối đa ({n})','盡量煉製（{n}）','尽量炼制（{n}）'],
+ ['alc.out','Thành phẩm: {name} ({eff})','成品：{name}（{eff}）','成品：{name}（{eff}）'],['alc.keep','Đan phương không mất sau khi dùng.','丹方不會消耗。','丹方不会消耗。'],
+ ['toast.alc','Luyện thành {name} ×{n}','煉成{name} ×{n}','炼成{name} ×{n}'],['toast.alc.no','Thiếu nguyên liệu','材料不足','材料不足'],
+ ['item.dp.tukhi','Đan Phương: Tụ Khí Đan','丹方：聚氣丹','丹方：聚气丹'],
+ ['itemdesc.dp.tukhi','Công thức luyện Tụ Khí Đan (3 Linh Sâm + 1 Linh Thạch). Bấm Sử dụng để mở lò luyện. Không mất sau khi dùng.','聚氣丹的煉製丹方（3 靈參 + 1 靈石）。按「使用」開啟丹爐。使用後不會消失。','聚气丹的炼制丹方（3 灵参 + 1 灵石）。按「使用」开启丹炉。使用后不会消失。'],
+ ['item.dan.tukhi','Tụ Khí Đan','聚氣丹','聚气丹'],
+ ['itemdesc.dan.tukhi','Đan dược cơ bản của Luyện Khí kỳ. Sử dụng: +100 tu vi. Rã: 10 Linh Thạch.','練氣期基礎丹藥。使用：修為 +100。分解：靈石 10。','练气期基础丹药。使用：修为 +100。分解：灵石 10。'],
+ ['sx.realm','Cảnh giới','境界','境界'],
+
  ['toast.refine','Luyện hóa: +{n} {el}','煉化：+{n} {el}','炼化：+{n} {el}'],
  ['toast.refine0','Không còn nguyên liệu hệ {el}','沒有{el}系材料了','没有{el}系材料了'],
  ['toast.awake','Linh Căn thức tỉnh! Linh khí bắt đầu tụ về mỗi giây.','靈根覺醒！靈氣開始每秒匯聚。','灵根觉醒！灵气开始每秒汇聚。'],
@@ -398,7 +423,7 @@ EL.forEach(function(e){for(var t=1;t<=PT;t++){var id=pearlId(e.id,t);
   }}});
 MONS.forEach(function(m){for(var k=0;k<3;k++)add[LG[k]]['monster.'+m.id]=m.n[k];});
 for(var k=0;k<3;k++)I18N.add(LG[k],add[LG[k]]);
-window.TTData={EL:EL,RES:RES,byItem:byItem,byId:byId,PEARL:PEARL,PCAP:PCAP,PFUSE:PFUSE,PT:PT,pearlId:pearlId,byPearl:byPearl,MONS:MONS,NEED:NEED,HITS:HITS,PTS:PTS,RESPAWN:300000,misc:MISC};
+window.TTData={EL:EL,RES:RES,byItem:byItem,byId:byId,PEARL:PEARL,PCAP:PCAP,PFUSE:PFUSE,PT:PT,pearlId:pearlId,byPearl:byPearl,MONS:MONS,REALM:REALM,DAN:DAN,RECIPES:RECIPES,NEED:NEED,HITS:HITS,PTS:PTS,RESPAWN:300000,misc:MISC};
 })();
 </script>
 <script>
@@ -491,7 +516,7 @@ function lootUI(){const e=document.getElementById('loot');const k=Object.keys(lo
 
 /* ---------- TÀI NGUYÊN · NGŨ HÀNH · LINH CĂN ---------- */
 const TD=window.TTData,RMETA={"cay_coi":[[45,0,46,50,-23.0,-50],[0,0,44,51,-21.7,-51],[32,52,34,37,-15.2,-37],[318,149,26,18,-13.0,-18]],"cay_cao":[[92,0,46,50,-22.7,-50],[210,0,44,48,-21.4,-48],[0,91,31,29,-13.4,-29],[262,149,24,19,-12.0,-19]],"tre":[[139,0,34,50,-16.7,-50],[174,0,35,50,-16.4,-50],[67,52,29,34,-13.6,-34],[242,149,19,20,-9.5,-20]],"go_dac_biet":[[302,0,42,39,-20.1,-39],[255,0,46,42,-23.6,-42],[56,149,29,24,-14.0,-24],[225,121,27,26,-13.5,-26]],"da_linh":[[121,52,37,34,-18.3,-34],[0,52,31,38,-15.9,-38],[253,121,31,26,-16.3,-26],[183,149,27,22,-13.5,-22]],"thuoc_hiem":[[97,52,23,34,-11.2,-34],[317,52,23,30,-11.1,-30],[202,121,22,26,-8.7,-26],[164,149,18,22,-9.0,-22]],"co_linh_chi":[[170,121,31,26,-15.9,-26],[52,121,31,27,-15.3,-27],[159,52,28,32,-13.8,-32],[144,149,19,22,-9.5,-22]],"hoa_linh":[[285,52,31,30,-16.0,-30],[188,52,31,31,-16.8,-31],[116,91,26,29,-12.1,-29],[143,91,18,29,-9.0,-29]],"linh_thach":[[220,52,34,30,-16.8,-30],[84,121,32,26,-15.6,-26],[287,149,30,19,-15.4,-19],[86,149,24,23,-12.0,-23]],"thao_quy":[[314,91,28,27,-13.4,-27],[255,52,29,30,-13.2,-30],[0,121,27,27,-12.2,-27],[28,121,23,27,-11.5,-27]],"thao_duoc":[[32,91,31,29,-14.4,-29],[64,91,28,29,-16.1,-29],[117,121,24,26,-12.6,-26],[93,91,22,29,-11.0,-29]],"da":[[162,91,39,27,-19.4,-27],[202,91,38,27,-19.2,-27],[111,149,32,22,-14.9,-22],[0,149,31,24,-15.5,-24]],"quang_kim":[[241,91,36,27,-18.4,-27],[278,91,35,27,-16.7,-27],[211,149,30,21,-16.1,-21],[0,174,25,18,-12.5,-18]],"nam_linh_chi":[[142,121,27,26,-12.5,-26],[285,121,25,25,-11.7,-25],[32,149,23,24,-11.0,-24],[311,121,17,25,-8.5,-25]]};
-const cult={r:{kim:0,moc:0,thuy:0,hoa:0,tho:0},pl:{kim:[0,0,0],moc:[0,0,0],thuy:[0,0,0],hoa:[0,0,0],tho:[0,0,0]},aw:false,qi:0};
+const cult={r:{kim:0,moc:0,thuy:0,hoa:0,tho:0},pl:{kim:[0,0,0],moc:[0,0,0],thuy:[0,0,0],hoa:[0,0,0],tho:[0,0,0]},aw:false,qi:0,rl:1,dpg:false};
 const nodes=[],nodeCell=new Map(),respawnQ=[];   /* node: {g,x,y,h,gone,shk}; chia ô 4x4 để tìm nhanh */
 const ckey=n=>(n.x/TILE>>2)+','+(n.y/TILE>>2);
 function cellAdd(n){const k=ckey(n);let a=nodeCell.get(k);if(!a)nodeCell.set(k,a=[]);a.push(n);}
@@ -555,13 +580,13 @@ function refineEl(el){ /* nguyên liệu hệ el → điểm hệ el (tối đa 
   return gain;
 }
 function lootDec(n){loot[n]--;if(!(loot[n]>0))delete loot[n];}
-function itemInfo(n){const g=TD.byItem[n],m=TD.misc[n],p=pearlInfo(n);return {use:!!g||!!(p&&p.can),dec:g?g.ls:(m?m.dec:0),pearl:p,fuse:!!(p&&p.next)};}
+function itemInfo(n){const g=TD.byItem[n],m=TD.misc[n],p=pearlInfo(n);return {use:!!g||!!(p&&p.can)||!!TD.RECIPES[n]||!!TD.DAN[n],dec:g?g.ls:(m?m.dec:0),pearl:p,fuse:!!(p&&p.next),keep:!!(m&&m.keep),recipe:!!TD.RECIPES[n]};}
 function useItem(n){ /* nguyên liệu: luyện hóa 1 cái vào hệ của nó */
-  const g=TD.byItem[n];if(!g)return TD.byPearl[n]?swallow(n):false;if(!(loot[n]>0))return false;
+  const g=TD.byItem[n];if(!g)return TD.byPearl[n]?swallow(n):TD.DAN[n]?eatDan(n):TD.RECIPES[n]?true:false;if(!(loot[n]>0))return false;
   if(cult.r[g.el]>=TD.NEED){toast(T('toast.full',{el:T('el.'+g.el)}));return false;}
   const add=Math.min(g.pts,TD.NEED-cult.r[g.el]);cult.r[g.el]+=add;lootDec(n);lootUI();toast(T('toast.refine',{n:add,el:T('el.'+g.el)}));return true;}
 function decompose(n){const v=itemInfo(n).dec;if(!(loot[n]>0)||!(v>0))return false;lootDec(n);loot.lt=(loot.lt|0)+v;lootUI();toast(T('toast.dec',{name:I18N.itemName(n),n:v}));return true;}
-function dropItem(n){if(!(loot[n]>0))return false;lootDec(n);const g=TD.byItem[n],t=now();
+function dropItem(n){if(!(loot[n]>0)||(TD.misc[n]&&TD.misc[n].keep))return false;lootDec(n);const g=TD.byItem[n],t=now();
   drops.push({x:P.x+P.f*40,y:P.y-2,t0:t,n,ic:g?g.id:undefined,pa:t+1800,exp:t+60000});lootUI();toast(T('toast.drop',{name:I18N.itemName(n)}));return true;}
 function canAwake(){return !cult.aw&&TD.EL.every(e=>cult.r[e.id]>=TD.NEED);}
 function awaken(){if(!canAwake())return false;cult.aw=true;toast(T('toast.awake'));return true;}
@@ -677,12 +702,43 @@ const MON_RESPAWN=45000;         /* quái hồi sinh sau 45 giây */
 
 /* ---------- CHỈ SỐ NHÂN VẬT ---------- */
 const STT={dmg:0,hp:0,red:0,spd:0,qi:0};
+/* ---------- TU VI · CẢNH GIỚI (Luyện Khí 1-10) ----------
+   Tu vi cần để qua tầng n = base·2^(n-1) (gấp đôi mỗi tầng). Mỗi lần đột phá, máu & sát thương nhân thêm ×1,2 (cộng dồn).
+   Tu luyện thường chậm (REALM.rate + Thủy châu); thảo dược thô không cho tu vi — phải luyện thành đan (đan phương). */
+const realmNeed=l=>l>=TD.REALM.max?Infinity:TD.REALM.base*Math.pow(2,l-1);
+const realmMul=l=>Math.pow(TD.REALM.mul,(l||cult.rl)-1);
+const qiRate=()=>TD.REALM.rate+STT.qi;
+function qiTick(dt){
+  if(!cult.dpg&&!(loot['dp.tukhi']>0)){loot['dp.tukhi']=1;cult.dpg=true;lootUI();}   /* tặng đan phương đầu tiên (1 lần) */
+  if(!cult.aw||cult.rl>=TD.REALM.max)return;const nd=realmNeed(cult.rl);if(cult.qi<nd)cult.qi=Math.min(nd,cult.qi+dt*qiRate());
+}
+function breakthrough(){
+  if(!cult.aw||cult.rl>=TD.REALM.max||cult.qi<realmNeed(cult.rl)){toast(T('toast.nobreak'));return false;}
+  cult.qi-=realmNeed(cult.rl);cult.rl++;recalc();P.hp=P.maxHp;
+  toast(T('toast.break',{n:cult.rl,m:(Math.round(TD.REALM.mul*100)/100).toString().replace('.',',')}));return true;
+}
+function eatDan(n){
+  const d=TD.DAN[n];if(!d||!(loot[n]>0))return false;
+  if(!cult.aw){toast(T('toast.dan.asleep'));return false;}
+  if(cult.rl>=TD.REALM.max){toast(T('toast.dan.max'));return false;}
+  if(cult.qi>=realmNeed(cult.rl)){toast(T('toast.dan.full'));return false;}
+  lootDec(n);cult.qi+=d.qi;lootUI();toast(T('toast.dan',{name:I18N.itemName(n),n:d.qi}));return true;
+}
+function craftMax(rid){const r=TD.RECIPES[rid];if(!r)return 0;return Math.min(...r.ing.map(([k,q])=>Math.floor((loot[k]|0)/q)));}
+function craft(rid,n){
+  const r=TD.RECIPES[rid];if(!r||!(loot[rid]>0))return 0;n=Math.min(n||1,craftMax(rid));
+  if(n<1){toast(T('toast.alc.no'));return 0;}
+  r.ing.forEach(([k,q])=>{loot[k]-=q*n;if(loot[k]<=0)delete loot[k];});
+  loot[r.out]=(loot[r.out]|0)+n;lootUI();toast(T('toast.alc',{name:I18N.itemName(r.out),n}));return n;
+}
+
 function recalc(){
   const sum=el=>cult.pl[el].reduce((a,b)=>a+b,0),pe=TD.PEARL,rd=x=>Math.round(x*1000)/1000;
   STT.dmg=rd(sum('kim')*pe.kim.per);STT.hp=rd(sum('moc')*pe.moc.per);STT.red=Math.min(.6,rd(sum('tho')*pe.tho.per));STT.spd=rd(sum('hoa')*pe.hoa.per);STT.qi=rd(sum('thuy')*pe.thuy.per);
-  const mx=100+STT.hp,old=P.maxHp;P.maxHp=mx;P.hp=mx>old?Math.min(mx,P.hp+(mx-old)):Math.min(P.hp,mx);
+  if(cult.qi>realmNeed(cult.rl)+TD.DAN['dan.tukhi'].qi)cult.qi=realmNeed(cult.rl);   /* save cũ: tu vi vượt trần → về trần */
+  const mx=Math.round((100+STT.hp)*realmMul()),old=P.maxHp;P.maxHp=mx;P.hp=mx>old?Math.min(mx,P.hp+(mx-old)):Math.min(P.hp,mx);
 }
-const dmgRoll=()=>7+Math.floor(Math.random()*6)+STT.dmg;
+const dmgRoll=()=>Math.round((7+Math.floor(Math.random()*6)+STT.dmg)*realmMul());
 const atkCd=()=>470/(1+STT.spd);
 
 /* ---------- NGỌC: nuốt (trần 10/bậc) · hợp nhất 10 → 1 ---------- */
@@ -978,7 +1034,7 @@ function update(dt){
     dog.run=t-dog.rt<170;if(Math.abs(dx)>6)dog.f=dx>0?1:-1;if(d>260){dog.x=P.x;dog.y=P.y;}}
   mUpdate(dt);respawnTick(t);
   mon2Update(dt,t);
-  if(cult.aw)cult.qi+=dt*(1+STT.qi);   /* linh khí +1/giây, mọi lúc mọi nơi (kể cả khi chết) */
+  qiTick(dt);   /* tu luyện thường: mọi lúc mọi nơi (kể cả khi chết); xem mon2.js */
   // nhặt vật phẩm
   for(let i=drops.length-1;i>=0;i--){const d=drops[i];if(d.exp&&t>d.exp){drops.splice(i,1);continue;}if(t-d.t0>(d.ic?250:500)&&(!d.pa||t>d.pa)&&Math.hypot(P.x-d.x,P.y-d.y)<(d.ic?24:16)){loot[d.n]=(loot[d.n]||0)+1;drops.splice(i,1);lootUI();toast(T('toast.pick',{name:I18N.itemName(d.n)}));}}
   fxs=fxs.filter(f=>t-f.t0<f.dur);floaters=floaters.filter(f=>t-f.t0<900);
@@ -1128,7 +1184,7 @@ function draw(){
 let last=performance.now();
 function loop(n){const dt=Math.min(.05,(n-last)/1000);last=n;if(window.__pause){requestAnimationFrame(loop);return;}try{update(dt);draw();}catch(e){window.dispatchEvent(new ErrorEvent('error',{message:e.message,lineno:0}));return;}requestAnimationFrame(loop);}
 requestAnimationFrame(loop);
-window.G={P,M,dog,fx:()=>fxs,drops,update,draw,tiles,cam,now,attack,setSt,mHit,DR,loot,SPAWN,LAKE,HOME,toast,keys,joy,lootUI,stats,cult,nodes,respawnQ,S:STT,recalc,pearlInfo,swallow,fuse,mons2,MD,petObjs,PETS,addPet,setPets,tameRoll,AUTO,setAuto,monHit,fx2,projs,setTameP:v=>{TAME_P=v;},useItem,decompose,dropItem,itemInfo,RES:TD.RES,TD,RMETA,harvest,refineEl,awaken,canAwake,iconCanvas,nodesNear};
+window.G={P,M,dog,fx:()=>fxs,drops,update,draw,tiles,cam,now,attack,setSt,mHit,DR,loot,SPAWN,LAKE,HOME,toast,keys,joy,lootUI,stats,cult,nodes,breakthrough,craft,craftMax,realmNeed,realmMul,qiRate,respawnQ,S:STT,recalc,pearlInfo,swallow,fuse,mons2,MD,petObjs,PETS,addPet,setPets,tameRoll,AUTO,setAuto,monHit,fx2,projs,setTameP:v=>{TAME_P=v;},useItem,decompose,dropItem,itemInfo,RES:TD.RES,TD,RMETA,harvest,refineEl,awaken,canAwake,iconCanvas,nodesNear};
 toast(T('toast.welcome'));
 })();
 </script>
@@ -1146,7 +1202,9 @@ var G=window.G;
 var CAP=30; /* số loại vật phẩm tối đa trong túi (tạm) */
 var ITEMS={
   'Thủy Long Châu':{col:'#7fd8ff',glow:'#3aa9ff'},
-  'lt':{col:'#e8f6ff',glow:'#6fd3ff'}
+  'lt':{col:'#e8f6ff',glow:'#6fd3ff'},
+  'dp.tukhi':{col:'#ffffff',glow:'#b58cff'},
+  'dan.tukhi':{col:'#b8f5a0',glow:'#2fbf5a'}
 };
 var DEF={col:'#ffe58f',glow:'#ffb347'};
 var T=function(k,p){return I18N.t(k,p);};
@@ -1253,6 +1311,25 @@ document.body.appendChild(bag);
 $('bagIc').appendChild(pouch(2));
 function $(id){return document.getElementById(id);}
 
+/* ----- lò luyện đan (đan phương) ----- */
+var alc=document.createElement('div');alc.id='alc';
+alc.style.cssText='position:fixed;inset:0;z-index:950;display:none;align-items:center;justify-content:center;background:#000c;padding:14px;box-sizing:border-box';
+alc.innerHTML='<div style="width:100%;max-width:340px;background:linear-gradient(#1b1236,#0b0818);border:1px solid #6b4a9a;border-radius:18px;padding:14px;color:#efe6ff"><h3 id="alcT" style="margin:0 0 8px;font-size:16px"></h3><div id="alcB"></div></div>';
+document.body.appendChild(alc);
+var alcR='';var cs=document.createElement('style');cs.textContent='#alc button{padding:9px 6px;border-radius:10px;border:1px solid #6b4a9a;background:#241a45;color:#fff;font-size:13px}#alc button[disabled]{opacity:.4}';document.head.appendChild(cs);
+function openAlc(rid){alcR=rid;alc.style.display='flex';renderAlc();}
+function renderAlc(){
+  var r=G.TD.RECIPES[alcR];if(!r)return;var l=G.loot,mx=G.craftMax?G.craftMax(alcR):0,h='';
+  $('alcT').textContent=I18N.itemName(alcR)+' · '+T('alc.title');
+  r.ing.forEach(function(g){var have=l[g[0]]|0;h+='<div class="row" style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #2a1f4d;font-size:13px"><span>'+esc(I18N.itemName(g[0]))+' ×'+g[1]+'</span><b style="color:'+(have>=g[1]?'#9bf0a8':'#ff9b8a')+'">'+esc(T('alc.have',{n:have}))+'</b></div>';});
+  h+='<div style="margin:9px 0;font-size:12.5px;color:#cbbbee">'+esc(T('alc.out',{name:I18N.itemName(r.out),eff:'+'+G.TD.DAN[r.out].qi+' '+T('realm.exp')}))+'<br>'+esc(T('alc.keep'))+'</div>'+
+   '<div style="display:flex;gap:6px"><button type="button" id="alcX" style="flex:1">'+esc(T('bag.close'))+'</button><button type="button" id="alcM" style="flex:1.2;background:#6b3fb4;border-color:#c58bf0"'+(mx>0?'':' disabled')+'>'+esc(T('alc.make'))+'</button><button type="button" id="alcA" style="flex:1.4"'+(mx>1?'':' disabled')+'>'+esc(T('alc.makeall',{n:mx}))+'</button></div>';
+  $('alcB').innerHTML=h;
+  $('alcX').onclick=function(){alc.style.display='none';lastKeys='';refresh();};
+  $('alcM').onclick=function(){G.craft(alcR,1);afterAlc();};
+  $('alcA').onclick=function(){G.craft(alcR,mx);afterAlc();};
+}
+function afterAlc(){lastKeys='';renderAlc();refresh();if(window.TT&&TT.push)TT.push(false,false);}
 var sel='',tab='T',tmr=0,raf=0,stars=[],lastKeys='';
 function hhmm(t){var d=new Date(t);return ('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2);}
 function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
@@ -1291,14 +1368,14 @@ function showInfo(){
   var inf=G.itemInfo(sel),sg=sel,pi=inf.pearl,ps='';
   if(pi){ps='<div class="pl">'+esc(T('pl.status',{t:pi.tier,n:pi.done,cap:pi.cap}))+(pi.reason?' — '+esc(T('pl.'+pi.reason,{cap:pi.cap})):'')+'</div>';}
   box.innerHTML='<b>'+esc(I18N.itemName(sel))+' ×'+l[sel]+'</b>'+esc(I18N.itemDesc(sel))+ps+
-    '<div class="acts"><button type="button" class="dr" id="biDr">'+esc(T('act.drop'))+'</button>'+
+    '<div class="acts"><button type="button" class="dr" id="biDr"'+(inf.keep?' disabled':'')+'>'+esc(T('act.drop'))+'</button>'+
     '<button type="button" class="mid" id="biDec"'+(inf.dec>0?'':' disabled')+'>'+esc(T('act.dec',{n:inf.dec}))+'</button>'+
     '<button type="button" class="us" id="biUse"'+(inf.use?'':' disabled')+'>'+esc(T('act.use'))+'</button></div>'+
     (inf.fuse?'<div class="acts two"><button type="button" class="mid" id="biFuse"'+((l[sel]|0)>=G.TD.PFUSE?'':' disabled')+'>'+esc(T('act.fuse',{n:G.TD.PFUSE,name:I18N.itemName(pi.next)}))+'</button></div>':'');
   function after(){lastKeys='';refresh();if(window.TT&&TT.push)TT.push(false,false);}
   $('biDr').onclick=function(){G.dropItem(sg);after();};
   $('biDec').onclick=function(){G.decompose(sg);after();};
-  $('biUse').onclick=function(){G.useItem(sg);after();};
+  $('biUse').onclick=function(){if(inf.recipe){openAlc(sg);return;}G.useItem(sg);after();};
   if($('biFuse'))$('biFuse').onclick=function(){G.fuse(sg);after();};
 }
 function renderJournal(){
@@ -1320,19 +1397,27 @@ function renderJournal(){
 var rootSig='';
 function matCount(el){var n=0;G.TD.RES.forEach(function(g){if(g.el===el)n+=G.loot[g.item]|0;});return n;}
 function renderRoot(force){
-  var C=G.cult,N=G.TD.NEED,sig=G.TD.EL.map(function(e){return C.r[e.id]+':'+matCount(e.id);}).join('|')+(C.aw?'A':G.canAwake()?'C':'-')+I18N.lang;
-  if(!force&&sig===rootSig){var q=$('rootQi');if(q)q.textContent=Math.floor(C.qi);return;}
+  var C=G.cult,N=G.TD.NEED,sig=G.TD.EL.map(function(e){return C.r[e.id]+':'+matCount(e.id);}).join('|')+(C.aw?'A'+C.rl:G.canAwake()?'C':'-')+I18N.lang;
+  if(!force&&sig===rootSig){var q=$('rootQi');if(q)q.textContent=Math.floor(C.qi);var br=$('rootBr');if(br)br.disabled=!(C.qi>=G.realmNeed(C.rl));return;}
   rootSig=sig;var h='<div class="hint">'+esc(T('cul.hint',{n:N}))+'</div>';
   G.TD.EL.forEach(function(e){
     var v=C.r[e.id],m=matCount(e.id),full=v>=N;
     h+='<div class="er"><div class="el" style="background:'+e.c+';box-shadow:0 0 10px '+e.c+'88">'+esc(T('el.'+e.id))+'</div><div class="mid"><div class="nm"><span>'+esc(T('el.'+e.id))+'</span><span>'+v+' / '+N+'</span></div><div class="bar2"><i style="width:'+Math.min(100,v/N*100)+'%;background:'+e.c+'"></i></div><small>'+esc(T('cul.mat',{n:m}))+'</small></div>'+
        '<button type="button" data-el="'+e.id+'"'+((full||!m)?' disabled':'')+'>'+esc(full?T('cul.full'):T('cul.refine'))+'</button></div>';
   });
-  if(C.aw)h+='<div class="done">'+esc(T('cul.done'))+'<b>'+esc(T('cul.qi'))+': <span id="rootQi">'+Math.floor(C.qi)+'</span></b>'+esc(T('cul.rate'))+'</div>';
+  if(C.aw){
+    var nd=G.realmNeed(C.rl),mx=C.rl>=G.TD.REALM.max,pc=mx?100:Math.min(100,C.qi/nd*100),ready=!mx&&C.qi>=nd;
+    h+='<div class="done"><span style="font-size:12px;color:#cbbbee">'+esc(T('realm.cur'))+'</span><b>'+esc(T('realm.n',{n:C.rl}))+'</b>'+
+      (mx?esc(T('realm.full')):'<div class="bar2"><i style="width:'+pc+'%;background:#ffe58f"></i></div><span id="rootQi">'+Math.floor(C.qi)+'</span> / '+nd+' '+esc(T('realm.exp'))+
+        '<br><span style="color:#a999d0;font-size:12px">'+esc(T('cul.rate',{n:(I18N.lang==='vi'?G.qiRate().toFixed(2).replace('.',','):G.qiRate().toFixed(2))}))+'</span>'+
+        '<br><button type="button" class="aw" id="rootBr" style="margin-top:8px"'+(ready?'':' disabled')+'>'+esc(T('act.break',{n:C.rl+1}))+'</button>')+
+      '<br><span style="color:#a999d0;font-size:12px">'+esc(T('realm.bonus',{m:'1,2'.replace(',',I18N.lang==='vi'?',':'.')}))+'</span></div>';
+  }
   else h+='<button type="button" class="aw" id="rootAw"'+(G.canAwake()?'':' disabled')+'>'+esc(G.canAwake()?T('cul.awake'):T('cul.need',{n:N}))+'</button>';
   $('bagR').innerHTML=h;
   var b=$('bagR').querySelectorAll('button[data-el]');
   for(var i=0;i<b.length;i++)b[i].onclick=function(){G.refineEl(this.getAttribute('data-el'));renderRoot(true);updBadge();if(window.TT&&TT.push)TT.push(false,false);};
+  var rb=$('rootBr');if(rb)rb.onclick=function(){if(G.breakthrough()){renderRoot(true);if(window.TT&&TT.push)TT.push(false,false);}};
   var a=$('rootAw');if(a)a.onclick=function(){if(G.awaken()){renderRoot(true);if(window.TT&&TT.push)TT.push(false,false);}};
 }
 function renderStats(){
@@ -1342,11 +1427,12 @@ function renderStats(){
   var pets=G.PETS.length?G.PETS.map(function(id){return esc(T('monster.'+id));}).join(', '):T('sx.none');
   $('bagS').innerHTML=
    row('sx.hp',Math.round(P.hp)+' / '+P.maxHp)+
-   row('sx.dmg',(7+S.dmg)+' – '+(12+S.dmg))+
+   row('sx.realm',esc(T('realm.n',{n:C.rl}))+' (×'+N(G.realmMul().toFixed(2))+')')+
+   row('sx.dmg',Math.round((7+S.dmg)*G.realmMul())+' – '+Math.round((12+S.dmg)*G.realmMul()))+
    row('sx.spd',T('sx.spd.v',{n:N((1000/cd).toFixed(2))}))+
    row('sx.red',N((S.red*100).toFixed(1))+'%')+
-   row('sx.qi',C.aw?T('sx.qi.v',{n:N((1+S.qi).toFixed(1))}):T('j.asleep'))+
-   row('sx.qitotal',Math.floor(C.qi))+
+   row('sx.qi',C.aw?T('sx.qi.v',{n:N(G.qiRate().toFixed(2))}):T('j.asleep'))+
+   row('sx.qitotal',Math.floor(C.qi)+' / '+(C.rl>=G.TD.REALM.max?'MAX':G.realmNeed(C.rl)))+
    row('sx.roots',G.TD.EL.map(function(e){return T('el.'+e.id)+' '+C.r[e.id];}).join(' · '))+
    '<div class="row" style="border:0;padding-bottom:0"><span>'+T('sx.pearls')+'</span></div>'+pl+
    row('sx.pets',pets)+row('sx.kills',G.stats.kills)+row('sx.lt',G.loot.lt|0);
@@ -1383,7 +1469,7 @@ setInterval(function(){if(btn.style.display!=='none')updBadge();},1500);
 I18N.apply(bag);
 /* HUD linh khí (góc trái dưới) */
 var qi=document.createElement('div');qi.id='qi';document.body.appendChild(qi);
-setInterval(function(){var C=G.cult;if(btn.style.display==='none'||!C.aw){qi.style.display='none';return;}qi.style.display='block';qi.textContent='✦ '+T('hud.qi',{n:Math.floor(C.qi)});},250);
+setInterval(function(){var C=G.cult;if(btn.style.display==='none'||!C.aw){qi.style.display='none';return;}qi.style.display='block';qi.textContent='✦ '+T('realm.n',{n:C.rl})+' · '+Math.floor(C.qi)+(C.rl>=G.TD.REALM.max?'':'/'+G.realmNeed(C.rl));},250);
 I18N.on(function(){btn.setAttribute('aria-label',I18N.t('bag.title'));I18N.apply(bag);lastKeys='';rootSig='';refresh();});
 window.TTBag={show:function(v){var ab=document.getElementById('autoBtn');if(ab)ab.style.display=v?'block':'none';btn.style.display=v?'flex':'none';if(!v)close();else updBadge();},open:open,close:close,select:function(n){sel=n;}};
 })();
@@ -1445,7 +1531,7 @@ var pn=document.createElement('div');pn.id='set';
 pn.innerHTML=
 '<div class="box"><div class="hd"><span id="setIc"></span><h2 data-i18n="set.title"></h2><button id="setX" type="button" data-i18n="bag.close"></button></div>'+
 '<h3 data-i18n="set.lang"></h3><div class="langs" id="setL"></div><div class="note" data-i18n="set.langnote"></div>'+
-'<h3 data-i18n="set.account"></h3><div id="setA"></div><div class="note" style="text-align:center;margin-top:14px">v1018.0011</div></div>';
+'<h3 data-i18n="set.account"></h3><div id="setA"></div><div class="note" style="text-align:center;margin-top:14px">v1018.0024</div></div>';
 document.body.appendChild(pn);
 $('setIc').appendChild(gear(2));
 
@@ -1562,7 +1648,7 @@ function ensure(){
 /* ---------- dữ liệu save ---------- */
 function collect(){
   var P=G.P,l={};for(var k in G.loot)l[k]=G.loot[k];
-  var st=G.stats;return{v:SAVE_V,x:+P.x.toFixed(1),y:+P.y.toFixed(1),f:P.f,hp:Math.round(P.hp),loot:l,stats:{kills:st.kills|0,steps:Math.round(st.steps),sec:Math.round(st.sec)},set:{lang:I18N.lang},cul:{r:{kim:G.cult.r.kim|0,moc:G.cult.r.moc|0,thuy:G.cult.r.thuy|0,hoa:G.cult.r.hoa|0,tho:G.cult.r.tho|0},pl:plCopy(),aw:G.cult.aw?1:0,qi:+G.cult.qi.toFixed(1)},pets:G.PETS.slice()};
+  var st=G.stats;return{v:SAVE_V,x:+P.x.toFixed(1),y:+P.y.toFixed(1),f:P.f,hp:Math.round(P.hp),loot:l,stats:{kills:st.kills|0,steps:Math.round(st.steps),sec:Math.round(st.sec)},set:{lang:I18N.lang},cul:{r:{kim:G.cult.r.kim|0,moc:G.cult.r.moc|0,thuy:G.cult.r.thuy|0,hoa:G.cult.r.hoa|0,tho:G.cult.r.tho|0},pl:plCopy(),aw:G.cult.aw?1:0,qi:+G.cult.qi.toFixed(1),rl:G.cult.rl|0,dpg:G.cult.dpg?1:0},pets:G.PETS.slice()};
 }
 function plCopy(){var o={};['kim','moc','thuy','hoa','tho'].forEach(function(e){o[e]=G.cult.pl[e].map(function(x){return x|0;});});return o;}
 function migrate(d){/* d.v cũ → mới. Hiện mới có v=1 nên chưa cần. */return d;}
@@ -1573,7 +1659,7 @@ function apply(d){
   if(d.f===1||d.f===-1)P.f=d.f;
   {var cc=G.cult,u=(d.cul&&typeof d.cul==='object')?d.cul:{},ur=u.r||{},up=u.pl||{};
    ['kim','moc','thuy','hoa','tho'].forEach(function(e){cc.r[e]=Math.max(0,Math.min(100,+ur[e]||0));var a=Array.isArray(up[e])?up[e]:[];cc.pl[e]=[0,1,2].map(function(i){return Math.max(0,Math.min(10,a[i]|0));});});
-   cc.aw=u.aw===1||u.aw===true;cc.qi=Math.max(0,+u.qi||0);G.setPets(d.pets);P.maxHp=100;G.recalc();}
+   cc.aw=u.aw===1||u.aw===true;cc.qi=Math.max(0,+u.qi||0);cc.rl=Math.max(1,Math.min(10,u.rl|0||1));cc.dpg=u.dpg===1||u.dpg===true;G.setPets(d.pets);P.maxHp=100;G.recalc();}
   P.hp=(isFinite(d.hp)&&d.hp>0)?Math.min(P.maxHp,d.hp):P.maxHp;
   if(d.set&&d.set.lang)I18N.set(d.set.lang,true),markLang();
   if(d.stats&&typeof d.stats==='object'){var st=G.stats;st.kills=+d.stats.kills||0;st.steps=+d.stats.steps||0;st.sec=+d.stats.sec||0;}
@@ -1645,7 +1731,7 @@ ov.innerHTML=
 '<div class="err" id="aErr"></div>'+
 '<button class="go" id="aGo" type="submit"></button>'+
 '<div class="note" data-i18n-html="auth.note"></div>'+
-'<div class="note" style="opacity:.7">v1018.0011</div>'+
+'<div class="note" style="opacity:.7">v1018.0024</div>'+
 '</form>';
 document.body.appendChild(ov);
 var acc=document.createElement('div');acc.id='acc';acc.innerHTML='<span id="accN"></span> · <span id="accS"></span>';

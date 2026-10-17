@@ -63,21 +63,21 @@ def run3():
         ok(not pg.is_disabled('#rootAw'),'đủ 5 hệ → mở khoá thức tỉnh')
         pg.screenshot(path=S.replace('game.html','res_root_ready.png'))
         pg.click('#rootAw'); pg.wait_for_timeout(300)
-        ok(pg.evaluate("G.cult.aw")==True and 'đã thức tỉnh' in pg.inner_text('#bagR'),'thức tỉnh Linh Căn')
+        ok(pg.evaluate("G.cult.aw")==True and 'Luyện Khí tầng 1' in pg.inner_text('#bagR'),'thức tỉnh Linh Căn')
         q0=pg.evaluate("G.cult.qi"); pg.wait_for_timeout(2300); q1=pg.evaluate("G.cult.qi")
-        ok(1.8<=q1-q0<=2.7,f'linh khí tăng ~1/giây: {q1-q0:.2f} trong 2.3s')
+        ok(0.3<=q1-q0<=0.65,f'tu vi tăng ~0,2/giây: {q1-q0:.2f} trong 2.3s')
         pg.screenshot(path=S.replace('game.html','res_awake.png'))
         pg.click('#bagX'); pg.wait_for_timeout(400)
-        ok(pg.is_visible('#qi') and 'Linh khí' in pg.inner_text('#qi'),'HUD linh khí hiện ở góc trái dưới')
+        ok(pg.is_visible('#qi') and 'Luyện Khí' in pg.inner_text('#qi'),'HUD linh khí hiện ở góc trái dưới')
         # đi và đứng yên đều tăng
         pg.evaluate("G.keys.d=1"); q2=pg.evaluate("G.cult.qi"); pg.wait_for_timeout(1500); pg.evaluate("G.keys.d=0")
-        ok(pg.evaluate("G.cult.qi")-q2>=1.2,'đang di chuyển vẫn hấp thu linh khí')
+        ok(pg.evaluate("G.cult.qi")-q2>=0.25,'đang di chuyển vẫn hấp thu linh khí')
         # ---- lưu ----
         pg.evaluate("TT.push(false,false)"); pg.wait_for_timeout(500)
         sv=list(mock.saves.values())[0]['data']
-        ok(sv['cul']['aw']==1 and all(v==100 for v in sv['cul']['r'].values()) and sv['cul']['qi']>=3,f"đã lưu server: {sv['cul']}")
+        ok(sv['cul']['aw']==1 and all(v==100 for v in sv['cul']['r'].values()) and sv['cul']['qi']>=0.3,f"đã lưu server: {sv['cul']}")
         pg.reload(); pg.wait_for_timeout(1000)
-        ok(pg.evaluate("G.cult.aw")==True and pg.evaluate("G.cult.qi")>=3 and pg.evaluate("G.cult.r.kim")==100,'tải lại: Linh Căn, linh khí, ngũ hành vẫn còn')
+        ok(pg.evaluate("G.cult.aw")==True and pg.evaluate("G.cult.qi")>=0.3 and pg.evaluate("G.cult.r.kim")==100,'tải lại: Linh Căn, linh khí, ngũ hành vẫn còn')
         # ---- bảng vật phẩm: vứt / rã / dùng ----
         pg.evaluate("G.P.x=1608;G.P.y=1610;G.P.f=1;G.cult.r.moc=0;for(const k in G.loot)delete G.loot[k];G.loot['nl.cay_coi']=4;G.loot['nl.linh_thach']=2;G.loot['Thủy Long Châu']=1;G.lootUI()")
         pg.click('#bagBtn'); pg.click('#tabT'); pg.wait_for_timeout(400)
@@ -117,7 +117,7 @@ def run3():
         # ---- đa ngôn ngữ ----
         pg.evaluate("I18N.set('zh-Hant')"); pg.click('#bagBtn'); pg.click('#tabR'); pg.wait_for_timeout(300)
         t=pg.inner_text('#bagR')
-        ok('靈根已覺醒' in t and '木' in t,'繁體: 靈根已覺醒')
+        ok('練氣第' in t and '木' in t,'繁體: 靈根已覺醒')
         ok(pg.evaluate("I18N.itemName('nl.thao_quy')")=='靈蓮' and '材料' in pg.evaluate("I18N.itemDesc('nl.da')"),'繁體: tên + mô tả vật phẩm')
         pg.evaluate("I18N.set('zh-Hans')"); pg.wait_for_timeout(200)
         ok(pg.evaluate("I18N.itemName('nl.thao_quy')")=='灵莲','简体: 灵莲')

@@ -30,7 +30,11 @@ var RES=[ /* kind: tree|herb|ore (quyết định nơi mọc), sc: tỉ lệ v�
  {id:'da_linh',     el:'tho', tier:3,kind:'ore', sc:.8333}
 ];
 var HITS={1:3,2:4,3:5}, PTS={1:5,2:15,3:40}, LS={1:1,2:3,3:8}, NEED=100;
-var MISC={'Thủy Long Châu':{dec:20},'lt':{dec:0}};
+var MISC={'Thủy Long Châu':{dec:20},'lt':{dec:0},'dp.tukhi':{dec:0,keep:1},'dan.tukhi':{dec:10}};
+/* ---- TU VI (Luyện Khí 1-10) ---- */
+var REALM={max:10,base:100,mul:1.2,rate:.2};  /* tu vi cần để qua tầng n = base*2^(n-1); mỗi tầng nhân ×mul máu & sát thương; tu luyện thường rate/giây */
+var DAN={'dan.tukhi':{qi:100}};                          /* đan -> tu vi cộng thêm */
+var RECIPES={'dp.tukhi':{out:'dan.tukhi',ing:[['nl.thao_duoc',3],['lt',1]]}};  /* đan phương: không mất khi dùng */
 var NAMES={ /* vi, zh-Hant, zh-Hans */
  cay_coi:['Linh Mộc','靈木','灵木'], cay_cao:['Đào Hoa Mộc','桃花木','桃花木'], tre:['Linh Trúc','靈竹','灵竹'],
  thao_duoc:['Linh Sâm','靈參','灵参'], da:['Thanh Ngọc Thạch','青玉石','青玉石'],
@@ -49,7 +53,7 @@ var PCAP=10, PFUSE=10, PT=3;                 /* mỗi bậc nuốt tối đa 10;
 var PEARL={ /* hệ -> tên gốc [vi,hant,hans], chỉ số, mức cộng mỗi viên, màu */
  kim: {n:['Kim Tinh','金精','金精'],  stat:'dmg',per:1,   col:'#f2d36b',glow:'#e0a82e'},
  moc: {n:['Mộc Linh','木靈','木灵'],  stat:'hp', per:6,   col:'#8be57a',glow:'#3fae3a'},
- thuy:{n:['Thủy Long','水龍','水龙'], stat:'qi', per:.1,  col:'#7fd8ff',glow:'#3aa9ff'},
+ thuy:{n:['Thủy Long','水龍','水龙'], stat:'qi', per:.02,  col:'#7fd8ff',glow:'#3aa9ff'},
  hoa: {n:['Hỏa Diễm','火焰','火焰'],  stat:'spd',per:.02, col:'#ff9b6a',glow:'#ff5a2a'},
  tho: {n:['Thổ Nguyên','土元','土元'],stat:'red',per:.015,col:'#d9b06a',glow:'#a9743a'}
 };
@@ -58,7 +62,7 @@ var PDEC=[20,200,2000];                      /* rã ra Linh Thạch theo bậc *
 var EFF={ /* mô tả tác dụng: [vi,hant,hans] */
  kim:['+1 sát thương mỗi đòn đánh','每次攻擊傷害 +1','每次攻击伤害 +1'],
  moc:['+6 máu tối đa','最大生命 +6','最大生命 +6'],
- thuy:['+0,1 linh khí/giây (khi đã thức tỉnh Linh Căn)','靈氣吸收 +0.1／秒（覺醒靈根後）','灵气吸收 +0.1／秒（觉醒灵根后）'],
+ thuy:['+0,02 tu vi/giây (khi đã thức tỉnh Linh Căn)','修為吸收 +0.02／秒（覺醒靈根後）','修为吸收 +0.02／秒（觉醒灵根后）'],
  hoa:['+2% tốc độ đánh','攻擊速度 +2%','攻击速度 +2%'],
  tho:['giảm 1,5% sát thương nhận','受到傷害 −1.5%','受到伤害 −1.5%']
 };
@@ -84,7 +88,28 @@ var S=[ /* chuỗi giao diện mới: [vi, zh-Hant, zh-Hans] */
  ['cul.need','Cần đủ 5 hệ đạt {n} để thức tỉnh','需五行皆達 {n} 才能覺醒','需五行皆达 {n} 才能觉醒'],
  ['cul.done','Linh Căn đã thức tỉnh','靈根已覺醒','灵根已觉醒'],
  ['cul.qi','Linh khí','靈氣','灵气'],
- ['cul.rate','Mỗi giây hấp thu +1, mọi lúc mọi nơi','每秒吸收 +1，隨時隨地','每秒吸收 +1，随时随地'],
+ ['cul.rate','Tu luyện thường {n} tu vi/giây — muốn nhanh hơn phải dùng đan dược','平時修煉每秒 {n} 修為——想更快須服用丹藥','平时修炼每秒 {n} 修为——想更快须服用丹药'],
+ ['realm.n','Luyện Khí tầng {n}','練氣第 {n} 層','练气第 {n} 层'],
+ ['realm.full','Luyện Khí viên mãn — cần đan dược để vào cảnh giới sau','練氣圓滿——需丹藥方能進入下一境界','练气圆满——需丹药方能进入下一境界'],
+ ['realm.cur','Cảnh giới','境界','境界'],['realm.mul','Hệ số cảnh giới','境界倍率','境界倍率'],
+ ['realm.exp','Tu vi','修為','修为'],
+ ['act.break','⚡ Đột phá tầng {n}','⚡ 突破第 {n} 層','⚡ 突破第 {n} 层'],
+ ['realm.bonus','Đột phá: máu và sát thương ×{m} (cộng dồn)','突破：生命與傷害 ×{m}（累乘）','突破：生命与伤害 ×{m}（累乘）'],
+ ['toast.break','Đột phá thành công! Luyện Khí tầng {n} — máu & sát thương ×{m}','突破成功！練氣第 {n} 層——生命與傷害 ×{m}','突破成功！练气第 {n} 层——生命与伤害 ×{m}'],
+ ['toast.nobreak','Tu vi chưa đủ để đột phá','修為不足，無法突破','修为不足，无法突破'],
+ ['toast.dan','Dùng {name}: +{n} tu vi','服用{name}：修為 +{n}','服用{name}：修为 +{n}'],
+ ['toast.dan.full','Tu vi tầng này đã đầy — hãy đột phá trước','此層修為已滿——請先突破','此层修为已满——请先突破'],
+ ['toast.dan.max','Luyện Khí đã viên mãn, đan này không còn tác dụng','練氣已圓滿，此丹無效','练气已圆满，此丹无效'],
+ ['toast.dan.asleep','Cần thức tỉnh Linh Căn trước','需先覺醒靈根','需先觉醒灵根'],
+ ['alc.title','Luyện đan','煉丹','炼丹'],['alc.have','có {n}','擁有 {n}','拥有 {n}'],['alc.make','Luyện đan','煉製','炼制'],['alc.makeall','Luyện tối đa ({n})','盡量煉製（{n}）','尽量炼制（{n}）'],
+ ['alc.out','Thành phẩm: {name} ({eff})','成品：{name}（{eff}）','成品：{name}（{eff}）'],['alc.keep','Đan phương không mất sau khi dùng.','丹方不會消耗。','丹方不会消耗。'],
+ ['toast.alc','Luyện thành {name} ×{n}','煉成{name} ×{n}','炼成{name} ×{n}'],['toast.alc.no','Thiếu nguyên liệu','材料不足','材料不足'],
+ ['item.dp.tukhi','Đan Phương: Tụ Khí Đan','丹方：聚氣丹','丹方：聚气丹'],
+ ['itemdesc.dp.tukhi','Công thức luyện Tụ Khí Đan (3 Linh Sâm + 1 Linh Thạch). Bấm Sử dụng để mở lò luyện. Không mất sau khi dùng.','聚氣丹的煉製丹方（3 靈參 + 1 靈石）。按「使用」開啟丹爐。使用後不會消失。','聚气丹的炼制丹方（3 灵参 + 1 灵石）。按「使用」开启丹炉。使用后不会消失。'],
+ ['item.dan.tukhi','Tụ Khí Đan','聚氣丹','聚气丹'],
+ ['itemdesc.dan.tukhi','Đan dược cơ bản của Luyện Khí kỳ. Sử dụng: +100 tu vi. Rã: 10 Linh Thạch.','練氣期基礎丹藥。使用：修為 +100。分解：靈石 10。','练气期基础丹药。使用：修为 +100。分解：灵石 10。'],
+ ['sx.realm','Cảnh giới','境界','境界'],
+
  ['toast.refine','Luyện hóa: +{n} {el}','煉化：+{n} {el}','炼化：+{n} {el}'],
  ['toast.refine0','Không còn nguyên liệu hệ {el}','沒有{el}系材料了','没有{el}系材料了'],
  ['toast.awake','Linh Căn thức tỉnh! Linh khí bắt đầu tụ về mỗi giây.','靈根覺醒！靈氣開始每秒匯聚。','灵根觉醒！灵气开始每秒汇聚。'],
@@ -144,5 +169,5 @@ EL.forEach(function(e){for(var t=1;t<=PT;t++){var id=pearlId(e.id,t);
   }}});
 MONS.forEach(function(m){for(var k=0;k<3;k++)add[LG[k]]['monster.'+m.id]=m.n[k];});
 for(var k=0;k<3;k++)I18N.add(LG[k],add[LG[k]]);
-window.TTData={EL:EL,RES:RES,byItem:byItem,byId:byId,PEARL:PEARL,PCAP:PCAP,PFUSE:PFUSE,PT:PT,pearlId:pearlId,byPearl:byPearl,MONS:MONS,NEED:NEED,HITS:HITS,PTS:PTS,RESPAWN:300000,misc:MISC};
+window.TTData={EL:EL,RES:RES,byItem:byItem,byId:byId,PEARL:PEARL,PCAP:PCAP,PFUSE:PFUSE,PT:PT,pearlId:pearlId,byPearl:byPearl,MONS:MONS,REALM:REALM,DAN:DAN,RECIPES:RECIPES,NEED:NEED,HITS:HITS,PTS:PTS,RESPAWN:300000,misc:MISC};
 })();

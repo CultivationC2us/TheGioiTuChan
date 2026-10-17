@@ -71,7 +71,7 @@ def run4():
         ok(s['hp']==18 and s['mx']==118 and s['cur']<=118,f"Mộc: +18 máu tối đa → {s['mx']}")
         ok(abs(s['red']-0.06)<1e-9,'Thổ: giảm 6% sát thương')
         ok(abs(s['spd']-0.10)<1e-9,'Hỏa: +10% tốc độ đánh')
-        ok(abs(s['qi']-0.6)<1e-9,'Thủy: +0,6 linh khí/giây')
+        ok(abs(s['qi']-0.12)<1e-9,'Thủy: +0,12 tu vi/giây (0,02/viên)')
         pg.evaluate("G.P.inv=0;G.P.hp=118");pg.evaluate("G.mHit&&0")
         # giảm sát thương nhận
         pg.evaluate("G.P.inv=0;G.P.hp=100;G.P.maxHp=118")
