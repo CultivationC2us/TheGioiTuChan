@@ -1,0 +1,20 @@
+import sys
+sys.path.insert(0,'.')
+from test_auth import *
+with sync_playwright() as p:
+    b=p.chromium.launch(); ctx=b.new_context(viewport={'width':390,'height':844},device_scale_factor=3)
+    mock=Mock(); ctx.route(f'https://{HOST}/**',mock.handle)
+    pg=ctx.new_page(); errs=[]; pg.on('pageerror',lambda e:errs.append(str(e)))
+    pg.goto('file://'+S); pg.wait_for_timeout(300)
+    pg.click('#tReg'); pg.fill('#aName','mnt_t'); pg.fill('#aPw','abcdef'); pg.fill('#aPw2','abcdef'); pg.click('#aGo'); pg.wait_for_timeout(1000)
+    pg.evaluate("G.redeem('tuchan');G.equipToggle('w.han_bang')"); pg.wait_for_timeout(200)
+    sh=lambda n,clip=None: pg.screenshot(path=S.replace('game.html',n+'.png'),clip=clip or {'x':95,'y':330,'width':200,'height':220})
+    pg.click('#mtRide'); pg.wait_for_timeout(250); sh('mnt_ride_fx')
+    pg.wait_for_timeout(900); sh('mnt_idle_r')
+    pg.evaluate("G.P.f=-1"); pg.wait_for_timeout(120); sh('mnt_idle_l')
+    pg.evaluate("G.P.f=1;G.keys.d=1"); pg.wait_for_timeout(500); sh('mnt_run'); pg.evaluate("G.keys.d=0")
+    pg.click('#mtFly'); pg.evaluate("G.keys.d=1"); pg.wait_for_timeout(1100); sh('mnt_fly',{'x':60,'y':300,'width':270,'height':260}); pg.evaluate("G.keys.d=0")
+    pg.click('#mtDash'); pg.wait_for_timeout(330); sh('mnt_dash',{'x':0,'y':300,'width':390,'height':260})
+    pg.wait_for_timeout(600); pg.click('#mtFly'); pg.wait_for_timeout(900)
+    pg.evaluate("G.P.atkT=G.now()-200"); pg.wait_for_timeout(40); sh('mnt_atk')
+    print(pg.evaluate("[G.P.x|0,G.P.y|0,G.P.mt,G.P.fly]"), errs)

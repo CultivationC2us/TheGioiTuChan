@@ -78,6 +78,9 @@ var WEAPONS=[ /* vũ khí: id, ô ảnh trong it/atlas, hệ, phẩm (1-3), tên
 ];
 var byWeapon={},ICO={'dp.tukhi':'s7','cg.vukhi':'s2','dan.tukhi':'o4'};
 WEAPONS.forEach(function(w){byWeapon[w.id]=w;ICO[w.id]=w.ico;MISC[w.id]={dec:WLS[w.tier]};BAG.sz[w.id]=3;});
+/* thú cưỡi: spd = nhân tốc độ khi chạy, fspd = khi bay (linh thú bay được, phàm thú chỉ chạy) */
+var MOUNTS=[{id:'mt.tuyet_van',el:'thuy',fly:true,spd:1.7,fspd:2.6,n:['Tuyết Vân Kỳ Lân','雪雲麒麟','雪云麒麟']}];
+var byMount={};MOUNTS.forEach(function(m){byMount[m.id]=m;MISC[m.id]={dec:0,keep:1};BAG.sz[m.id]=4;});
 /* công thức chế vũ khí: 6/8/12 vật liệu cùng hệ (quặng hoặc gỗ) + Linh Thạch. '@mat:hệ:bậc tối thiểu' = vật liệu bất kỳ của hệ đó */
 var FORGE=WEAPONS.map(function(w){var t=w.tier;return {out:w.id,ing:[['@mat:'+w.el+':'+(t===1?1:2),t===1?6:t===2?8:12],['lt',t===1?2:t===2?5:15]]};});
 var NAMES={ /* vi, zh-Hant, zh-Hans */
@@ -116,7 +119,7 @@ for(i=0;i<RES.length;i++){var r=RES[i];r.item='nl.'+r.id;r.hits=HITS[r.tier];r.p
 RECIPES['cg.vukhi']={verb:'forge',list:FORGE};
 
 /* danh mục túi */
-function catOf(id){if(byItem[id])return byItem[id].kind==='herb'?'duoc':'vl';if(byPearl[id]||DAN[id])return 'dan';if(RECIPES[id])return 'pp';if(byWeapon[id])return 'vk';return 'vl';}
+function catOf(id){if(byItem[id])return byItem[id].kind==='herb'?'duoc':'vl';if(byPearl[id]||DAN[id])return 'dan';if(RECIPES[id])return 'pp';if(byWeapon[id])return 'vk';if(byMount[id])return 'mount';return 'vl';}
 
 /* ---- NGỌC (linh châu) rơi từ 5 quái ngũ hành: nuốt để tăng chỉ số vĩnh viễn ---- */
 var PCAP=10, PFUSE=10, PT=3;                 /* mỗi bậc nuốt tối đa 10; 10 viên bậc t -> 1 viên bậc t+1; 3 bậc */
@@ -259,6 +262,11 @@ var S=[ /* chuỗi giao diện mới: [vi, zh-Hant, zh-Hans] */
  ['toast.swallow','Nuốt {name}: {eff}','吞服{name}：{eff}','吞服{name}：{eff}'],
  ['pl.status','Bậc {t} · đã nuốt {n}/{cap}','第 {t} 階 · 已吞服 {n}/{cap}','第 {t} 阶 · 已吞服 {n}/{cap}'],
  ['pl.lock','Cần nuốt đủ {cap} viên bậc trước để dùng bậc này.','需先吞服滿 {cap} 顆上一階，才能使用此階。','需先吞服满 {cap} 颗上一阶，才能使用此阶。'],
+ ['mt.ride','CƯỠI','騎乘','骑乘'],['mt.down','XUỐNG','下騎','下骑'],['mt.fly','BAY','飛行','飞行'],['mt.land','HẠ','降落','降落'],['mt.dash','LƯỚT','衝刺','冲刺'],
+ ['toast.mt.up','Đã cưỡi {name}','已騎乘{name}','已骑乘{name}'],['toast.mt.down','Đã xuống thú','已下騎','已下骑'],
+ ['toast.mt.fly','Bay lên! Nhanh hơn, bỏ qua địa hình — nhưng không đánh được, cũng không bị đánh.','起飛！更快、無視地形——但無法攻擊，也不會被攻擊。','起飞！更快、无视地形——但无法攻击，也不会被攻击。'],
+ ['toast.mt.land','Đã hạ xuống đất','已降落地面','已降落地面'],['toast.mt.nofly','Phàm thú không bay được','凡獸無法飛行','凡兽无法飞行'],['toast.mt.noatk','Đang bay: hạ xuống đất mới đánh được','飛行中：降落後才能攻擊','飞行中：降落后才能攻击'],
+ ['act.ride','Cưỡi','騎乘','骑乘'],['act.unride','Xuống thú','下騎','下骑'],['mt.stat','Linh thú · chạy ×{run} · bay ×{fly} · hệ {el}','靈獸 · 奔跑 ×{run} · 飛行 ×{fly} · {el}系','灵兽 · 奔跑 ×{run} · 飞行 ×{fly} · {el}系'],
  ['pl.cap','Đã nuốt đủ {cap} viên bậc này. Hãy hợp nhất {cap} viên thành 1 viên bậc cao hơn.','此階已吞服滿 {cap} 顆。請將 {cap} 顆合成 1 顆更高階的靈珠。','此阶已吞服满 {cap} 颗。请将 {cap} 颗合成 1 颗更高阶的灵珠。'],
  ['pl.max','Đã đạt giới hạn hiện tại của hệ này.','此系已達目前上限。','此系已达目前上限。'],
  ['sx.hp','Máu','生命','生命'],['sx.dmg','Sát thương mỗi đòn','每次攻擊傷害','每次攻击伤害'],['sx.spd','Tốc độ đánh','攻擊速度','攻击速度'],
@@ -305,7 +313,12 @@ WEAPONS.forEach(function(w){
       .replace(/\{name\}/g,w.n[k]).replace(/\{tier\}/g,WTIER[w.tier-1][k]).replace(/\{el\}/g,e.n[k]).replace(/\{atk\}/g,w.atk).replace(/\{ls\}/g,WLS[w.tier]);
   }});
 MONS.forEach(function(m){for(var k=0;k<3;k++)add[LG[k]]['monster.'+m.id]=m.n[k];});
+MOUNTS.forEach(function(m){var e=EL.filter(function(x){return x.id===m.el;})[0];
+  for(var k=0;k<3;k++){add[LG[k]]['item.'+m.id]=m.n[k];
+    add[LG[k]]['itemdesc.'+m.id]=['{name}: linh thú hệ {el}, biết bay. Chạy nhanh ×{run}, bay ×{fly}; bay thì bỏ qua địa hình nhưng không đánh được và cũng không bị đánh. Có nút LƯỚT.',
+      '{name}：{el}系靈獸，會飛。奔跑 ×{run}，飛行 ×{fly}；飛行時無視地形，但無法攻擊也不會被攻擊。可使用衝刺。','{name}：{el}系灵兽，会飞。奔跑 ×{run}，飞行 ×{fly}；飞行时无视地形，但无法攻击也不会被攻击。可使用冲刺。'][k]
+      .replace(/\{name\}/g,m.n[k]).replace(/\{el\}/g,e.n[k]).replace(/\{run\}/g,String(m.spd).replace('.',k?'.':',')).replace(/\{fly\}/g,String(m.fspd).replace('.',k?'.':','));}});
 WTIER.forEach(function(t,i){for(var k=0;k<3;k++)add[LG[k]]['wtier.'+(i+1)]=t[k];});
 for(var k=0;k<3;k++)I18N.add(LG[k],add[LG[k]]);
-window.TTData={EL:EL,RES:RES,byItem:byItem,byId:byId,PEARL:PEARL,PCAP:PCAP,PFUSE:PFUSE,PT:PT,pearlId:pearlId,byPearl:byPearl,MONS:MONS,REALM:REALM,WEAPONS:WEAPONS,byWeapon:byWeapon,ICO:ICO,WTIER:WTIER,catOf:catOf,BAG:BAG,AFF:AFF,BASE:BASE,DAN:DAN,RECIPES:RECIPES,NEED:NEED,HITS:HITS,PTS:PTS,RESPAWN:300000,misc:MISC};
+window.TTData={EL:EL,RES:RES,byItem:byItem,byId:byId,PEARL:PEARL,PCAP:PCAP,PFUSE:PFUSE,PT:PT,pearlId:pearlId,byPearl:byPearl,MONS:MONS,MOUNTS:MOUNTS,byMount:byMount,REALM:REALM,WEAPONS:WEAPONS,byWeapon:byWeapon,ICO:ICO,WTIER:WTIER,catOf:catOf,BAG:BAG,AFF:AFF,BASE:BASE,DAN:DAN,RECIPES:RECIPES,NEED:NEED,HITS:HITS,PTS:PTS,RESPAWN:300000,misc:MISC};
 })();

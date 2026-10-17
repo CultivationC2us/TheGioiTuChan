@@ -43,6 +43,7 @@ load('beamA','data:image/webp;base64,{{BEAMA}}');
 load('beamB','data:image/webp;base64,{{BEAMB}}');
 load('dog','data:image/webp;base64,{{DOG}}');
 load('res','data:image/webp;base64,{{RESATLAS}}');
+load('mnt','data:image/webp;base64,{{MNTATLAS}}');   /* linh thú cưỡi (mnt/extract_m.py) */
 load('it','data:image/webp;base64,{{ITATLAS}}');   /* vũ khí · cuộn · sách · ngọc/bình (it/extract_it.py) */
 const ITM={{ITMETA}};
 const TILEIMG={grass:'{{T_GRASS}}',t4:'{{T_T4}}',t3:'{{T_T3}}',t2:'{{T_T2}}',t16:'{{T_T16}}',t5:'{{T_T5}}'};
@@ -185,9 +186,9 @@ function refineEl(el){ /* nguyên liệu hệ el → điểm hệ el (tối đa 
   return gain;
 }
 function lootDec(n){loot[n]--;if(!(loot[n]>0)){delete loot[n];if(cult.eq.w===n){cult.eq.w=null;recalc();}}}
-function itemInfo(n){const g=TD.byItem[n],m=TD.misc[n],p=pearlInfo(n);return {use:!!g||!!(p&&p.can)||!!TD.RECIPES[n]||!!TD.DAN[n]||!!TD.byWeapon[n],dec:g?g.ls:(m?m.dec:0),pearl:p,fuse:!!(p&&p.next),keep:!!(m&&m.keep),recipe:!!TD.RECIPES[n],weapon:!!TD.byWeapon[n],equipped:cult.eq.w===n};}
+function itemInfo(n){const g=TD.byItem[n],m=TD.misc[n],p=pearlInfo(n);return {use:!!g||!!(p&&p.can)||!!TD.RECIPES[n]||!!TD.DAN[n]||!!TD.byWeapon[n]||!!TD.byMount[n],dec:g?g.ls:(m?m.dec:0),pearl:p,fuse:!!(p&&p.next),keep:!!(m&&m.keep),recipe:!!TD.RECIPES[n],weapon:!!TD.byWeapon[n],equipped:cult.eq.w===n,mount:!!TD.byMount[n],mounted:P.mt===n};}
 function useItem(n){ /* nguyên liệu: luyện hóa 1 cái vào hệ của nó */
-  const g=TD.byItem[n];if(!g)return TD.byPearl[n]?swallow(n):TD.DAN[n]?eatDan(n):TD.byWeapon[n]?equipToggle(n):TD.RECIPES[n]?true:false;if(!(loot[n]>0))return false;
+  const g=TD.byItem[n];if(!g)return TD.byPearl[n]?swallow(n):TD.DAN[n]?eatDan(n):TD.byWeapon[n]?equipToggle(n):TD.byMount[n]?rideToggle(n):TD.RECIPES[n]?true:false;if(!(loot[n]>0))return false;
   if(cult.r[g.el]>=TD.NEED){toast(T('toast.full',{el:T('el.'+g.el)}));return false;}
   const add=Math.min(g.pts,TD.NEED-cult.r[g.el]);cult.r[g.el]+=add;lootDec(n);lootUI();toast(T('toast.refine',{n:add,el:T('el.'+g.el)}));return true;}
 function decompose(n){const v=itemInfo(n).dec;if(!(loot[n]>0)||!(v>0))return false;lootDec(n);loot.lt=(loot.lt|0)+v;lootUI();toast(T('toast.dec',{name:I18N.itemName(n),n:v}));return true;}
@@ -196,7 +197,7 @@ function dropItem(n){if(!(loot[n]>0)||(TD.misc[n]&&TD.misc[n].keep))return false
 function canAwake(){return !cult.aw&&TD.EL.every(e=>cult.r[e.id]>=TD.NEED);}
 function awaken(){if(!canAwake())return false;cult.aw=true;toast(T('toast.awake'));return true;}
 function iconCanvas(item,scale){const g=TD.byItem[item];let img,f;
-  if(g){img=IMG.res;f=RMETA[g.id][3];}else if(TD.ICO[item]&&ITM[TD.ICO[item]]){img=IMG.it;f=ITM[TD.ICO[item]];}else return null;
+  if(TD.byMount[item]){img=IMG.mnt;f=MTM['idle0'];}else if(g){img=IMG.res;f=RMETA[g.id][3];}else if(TD.ICO[item]&&ITM[TD.ICO[item]]){img=IMG.it;f=ITM[TD.ICO[item]];}else return null;
   if(!img||!img.complete)return null;const c=document.createElement('canvas');
   c.width=f[2]*scale;c.height=f[3]*scale;const x=c.getContext('2d');x.imageSmoothingEnabled=false;x.drawImage(img,f[0],f[1],f[2],f[3],0,0,c.width,c.height);c.style.imageRendering='pixelated';return c;}
 
@@ -221,7 +222,8 @@ function mMoveTo(tx,ty,spd,dt){const dx=tx-M.x,dy=ty-M.y,d=Math.hypot(dx,dy);if(
 function addRing(x,y,r0,r1,dur,col){fxs.push({k:'ring',x,y,r0,r1,t0:now(),dur,col:col||'255,255,255'});}
 function addBubbles(x,y,n){for(let i=0;i<n;i++)fxs.push({k:'bub',x:x+(Math.random()-.5)*16,y:y-4,vy:-14-Math.random()*14,t0:now(),dur:700+Math.random()*500,s:1+Math.random()*1.6});}
 function addSplash(x,y,n){for(let i=0;i<n;i++){const a=-Math.PI/2+(Math.random()-.5)*2.2,v=30+Math.random()*40;fxs.push({k:'spl',x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,t0:now(),dur:520+Math.random()*260,s:1.2+Math.random()*1.4});}}
-function hurtPlayer(d,sx,sy){if(P.dead||P.inv>0)return;d=Math.max(1,Math.round(d*.25),Math.round(d*(1-STT.red))-defVal());P.hp=Math.max(0,P.hp-d);P.inv=.9;P.hurtT=now();floaters.push({x:P.x,y:P.y-30,t0:now(),s:'-'+d,c:'#ff8a8a'});
+function hurtPlayer(d,sx,sy){if(P.dead||P.inv>0||P.fly||dashing(now()))return;   /* bay / đang lướt: không bị đánh */
+  d=Math.max(1,Math.round(d*.25),Math.round(d*(1-STT.red))-defVal());P.hp=Math.max(0,P.hp-d);P.inv=.9;P.hurtT=now();floaters.push({x:P.x,y:P.y-30,t0:now(),s:'-'+d,c:'#ff8a8a'});
   const a=Math.atan2(P.y-sy,P.x-sx);P.kx=Math.cos(a)*90;P.ky=Math.sin(a)*90;
   if(P.hp<=0){P.dead=now();toast(T('toast.dead'));}}
 function mUpdate(dt){const t=now(),e=t-M.t0,dist=Math.hypot(P.x-M.x,P.y-M.y);
@@ -294,9 +296,10 @@ function mHit(d){if(!mTargetable()||M.st==='die')return;M.hp=Math.max(0,M.hp-d);
   if(M.st==='idle'||M.st==='swim'||M.st==='recover'||M.st==='rise'){M.prev=M.st==='rise'?'idle':M.st;setSt('hurt');}}
 
 {{MON_JS}}
+{{MNT_JS}}
 
 /* ---------- ĐIỀU KHIỂN ---------- */
-function attack(){if(P.dead)return;const t=now();if(t-P.atkT<atkCd())return;P.atkT=t;P.hitDone=false;P.fxDone=false;}
+function attack(){if(P.dead)return;if(P.fly){mtNoAtk();return;}const t=now();if(t-P.atkT<atkCd())return;P.atkT=t;P.hitDone=false;P.fxDone=false;}
 addEventListener('keydown',e=>{if(e.target&&e.target.tagName==='INPUT')return;keys[e.key.toLowerCase()]=1;if(e.key===' '||e.key.toLowerCase()==='j'){attack();e.preventDefault();}});
 addEventListener('keyup',e=>{keys[e.key.toLowerCase()]=0;});
 const atkBtn=document.getElementById('atk');
@@ -319,10 +322,11 @@ function update(dt){
   else{
     let ix=(keys.d||keys.arrowright?1:0)-(keys.a||keys.arrowleft?1:0)+joy.dx,iy=(keys.s||keys.arrowdown?1:0)-(keys.w||keys.arrowup?1:0)+joy.dy;
     if(AUTO.on&&Math.hypot(ix,iy)<.12){const a=autoThink(t);ix=a.x;iy=a.y;}
+    if(dashing(t)&&Math.hypot(ix,iy)<.12){ix=P.f;iy=0;}   /* lướt: không giữ cần thì lướt theo hướng đang nhìn */
     const m=Math.hypot(ix,iy);if(m>1){ix/=m;iy/=m;}
-    const atking=t-P.atkT<430;const sp=P.spd*(atking?.35:1);
+    const atking=t-P.atkT<430;const sp=P.spd*(atking?(P.mt?.6:.35):1)*mtSpeed(t);
     P.mv=m>.12;
-    if(P.mv){const k=isWater(P.x,P.y+6)?.62:1,nx=P.x+ix*sp*k*dt,ny=P.y+iy*sp*k*dt;P.x=nx;P.y=ny;if(Math.abs(ix)>.2&&!atking)P.f=ix>0?1:-1;}
+    if(P.mv){const k=(!P.fly&&isWater(P.x,P.y+6))?.62:1,nx=P.x+ix*sp*k*dt,ny=P.y+iy*sp*k*dt;P.x=nx;P.y=ny;if(Math.abs(ix)>.2&&!atking)P.f=ix>0?1:-1;}
     if(P.kx||P.ky){P.x+=P.kx*dt;P.y+=P.ky*dt;P.kx*=.86;P.ky*=.86;if(Math.abs(P.kx)<2)P.kx=P.ky=0;}
     {const WW=MW*TILE,HH=MH*TILE;let sx=0,sy=0;if(P.x<0)sx=WW;else if(P.x>=WW)sx=-WW;if(P.y<0)sy=HH;else if(P.y>=HH)sy=-HH;if(sx||sy)onWrap(sx,sy);}   /* thế giới tròn */
     P.inv=Math.max(0,P.inv-dt);
@@ -340,7 +344,7 @@ function update(dt){
   {const tx=P.x-P.f*20,ty=P.y+3,dx=tx-dog.x,dy=ty-dog.y,d=Math.hypot(dx,dy);
     if(d>14){const sp=Math.min(d*3.2,92)*dt;dog.x+=dx/d*sp;dog.y+=dy/d*sp;dog.rt=t;}
     dog.run=t-dog.rt<170;if(Math.abs(dx)>6)dog.f=dx>0?1:-1;if(d>260){dog.x=P.x;dog.y=P.y;}}
-  mUpdate(dt);respawnTick(t);
+  mtTick(dt,t);mUpdate(dt);respawnTick(t);
   mon2Update(dt,t);
   qiTick(dt);   /* tu luyện thường: mọi lúc mọi nơi (kể cả khi chết); xem mon2.js */
   // nhặt vật phẩm
@@ -356,6 +360,7 @@ function wadeRipples(x,y,t,w){ // gợn nước quanh chân khi lội
   for(let k=0;k<2;k++){const u=((t/700)+k*.5)%1;ctx.globalAlpha=(1-u)*.8;ctx.beginPath();ctx.ellipse(x,y+1,w+u*8,(w+u*8)*.32,0,0,7);ctx.stroke();}
   ctx.restore();}
 function drawPlayer(t){
+  if(P.mt)return drawMounted(t);
   let row,fr;const atking=t-P.atkT<430;
   if(P.dead){row=NC.rows.hit;fr=1;}
   else if(atking){row=NC.rows.atk;fr=Math.min(7,Math.floor((t-P.atkT)/430*8));}
@@ -468,7 +473,7 @@ function drawWorld(t,hw,hh){
   for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++)tileDeco(tiles[y][x],x,y,tm);
   drawWorldFx(t);drawDrops(t);drawAutoRing(t);
   // xếp theo y: quái, người, chó
-  const L=[{y:M.y,f:()=>drawMonster(t)},{y:P.y,f:()=>drawPlayer(t)},{y:dog.y,f:()=>drawDog(t)}];
+  const L=[{y:M.y,f:()=>drawMonster(t)},{y:P.y+(P.fly?5000:0),f:()=>drawPlayer(t)},{y:dog.y,f:()=>drawDog(t)}];
   {const rcx=Math.ceil(hw/TILE/4)+1,rcy=Math.ceil(hh/TILE/4)+1,ccx=cam.x/TILE>>2,ccy=cam.y/TILE>>2;
    for(let i=-rcx;i<=rcx;i++)for(let j=-rcy;j<=rcy;j++){const a=nodeCell.get((ccx+i)+','+(ccy+j));if(!a)continue;
     for(const n of a)if(Math.abs(n.x-cam.x)<hw+30&&Math.abs(n.y-cam.y)<hh+30)L.push({y:n.y,f:()=>drawNode(n,t)});}}
@@ -499,7 +504,7 @@ function draw(){
 let last=performance.now();
 function loop(n){const dt=Math.min(.05,(n-last)/1000);last=n;if(window.__pause){requestAnimationFrame(loop);return;}try{update(dt);draw();}catch(e){window.dispatchEvent(new ErrorEvent('error',{message:e.message,lineno:0}));return;}requestAnimationFrame(loop);}
 requestAnimationFrame(loop);
-window.G={P,M,dog,fx:()=>fxs,drops,update,draw,tiles,cam,now,attack,setSt,mHit,DR,loot,SPAWN,LAKE,HOME,toast,keys,joy,lootUI,stats,cult,nodes,IMG,redeem,breakthrough,craft,ingHave,equipToggle,wAtk,bagUsed,bagFree,itemSize,defVal,BAG:()=>({cap:TD.BAG.cap+(cult.bc|0)}),craftMax,realmNeed,realmMul,qiRate,respawnQ,S:STT,recalc,pearlInfo,swallow,fuse,mons2,MD,petObjs,PETS,addPet,setPets,tameRoll,AUTO,setAuto,monHit,fx2,projs,setTameP:v=>{TAME_P=v;},useItem,decompose,dropItem,itemInfo,RES:TD.RES,TD,RMETA,harvest,refineEl,awaken,canAwake,iconCanvas,nodesNear};
+window.G={rideToggle,dismount,flyToggle,dashGo,MTM,P,M,dog,fx:()=>fxs,drops,update,draw,tiles,cam,now,attack,setSt,mHit,DR,loot,SPAWN,LAKE,HOME,toast,keys,joy,lootUI,stats,cult,nodes,IMG,redeem,breakthrough,craft,ingHave,equipToggle,wAtk,bagUsed,bagFree,itemSize,defVal,BAG:()=>({cap:TD.BAG.cap+(cult.bc|0)}),craftMax,realmNeed,realmMul,qiRate,respawnQ,S:STT,recalc,pearlInfo,swallow,fuse,mons2,MD,petObjs,PETS,addPet,setPets,tameRoll,AUTO,setAuto,monHit,fx2,projs,setTameP:v=>{TAME_P=v;},useItem,decompose,dropItem,itemInfo,RES:TD.RES,TD,RMETA,harvest,refineEl,awaken,canAwake,iconCanvas,nodesNear};
 toast(T('toast.welcome'));
 })();
 </script>

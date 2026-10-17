@@ -79,6 +79,7 @@ const GIFT_CODES={tuchan:()=>{
   loot['dan.tukhi']=(loot['dan.tukhi']|0)+30;loot['lt']=(loot['lt']|0)+5000;
   loot['dp.tukhi']=Math.max(1,loot['dp.tukhi']|0);loot['cg.vukhi']=Math.max(1,loot['cg.vukhi']|0);
   TD.WEAPONS.forEach(w=>{loot[w.id]=Math.max(1,loot[w.id]|0);});
+  TD.MOUNTS.forEach(w=>{loot[w.id]=Math.max(1,loot[w.id]|0);});
   cult.bc=Math.min(5000,Math.max(cult.bc|0,bagUsed()-TD.BAG.cap+400));
 }};
 function redeem(code){
