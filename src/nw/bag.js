@@ -11,9 +11,10 @@
 var G=window.G;
 var CAP=30; /* số loại vật phẩm tối đa trong túi (tạm) */
 var ITEMS={
-  'Thủy Long Châu':{col:'#7fd8ff',glow:'#3aa9ff',desc:'Viên châu kết tinh từ thủy linh của Thủy Long, lạnh như băng, bên trong có dòng nước chảy. (Vật phẩm tạm, công dụng chưa định.)'}
+  'Thủy Long Châu':{col:'#7fd8ff',glow:'#3aa9ff'}
 };
-var DEF={col:'#ffe58f',glow:'#ffb347',desc:'Một vật phẩm chưa rõ lai lịch.'};
+var DEF={col:'#ffe58f',glow:'#ffb347'};
+var T=function(k,p){return I18N.t(k,p);};
 
 /* ----- icon túi gấm 16x16 ----- */
 var PAL={o:'#2a1530',P:'#8a46b8',L:'#c58bf0',d:'#5a2a80',g:'#f2c14e',G:'#ffe58f',r:'#d9434f'};
@@ -76,24 +77,23 @@ css.textContent=
 document.head.appendChild(css);
 
 /* ----- nút túi ----- */
-var btn=document.createElement('button');btn.id='bagBtn';btn.type='button';btn.setAttribute('aria-label','Túi trữ vật');
+var btn=document.createElement('button');btn.id='bagBtn';btn.type='button';btn.setAttribute('aria-label',I18N.t('bag.title'));
 btn.appendChild(pouch(3));var cnt=document.createElement('span');cnt.className='cnt';cnt.style.display='none';btn.appendChild(cnt);
 document.body.appendChild(btn);
 
 /* ----- bảng túi ----- */
 var bag=document.createElement('div');bag.id='bag';
 bag.innerHTML=
-'<div class="box"><div class="hd"><span id="bagIc"></span><h2>Túi Trữ Vật</h2><button id="bagX" type="button">Đóng</button></div>'+
-'<div class="tabs"><button type="button" id="tabT" class="on">Trong túi</button><button type="button" id="tabJ">Đạo Ký</button></div>'+
-'<div id="bagV"><div id="bagStage"><canvas id="bagCv"></canvas><div class="empty" id="bagEmpty">Không gian trong túi còn trống…<br>Hạ yêu thú để thu được bảo vật.</div></div>'+
-'<div id="bagInfo">Chạm vào một vật phẩm để xem chi tiết.</div><div id="bagCap"></div></div>'+
+'<div class="box"><div class="hd"><span id="bagIc"></span><h2 data-i18n="bag.title"></h2><button id="bagX" type="button" data-i18n="bag.close"></button></div>'+
+'<div class="tabs"><button type="button" id="tabT" class="on" data-i18n="bag.tab.in"></button><button type="button" id="tabJ" data-i18n="bag.tab.journal"></button></div>'+
+'<div id="bagV"><div id="bagStage"><canvas id="bagCv"></canvas><div class="empty" id="bagEmpty" data-i18n-html="bag.empty"></div></div>'+
+'<div id="bagInfo"></div><div id="bagCap"></div></div>'+
 '<div id="bagJ" style="display:none"></div></div>';
 document.body.appendChild(bag);
 $('bagIc').appendChild(pouch(2));
 function $(id){return document.getElementById(id);}
 
 var sel='',tab='T',tmr=0,raf=0,stars=[],lastKeys='';
-function fmtT(s){s=Math.round(s);var h=Math.floor(s/3600),m=Math.floor(s%3600/60);return (h?h+' giờ ':'')+m+' phút '+(s%60)+' giây';}
 function hhmm(t){var d=new Date(t);return ('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2);}
 function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
 
@@ -107,14 +107,14 @@ function renderStage(){
   var l=G.loot,k=Object.keys(l).filter(function(n){return l[n]>0;}),st=$('bagStage'),h='',i;
   var sig=k.map(function(n){return n+':'+l[n];}).join('|');
   $('bagEmpty').style.display=k.length?'none':'block';
-  $('bagCap').textContent='Không gian túi: '+k.length+' / '+CAP+' loại';
+  $('bagCap').textContent=T('bag.cap',{n:k.length,cap:CAP});
   if(sig===lastKeys)return;lastKeys=sig;
   var old=st.querySelectorAll('.it');for(i=0;i<old.length;i++)st.removeChild(old[i]);
   k.forEach(function(n,i){
     var it=ITEMS[n]||DEF,p=pos(i,k.length),e=document.createElement('div');
     e.className='it'+(sel===n?' sel':'');e.dataset.n=n;
     e.style.left=p[0]+'%';e.style.top=p[1]+'%';e.style.animationDelay=(-i*0.7)+'s';
-    e.innerHTML='<div class="orb" style="background:radial-gradient(circle at 35% 30%,#fff,'+it.col+' 38%,'+it.glow+');box-shadow:0 0 14px '+it.glow+',0 0 30px '+it.glow+'66"><i></i>'+(l[n]>1?'<span class="n">'+l[n]+'</span>':'')+'</div><div class="nm">'+esc(n)+'</div>';
+    e.innerHTML='<div class="orb" style="background:radial-gradient(circle at 35% 30%,#fff,'+it.col+' 38%,'+it.glow+');box-shadow:0 0 14px '+it.glow+',0 0 30px '+it.glow+'66"><i></i>'+(l[n]>1?'<span class="n">'+l[n]+'</span>':'')+'</div><div class="nm">'+esc(I18N.itemName(n))+'</div>';
     e.onclick=function(){sel=n;showInfo();var all=st.querySelectorAll('.it');for(var j=0;j<all.length;j++)all[j].className='it'+(all[j].dataset.n===sel?' sel':'');};
     st.appendChild(e);
   });
@@ -123,22 +123,23 @@ function renderStage(){
 }
 function showInfo(){
   var l=G.loot,box=$('bagInfo');
-  if(!sel||!l[sel]){box.textContent='Chạm vào một vật phẩm để xem chi tiết.';return;}
-  var it=ITEMS[sel]||DEF;box.innerHTML='<b>'+esc(sel)+' ×'+l[sel]+'</b>'+esc(it.desc);
+  if(!sel||!l[sel]){box.textContent=T('bag.tap');return;}
+  box.innerHTML='<b>'+esc(I18N.itemName(sel))+' ×'+l[sel]+'</b>'+esc(I18N.itemDesc(sel));
 }
 function renderJournal(){
   var P=G.P,st=G.stats,l=G.loot,k=Object.keys(l).filter(function(n){return l[n]>0;});
   var info=(window.TT&&TT.info)?TT.info():{name:'-',lastOk:0};
+  function row(a,b){return '<div class="row"><span>'+T(a)+'</span><b>'+b+'</b></div>';}
   $('bagJ').innerHTML=
-   '<div class="row"><span>Tài khoản</span><b>'+esc(info.name||'-')+'</b></div>'+
-   '<div class="row"><span>Vật phẩm</span><b>'+(k.length?esc(k.map(function(n){return n+' ×'+l[n];}).join(', ')):'Chưa có')+'</b></div>'+
-   '<div class="row"><span>Máu</span><b>'+Math.round(P.hp)+' / '+P.maxHp+'</b></div>'+
-   '<div class="row"><span>Vị trí (ô)</span><b>'+Math.round(P.x/16)+', '+Math.round(P.y/16)+'</b></div>'+
-   '<div class="row"><span>Quãng đường đã đi</span><b>'+Math.round(st.steps)+' ô</b></div>'+
-   '<div class="row"><span>Thủy Long đã hạ</span><b>'+st.kills+'</b></div>'+
-   '<div class="row"><span>Thời gian chơi</span><b>'+fmtT(st.sec)+'</b></div>'+
-   '<div class="row"><span>Lần lưu lên máy chủ</span><b>'+(info.lastOk?hhmm(info.lastOk):'chưa')+'</b></div>'+
-   '<button class="test" id="bagT" type="button">🧪 Thêm 1 vật phẩm thử (để kiểm tra lưu)</button>';
+   row('j.account',esc(info.name||'-'))+
+   row('j.items',k.length?esc(k.map(function(n){return I18N.itemName(n)+' ×'+l[n];}).join(', ')):T('j.none'))+
+   row('j.hp',Math.round(P.hp)+' / '+P.maxHp)+
+   row('j.pos',Math.round(P.x/16)+', '+Math.round(P.y/16))+
+   row('j.steps',T('j.steps.v',{n:Math.round(st.steps)}))+
+   row('j.kills',st.kills)+
+   row('j.time',I18N.fmtTime(st.sec))+
+   row('j.lastsave',info.lastOk?hhmm(info.lastOk):T('j.never'))+
+   '<button class="test" id="bagT" type="button">'+T('j.test')+'</button>';
   $('bagT').onclick=function(){G.loot['Thủy Long Châu']=(G.loot['Thủy Long Châu']||0)+1;if(G.lootUI)G.lootUI();renderJournal();if(window.TT&&TT.push)TT.push(false,false);};
 }
 function refresh(){if(tab==='T')renderStage();else renderJournal();updBadge();}
@@ -170,5 +171,7 @@ $('tabT').onclick=function(){setTab('T');};$('tabJ').onclick=function(){setTab('
 bag.addEventListener('pointerdown',function(e){if(e.target===bag)close();});
 setInterval(function(){if(btn.style.display!=='none')updBadge();},1500);
 
+I18N.apply(bag);
+I18N.on(function(){btn.setAttribute('aria-label',I18N.t('bag.title'));I18N.apply(bag);lastKeys='';refresh();});
 window.TTBag={show:function(v){btn.style.display=v?'flex':'none';if(!v)close();else updBadge();},open:open,close:close,select:function(n){sel=n;}};
 })();

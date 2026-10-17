@@ -20,9 +20,241 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block;image-renderi
 </style></head><body>
 <canvas id="c"></canvas>
 <div class="bar" id="hp"><i></i></div>
-<div id="monN">Thủy Long</div><div class="bar" id="mon"><i></i></div>
-<div id="loot"></div><div id="toast"></div><div id="hint">Kéo màn hình để đi · nút ĐÁNH</div>
-<div id="joy"><b></b></div><div id="atk">ĐÁNH</div>
+<div id="monN" data-i18n="monster.thuylong">Thủy Long</div><div class="bar" id="mon"><i></i></div>
+<div id="loot"></div><div id="toast"></div><div id="hint" data-i18n="hint">Kéo màn hình để đi · nút ĐÁNH</div>
+<div id="joy"><b></b></div><div id="atk" data-i18n="atk">ĐÁNH</div>
+<script>/* ============================================================
+   NGÔN NGỮ (i18n): vi (mặc định) · zh-Hant (繁體中文) · zh-Hans (简体中文)
+   - Mọi chữ hiển thị cho người chơi đều đi qua I18N.t('khoá', {tham_số}).
+   - Phần tử HTML: data-i18n="khoá" (textContent) · data-i18n-html="khoá" (innerHTML) · data-i18n-ph="khoá" (placeholder).
+   - ID vật phẩm/logic KHÔNG dịch (vẫn là tiếng Việt, ví dụ 'Thủy Long Châu'); tên hiển thị là khoá 'item.<id>'.
+   - Thêm ngôn ngữ mới: thêm một bản vào D và một dòng vào LANGS.
+   - Ngôn ngữ lưu ở localStorage (tt_lang) và trong save của tài khoản (set.lang).
+   ============================================================ */
+(function(){
+'use strict';
+var LANGS=[{c:'vi',n:'Tiếng Việt',h:'vi'},{c:'zh-Hant',n:'繁體中文',h:'zh-Hant'},{c:'zh-Hans',n:'简体中文',h:'zh-Hans'}];
+var D={};
+D.vi={
+ 'title':'Tu Tiên · Thế Giới Mới',
+ 'game.name':'Thế Giới Tu Chân',
+ 'monster.thuylong':'Thủy Long',
+ 'hint':'Kéo màn hình để đi · nút ĐÁNH',
+ 'atk':'ĐÁNH',
+ 'toast.welcome':'Thế giới mới · đánh Thủy Long ở hồ phía đông',
+ 'toast.dead':'Đạo hữu ngã xuống... tái sinh ở quảng trường',
+ 'toast.kill':'Thủy Long đã bị hạ!',
+ 'toast.pick':'Nhặt được: {name} (vật phẩm tạm — chờ bạn chốt loại phần thưởng)',
+ 'toast.hello_load':'Chào {name} · đã tải tiến độ',
+ 'toast.hello_new':'Chào {name} · bắt đầu hành trình',
+ 'item.Thủy Long Châu':'Thủy Long Châu',
+ 'itemdesc.Thủy Long Châu':'Viên châu kết tinh từ thủy linh của Thủy Long, lạnh như băng, bên trong có dòng nước chảy. (Vật phẩm tạm, công dụng chưa định.)',
+ 'itemdesc.default':'Một vật phẩm chưa rõ lai lịch.',
+ 'auth.sub':'Chỉ cần tên tài khoản và mật khẩu, không cần email.',
+ 'auth.login':'Đăng nhập',
+ 'auth.reg':'Tạo tài khoản',
+ 'auth.ph.name':'Tên tài khoản (chữ, số, _)',
+ 'auth.ph.pw':'Mật khẩu (từ 6 ký tự)',
+ 'auth.ph.pw2':'Nhập lại mật khẩu',
+ 'auth.go.reg':'Tạo tài khoản và vào game',
+ 'auth.note':'Quên mật khẩu sẽ không lấy lại được tài khoản, hãy nhớ kỹ.<br>Tên không phân biệt chữ hoa/thường và dấu.',
+ 'err.name':'Tên tài khoản gồm 3–20 ký tự: chữ không dấu, số hoặc _ (không có khoảng trắng).',
+ 'err.pw6':'Mật khẩu tối thiểu 6 ký tự.',
+ 'err.pwmatch':'Hai lần nhập mật khẩu chưa giống nhau.',
+ 'err.connecting':'Đang kết nối…',
+ 'err.entering':'Đang vào game…',
+ 'err.nonet':'Không kết nối được máy chủ. Kiểm tra mạng rồi thử lại.',
+ 'err.confirm':'Máy chủ vẫn đang bật "Confirm email". Vào Supabase → Authentication → Sign In / Providers → tắt Confirm email → Save changes.',
+ 'err.badlogin':'Sai tên tài khoản hoặc mật khẩu.',
+ 'err.exists':'Tên tài khoản này đã có người dùng, hãy chọn tên khác.',
+ 'err.signupoff':'Máy chủ đang tắt đăng ký tài khoản mới.',
+ 'err.emailoff':'Máy chủ chưa bật đăng nhập bằng email (Authentication → Providers → Email).',
+ 'err.rate':'Thử quá nhiều lần, chờ một lát rồi thử lại.',
+ 'err.server':'Lỗi máy chủ: {m}',
+ 'err.expired':'Phiên đăng nhập hết hạn, hãy đăng nhập lại.',
+ 'st.saving':'Đang lưu…',
+ 'st.offline':'Offline — lưu tạm trên máy',
+ 'st.saved':'Đã lưu {t}',
+ 'st.saverr':'Lỗi lưu: {m}',
+ 'st.loaded':'Đã tải',
+ 'st.loaderr':'Lỗi tải save: {m}',
+ 'acc.logout':'Đăng xuất',
+ 'acc.logout.confirm':'Đăng xuất khỏi {name}?',
+ 'bag.title':'Túi Trữ Vật',
+ 'bag.tab.in':'Trong túi',
+ 'bag.tab.journal':'Đạo Ký',
+ 'bag.close':'Đóng',
+ 'bag.empty':'Không gian trong túi còn trống…<br>Hạ yêu thú để thu được bảo vật.',
+ 'bag.tap':'Chạm vào một vật phẩm để xem chi tiết.',
+ 'bag.cap':'Không gian túi: {n} / {cap} loại',
+ 'j.account':'Tài khoản','j.items':'Vật phẩm','j.none':'Chưa có','j.hp':'Máu','j.pos':'Vị trí (ô)',
+ 'j.steps':'Quãng đường đã đi','j.steps.v':'{n} ô','j.kills':'Thủy Long đã hạ','j.time':'Thời gian chơi',
+ 'j.lastsave':'Lần lưu lên máy chủ','j.never':'chưa',
+ 'j.test':'🧪 Thêm 1 vật phẩm thử (để kiểm tra lưu)',
+ 't.h':'{n} giờ','t.m':'{n} phút','t.s':'{n} giây',
+ 'set.title':'Cài đặt','set.lang':'Ngôn ngữ','set.account':'Tài khoản','set.name':'Tên đăng nhập','set.langnote':'Ngôn ngữ được lưu theo tài khoản.'
+};
+D['zh-Hant']={
+ 'title':'修仙・新世界',
+ 'game.name':'修真世界',
+ 'monster.thuylong':'水龍',
+ 'hint':'拖動螢幕移動 · 按「攻擊」',
+ 'atk':'攻擊',
+ 'toast.welcome':'新世界・到東邊的湖打水龍',
+ 'toast.dead':'道友倒下了……在廣場重生',
+ 'toast.kill':'水龍已被擊敗！',
+ 'toast.pick':'拾取：{name}（暫定物品，獎勵類型待定）',
+ 'toast.hello_load':'歡迎 {name}・已載入進度',
+ 'toast.hello_new':'歡迎 {name}・踏上修行之路',
+ 'item.Thủy Long Châu':'水龍珠',
+ 'itemdesc.Thủy Long Châu':'由水龍的水靈凝結而成的寶珠，冰涼如霜，珠中有水流轉動。（暫定物品，用途未定。）',
+ 'itemdesc.default':'來歷不明的物品。',
+ 'auth.sub':'只需帳號名稱和密碼，無需電子郵件。',
+ 'auth.login':'登入',
+ 'auth.reg':'建立帳號',
+ 'auth.ph.name':'帳號名稱（英文字母、數字、_）',
+ 'auth.ph.pw':'密碼（至少 6 個字元）',
+ 'auth.ph.pw2':'再次輸入密碼',
+ 'auth.go.reg':'建立帳號並進入遊戲',
+ 'auth.note':'忘記密碼將無法找回帳號，請牢記。<br>名稱不分大小寫與重音符號。',
+ 'err.name':'帳號名稱為 3–20 個字元：不含重音的英文字母、數字或 _（不可有空格）。',
+ 'err.pw6':'密碼至少需要 6 個字元。',
+ 'err.pwmatch':'兩次輸入的密碼不一致。',
+ 'err.connecting':'連線中…',
+ 'err.entering':'進入遊戲中…',
+ 'err.nonet':'無法連線到伺服器，請檢查網路後再試。',
+ 'err.confirm':'伺服器仍開啟「Confirm email」。請到 Supabase → Authentication → Sign In / Providers → 關閉 Confirm email → Save changes。',
+ 'err.badlogin':'帳號名稱或密碼錯誤。',
+ 'err.exists':'此帳號名稱已被使用，請換一個。',
+ 'err.signupoff':'伺服器目前關閉了新帳號註冊。',
+ 'err.emailoff':'伺服器尚未開啟電子郵件登入（Authentication → Providers → Email）。',
+ 'err.rate':'嘗試次數過多，請稍後再試。',
+ 'err.server':'伺服器錯誤：{m}',
+ 'err.expired':'登入已過期，請重新登入。',
+ 'st.saving':'儲存中…',
+ 'st.offline':'離線，暫存於本機',
+ 'st.saved':'已儲存 {t}',
+ 'st.saverr':'儲存失敗：{m}',
+ 'st.loaded':'已載入',
+ 'st.loaderr':'載入存檔失敗：{m}',
+ 'acc.logout':'登出',
+ 'acc.logout.confirm':'要登出 {name} 嗎？',
+ 'bag.title':'儲物袋',
+ 'bag.tab.in':'袋內',
+ 'bag.tab.journal':'道記',
+ 'bag.close':'關閉',
+ 'bag.empty':'袋中空間還是空的……<br>擊敗妖獸即可獲得寶物。',
+ 'bag.tap':'點選物品查看詳情。',
+ 'bag.cap':'袋中空間：{n} / {cap} 種',
+ 'j.account':'帳號','j.items':'物品','j.none':'尚無','j.hp':'氣血','j.pos':'位置（格）',
+ 'j.steps':'已行走距離','j.steps.v':'{n} 格','j.kills':'擊敗水龍','j.time':'遊玩時間',
+ 'j.lastsave':'上次儲存至伺服器','j.never':'尚未',
+ 'j.test':'🧪 新增 1 個測試物品（用來檢查存檔）',
+ 't.h':'{n} 小時','t.m':'{n} 分','t.s':'{n} 秒',
+ 'set.title':'設定','set.lang':'語言','set.account':'帳號','set.name':'登入名稱','set.langnote':'語言設定會隨帳號儲存。'
+};
+D['zh-Hans']={
+ 'title':'修仙·新世界',
+ 'game.name':'修真世界',
+ 'monster.thuylong':'水龙',
+ 'hint':'拖动屏幕移动 · 按“攻击”',
+ 'atk':'攻击',
+ 'toast.welcome':'新世界·到东边的湖打水龙',
+ 'toast.dead':'道友倒下了……在广场重生',
+ 'toast.kill':'水龙已被击败！',
+ 'toast.pick':'拾取：{name}（暂定物品，奖励类型待定）',
+ 'toast.hello_load':'欢迎 {name}·已加载进度',
+ 'toast.hello_new':'欢迎 {name}·踏上修行之路',
+ 'item.Thủy Long Châu':'水龙珠',
+ 'itemdesc.Thủy Long Châu':'由水龙的水灵凝结而成的宝珠，冰凉如霜，珠中有水流转动。（暂定物品，用途未定。）',
+ 'itemdesc.default':'来历不明的物品。',
+ 'auth.sub':'只需账号名称和密码，无需电子邮箱。',
+ 'auth.login':'登录',
+ 'auth.reg':'创建账号',
+ 'auth.ph.name':'账号名称（英文字母、数字、_）',
+ 'auth.ph.pw':'密码（至少 6 个字符）',
+ 'auth.ph.pw2':'再次输入密码',
+ 'auth.go.reg':'创建账号并进入游戏',
+ 'auth.note':'忘记密码将无法找回账号，请牢记。<br>名称不区分大小写与重音符号。',
+ 'err.name':'账号名称为 3–20 个字符：不含重音的英文字母、数字或 _（不能有空格）。',
+ 'err.pw6':'密码至少需要 6 个字符。',
+ 'err.pwmatch':'两次输入的密码不一致。',
+ 'err.connecting':'连接中…',
+ 'err.entering':'进入游戏中…',
+ 'err.nonet':'无法连接到服务器，请检查网络后重试。',
+ 'err.confirm':'服务器仍开启了“Confirm email”。请到 Supabase → Authentication → Sign In / Providers → 关闭 Confirm email → Save changes。',
+ 'err.badlogin':'账号名称或密码错误。',
+ 'err.exists':'该账号名称已被使用，请换一个。',
+ 'err.signupoff':'服务器当前关闭了新账号注册。',
+ 'err.emailoff':'服务器尚未开启邮箱登录（Authentication → Providers → Email）。',
+ 'err.rate':'尝试次数过多，请稍后再试。',
+ 'err.server':'服务器错误：{m}',
+ 'err.expired':'登录已过期，请重新登录。',
+ 'st.saving':'保存中…',
+ 'st.offline':'离线，暂存于本机',
+ 'st.saved':'已保存 {t}',
+ 'st.saverr':'保存失败：{m}',
+ 'st.loaded':'已加载',
+ 'st.loaderr':'加载存档失败：{m}',
+ 'acc.logout':'退出登录',
+ 'acc.logout.confirm':'要退出 {name} 吗？',
+ 'bag.title':'储物袋',
+ 'bag.tab.in':'袋内',
+ 'bag.tab.journal':'道记',
+ 'bag.close':'关闭',
+ 'bag.empty':'袋中空间还是空的……<br>击败妖兽即可获得宝物。',
+ 'bag.tap':'点击物品查看详情。',
+ 'bag.cap':'袋中空间：{n} / {cap} 种',
+ 'j.account':'账号','j.items':'物品','j.none':'暂无','j.hp':'气血','j.pos':'位置（格）',
+ 'j.steps':'已行走距离','j.steps.v':'{n} 格','j.kills':'击败水龙','j.time':'游玩时间',
+ 'j.lastsave':'上次保存到服务器','j.never':'尚未',
+ 'j.test':'🧪 添加 1 个测试物品（用来检查存档）',
+ 't.h':'{n} 小时','t.m':'{n} 分','t.s':'{n} 秒',
+ 'set.title':'设置','set.lang':'语言','set.account':'账号','set.name':'登录名称','set.langnote':'语言设置会随账号保存。'
+};
+
+var cur='vi',subs=[],LSK='tt_lang';
+function ok(c){for(var i=0;i<LANGS.length;i++)if(LANGS[i].c===c)return true;return false;}
+function guess(){
+  var s=null;try{s=localStorage.getItem(LSK);}catch(e){}
+  if(s&&ok(s))return s;
+  var n=((navigator.languages&&navigator.languages[0])||navigator.language||'vi').toLowerCase();
+  if(n.indexOf('zh')===0)return (/tw|hk|mo|hant/.test(n))?'zh-Hant':'zh-Hans';
+  return 'vi';
+}
+function t(k,p){
+  var s=(D[cur]&&D[cur][k]);if(s==null)s=D.vi[k];if(s==null)return k;
+  if(p)s=s.replace(/\{(\w+)\}/g,function(m,a){return p[a]!=null?p[a]:m;});
+  return s;
+}
+function has(k){return D[cur]&&D[cur][k]!=null||D.vi[k]!=null;}
+function apply(root){
+  root=root||document;var e,i;
+  e=root.querySelectorAll('[data-i18n]');for(i=0;i<e.length;i++)e[i].textContent=t(e[i].getAttribute('data-i18n'));
+  e=root.querySelectorAll('[data-i18n-html]');for(i=0;i<e.length;i++)e[i].innerHTML=t(e[i].getAttribute('data-i18n-html'));
+  e=root.querySelectorAll('[data-i18n-ph]');for(i=0;i<e.length;i++)e[i].setAttribute('placeholder',t(e[i].getAttribute('data-i18n-ph')));
+}
+function set(c,silent){
+  if(!ok(c))return false;
+  var changed=c!==cur;cur=c;
+  try{localStorage.setItem(LSK,c);}catch(e){}
+  for(var i=0;i<LANGS.length;i++)if(LANGS[i].c===c)document.documentElement.lang=LANGS[i].h;
+  document.title=t('title');apply();
+  if(changed&&!silent)subs.forEach(function(f){try{f(c);}catch(e){}});
+  return changed;
+}
+function fmtTime(s){
+  s=Math.round(s);var h=Math.floor(s/3600),m=Math.floor(s%3600/60),r=s%60,sp=cur==='vi'?' ':'';
+  return (h?t('t.h',{n:h})+sp:'')+t('t.m',{n:m})+sp+t('t.s',{n:r});
+}
+window.I18N={LANGS:LANGS,t:t,has:has,apply:apply,set:set,fmtTime:fmtTime,on:function(f){subs.push(f);},get lang(){return cur;},
+  itemName:function(id){var k='item.'+id;return has(k)?t(k):id;},
+  itemDesc:function(id){var k='itemdesc.'+id;return has(k)?t(k):t('itemdesc.default');}};
+cur=guess();
+document.documentElement.lang=cur==='vi'?'vi':cur;
+document.title=t('title');
+})();
+</script>
 <script>
 /* ============================================================
    TU TIÊN · THẾ GIỚI MỚI — bản dựng sạch
@@ -30,6 +262,7 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block;image-renderi
    Mọi tỉ lệ pixel: 1 pixel nhân vật/quái = PX (0.5) đơn vị game. ĐỒNG BỘ MỌI THỨ SAU NÀY THEO PX.
    ============================================================ */
 (function(){
+I18N.apply();const T=(k,p)=>I18N.t(k,p);
 window.addEventListener('error',function(e){try{var p=document.createElement('pre');p.style.cssText='position:fixed;left:0;top:0;right:0;z-index:99999;background:#400;color:#fff;font:11px monospace;padding:6px;margin:0;white-space:pre-wrap';p.textContent='LỖI: '+e.message+' @'+e.lineno;document.body.appendChild(p);}catch(_){}});
 const PX=0.5,DPX=0.8333,TILE=16,MW=200,MH=200,ZOOM=1.0;
 const IMG={};let ready=0;const NEED=6;
@@ -132,7 +365,7 @@ function addBubbles(x,y,n){for(let i=0;i<n;i++)fxs.push({k:'bub',x:x+(Math.rando
 function addSplash(x,y,n){for(let i=0;i<n;i++){const a=-Math.PI/2+(Math.random()-.5)*2.2,v=30+Math.random()*40;fxs.push({k:'spl',x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,t0:now(),dur:520+Math.random()*260,s:1.2+Math.random()*1.4});}}
 function hurtPlayer(d,sx,sy){if(P.dead||P.inv>0)return;P.hp=Math.max(0,P.hp-d);P.inv=.9;P.hurtT=now();floaters.push({x:P.x,y:P.y-30,t0:now(),s:'-'+d,c:'#ff8a8a'});
   const a=Math.atan2(P.y-sy,P.x-sx);P.kx=Math.cos(a)*90;P.ky=Math.sin(a)*90;
-  if(P.hp<=0){P.dead=now();toast('Đạo hữu ngã xuống... tái sinh ở quảng trường');}}
+  if(P.hp<=0){P.dead=now();toast(T('toast.dead'));}}
 function mUpdate(dt){const t=now(),e=t-M.t0,dist=Math.hypot(P.x-M.x,P.y-M.y);
   M.cd1-=dt;M.cd2-=dt;M.flash=Math.max(0,M.flash-dt);
   const aggro=!P.dead&&dist<190&&Math.hypot(P.x-HOME.x,P.y-HOME.y)<420;
@@ -199,7 +432,7 @@ function mUpdate(dt){const t=now(),e=t-M.t0,dist=Math.hypot(P.x-M.x,P.y-M.y);
 }
 function mHit(d){if(!mTargetable()||M.st==='die')return;M.hp=Math.max(0,M.hp-d);M.flash=.14;
   floaters.push({x:M.x,y:M.y-44,t0:now(),s:String(d),c:'#fff'});addSplash(M.x,M.y-18,6);
-  if(M.hp<=0){stats.kills++;setSt('die');addSplash(M.x,M.y,30);toast('Thủy Long đã bị hạ!');return;}
+  if(M.hp<=0){stats.kills++;setSt('die');addSplash(M.x,M.y,30);toast(T('toast.kill'));return;}
   if(M.st==='idle'||M.st==='swim'||M.st==='recover'||M.st==='rise'){M.prev=M.st==='rise'?'idle':M.st;setSt('hurt');}}
 
 /* ---------- ĐIỀU KHIỂN ---------- */
@@ -245,7 +478,7 @@ function update(dt){
     dog.run=t-dog.rt<170;if(Math.abs(dx)>6)dog.f=dx>0?1:-1;if(d>260){dog.x=P.x;dog.y=P.y;}}
   mUpdate(dt);
   // nhặt vật phẩm
-  for(let i=drops.length-1;i>=0;i--){const d=drops[i];if(t-d.t0>500&&Math.hypot(P.x-d.x,P.y-d.y)<16){loot[d.n]=(loot[d.n]||0)+1;drops.splice(i,1);lootUI();toast('Nhặt được: '+d.n+' (vật phẩm tạm — chờ bạn chốt loại phần thưởng)');}}
+  for(let i=drops.length-1;i>=0;i--){const d=drops[i];if(t-d.t0>500&&Math.hypot(P.x-d.x,P.y-d.y)<16){loot[d.n]=(loot[d.n]||0)+1;drops.splice(i,1);lootUI();toast(T('toast.pick',{name:I18N.itemName(d.n)}));}}
   fxs=fxs.filter(f=>t-f.t0<f.dur);floaters=floaters.filter(f=>t-f.t0<900);
   cam.x+=(P.x-cam.x)*Math.min(1,dt*7);cam.y+=(P.y-18-cam.y)*Math.min(1,dt*7);
 }
@@ -381,7 +614,7 @@ let last=performance.now();
 function loop(n){const dt=Math.min(.05,(n-last)/1000);last=n;if(window.__pause){requestAnimationFrame(loop);return;}try{update(dt);draw();}catch(e){window.dispatchEvent(new ErrorEvent('error',{message:e.message,lineno:0}));return;}requestAnimationFrame(loop);}
 requestAnimationFrame(loop);
 window.G={P,M,dog,fx:()=>fxs,drops,update,draw,tiles,cam,now,attack,setSt,mHit,DR,loot,SPAWN,LAKE,HOME,toast,keys,joy,lootUI,stats};
-toast('Thế giới mới · đánh Thủy Long ở hồ phía đông');
+toast(T('toast.welcome'));
 })();
 </script>
 <script>/* ============================================================
@@ -397,9 +630,10 @@ toast('Thế giới mới · đánh Thủy Long ở hồ phía đông');
 var G=window.G;
 var CAP=30; /* số loại vật phẩm tối đa trong túi (tạm) */
 var ITEMS={
-  'Thủy Long Châu':{col:'#7fd8ff',glow:'#3aa9ff',desc:'Viên châu kết tinh từ thủy linh của Thủy Long, lạnh như băng, bên trong có dòng nước chảy. (Vật phẩm tạm, công dụng chưa định.)'}
+  'Thủy Long Châu':{col:'#7fd8ff',glow:'#3aa9ff'}
 };
-var DEF={col:'#ffe58f',glow:'#ffb347',desc:'Một vật phẩm chưa rõ lai lịch.'};
+var DEF={col:'#ffe58f',glow:'#ffb347'};
+var T=function(k,p){return I18N.t(k,p);};
 
 /* ----- icon túi gấm 16x16 ----- */
 var PAL={o:'#2a1530',P:'#8a46b8',L:'#c58bf0',d:'#5a2a80',g:'#f2c14e',G:'#ffe58f',r:'#d9434f'};
@@ -462,24 +696,23 @@ css.textContent=
 document.head.appendChild(css);
 
 /* ----- nút túi ----- */
-var btn=document.createElement('button');btn.id='bagBtn';btn.type='button';btn.setAttribute('aria-label','Túi trữ vật');
+var btn=document.createElement('button');btn.id='bagBtn';btn.type='button';btn.setAttribute('aria-label',I18N.t('bag.title'));
 btn.appendChild(pouch(3));var cnt=document.createElement('span');cnt.className='cnt';cnt.style.display='none';btn.appendChild(cnt);
 document.body.appendChild(btn);
 
 /* ----- bảng túi ----- */
 var bag=document.createElement('div');bag.id='bag';
 bag.innerHTML=
-'<div class="box"><div class="hd"><span id="bagIc"></span><h2>Túi Trữ Vật</h2><button id="bagX" type="button">Đóng</button></div>'+
-'<div class="tabs"><button type="button" id="tabT" class="on">Trong túi</button><button type="button" id="tabJ">Đạo Ký</button></div>'+
-'<div id="bagV"><div id="bagStage"><canvas id="bagCv"></canvas><div class="empty" id="bagEmpty">Không gian trong túi còn trống…<br>Hạ yêu thú để thu được bảo vật.</div></div>'+
-'<div id="bagInfo">Chạm vào một vật phẩm để xem chi tiết.</div><div id="bagCap"></div></div>'+
+'<div class="box"><div class="hd"><span id="bagIc"></span><h2 data-i18n="bag.title"></h2><button id="bagX" type="button" data-i18n="bag.close"></button></div>'+
+'<div class="tabs"><button type="button" id="tabT" class="on" data-i18n="bag.tab.in"></button><button type="button" id="tabJ" data-i18n="bag.tab.journal"></button></div>'+
+'<div id="bagV"><div id="bagStage"><canvas id="bagCv"></canvas><div class="empty" id="bagEmpty" data-i18n-html="bag.empty"></div></div>'+
+'<div id="bagInfo"></div><div id="bagCap"></div></div>'+
 '<div id="bagJ" style="display:none"></div></div>';
 document.body.appendChild(bag);
 $('bagIc').appendChild(pouch(2));
 function $(id){return document.getElementById(id);}
 
 var sel='',tab='T',tmr=0,raf=0,stars=[],lastKeys='';
-function fmtT(s){s=Math.round(s);var h=Math.floor(s/3600),m=Math.floor(s%3600/60);return (h?h+' giờ ':'')+m+' phút '+(s%60)+' giây';}
 function hhmm(t){var d=new Date(t);return ('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2);}
 function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
 
@@ -493,14 +726,14 @@ function renderStage(){
   var l=G.loot,k=Object.keys(l).filter(function(n){return l[n]>0;}),st=$('bagStage'),h='',i;
   var sig=k.map(function(n){return n+':'+l[n];}).join('|');
   $('bagEmpty').style.display=k.length?'none':'block';
-  $('bagCap').textContent='Không gian túi: '+k.length+' / '+CAP+' loại';
+  $('bagCap').textContent=T('bag.cap',{n:k.length,cap:CAP});
   if(sig===lastKeys)return;lastKeys=sig;
   var old=st.querySelectorAll('.it');for(i=0;i<old.length;i++)st.removeChild(old[i]);
   k.forEach(function(n,i){
     var it=ITEMS[n]||DEF,p=pos(i,k.length),e=document.createElement('div');
     e.className='it'+(sel===n?' sel':'');e.dataset.n=n;
     e.style.left=p[0]+'%';e.style.top=p[1]+'%';e.style.animationDelay=(-i*0.7)+'s';
-    e.innerHTML='<div class="orb" style="background:radial-gradient(circle at 35% 30%,#fff,'+it.col+' 38%,'+it.glow+');box-shadow:0 0 14px '+it.glow+',0 0 30px '+it.glow+'66"><i></i>'+(l[n]>1?'<span class="n">'+l[n]+'</span>':'')+'</div><div class="nm">'+esc(n)+'</div>';
+    e.innerHTML='<div class="orb" style="background:radial-gradient(circle at 35% 30%,#fff,'+it.col+' 38%,'+it.glow+');box-shadow:0 0 14px '+it.glow+',0 0 30px '+it.glow+'66"><i></i>'+(l[n]>1?'<span class="n">'+l[n]+'</span>':'')+'</div><div class="nm">'+esc(I18N.itemName(n))+'</div>';
     e.onclick=function(){sel=n;showInfo();var all=st.querySelectorAll('.it');for(var j=0;j<all.length;j++)all[j].className='it'+(all[j].dataset.n===sel?' sel':'');};
     st.appendChild(e);
   });
@@ -509,22 +742,23 @@ function renderStage(){
 }
 function showInfo(){
   var l=G.loot,box=$('bagInfo');
-  if(!sel||!l[sel]){box.textContent='Chạm vào một vật phẩm để xem chi tiết.';return;}
-  var it=ITEMS[sel]||DEF;box.innerHTML='<b>'+esc(sel)+' ×'+l[sel]+'</b>'+esc(it.desc);
+  if(!sel||!l[sel]){box.textContent=T('bag.tap');return;}
+  box.innerHTML='<b>'+esc(I18N.itemName(sel))+' ×'+l[sel]+'</b>'+esc(I18N.itemDesc(sel));
 }
 function renderJournal(){
   var P=G.P,st=G.stats,l=G.loot,k=Object.keys(l).filter(function(n){return l[n]>0;});
   var info=(window.TT&&TT.info)?TT.info():{name:'-',lastOk:0};
+  function row(a,b){return '<div class="row"><span>'+T(a)+'</span><b>'+b+'</b></div>';}
   $('bagJ').innerHTML=
-   '<div class="row"><span>Tài khoản</span><b>'+esc(info.name||'-')+'</b></div>'+
-   '<div class="row"><span>Vật phẩm</span><b>'+(k.length?esc(k.map(function(n){return n+' ×'+l[n];}).join(', ')):'Chưa có')+'</b></div>'+
-   '<div class="row"><span>Máu</span><b>'+Math.round(P.hp)+' / '+P.maxHp+'</b></div>'+
-   '<div class="row"><span>Vị trí (ô)</span><b>'+Math.round(P.x/16)+', '+Math.round(P.y/16)+'</b></div>'+
-   '<div class="row"><span>Quãng đường đã đi</span><b>'+Math.round(st.steps)+' ô</b></div>'+
-   '<div class="row"><span>Thủy Long đã hạ</span><b>'+st.kills+'</b></div>'+
-   '<div class="row"><span>Thời gian chơi</span><b>'+fmtT(st.sec)+'</b></div>'+
-   '<div class="row"><span>Lần lưu lên máy chủ</span><b>'+(info.lastOk?hhmm(info.lastOk):'chưa')+'</b></div>'+
-   '<button class="test" id="bagT" type="button">🧪 Thêm 1 vật phẩm thử (để kiểm tra lưu)</button>';
+   row('j.account',esc(info.name||'-'))+
+   row('j.items',k.length?esc(k.map(function(n){return I18N.itemName(n)+' ×'+l[n];}).join(', ')):T('j.none'))+
+   row('j.hp',Math.round(P.hp)+' / '+P.maxHp)+
+   row('j.pos',Math.round(P.x/16)+', '+Math.round(P.y/16))+
+   row('j.steps',T('j.steps.v',{n:Math.round(st.steps)}))+
+   row('j.kills',st.kills)+
+   row('j.time',I18N.fmtTime(st.sec))+
+   row('j.lastsave',info.lastOk?hhmm(info.lastOk):T('j.never'))+
+   '<button class="test" id="bagT" type="button">'+T('j.test')+'</button>';
   $('bagT').onclick=function(){G.loot['Thủy Long Châu']=(G.loot['Thủy Long Châu']||0)+1;if(G.lootUI)G.lootUI();renderJournal();if(window.TT&&TT.push)TT.push(false,false);};
 }
 function refresh(){if(tab==='T')renderStage();else renderJournal();updBadge();}
@@ -556,7 +790,89 @@ $('tabT').onclick=function(){setTab('T');};$('tabJ').onclick=function(){setTab('
 bag.addEventListener('pointerdown',function(e){if(e.target===bag)close();});
 setInterval(function(){if(btn.style.display!=='none')updBadge();},1500);
 
+I18N.apply(bag);
+I18N.on(function(){btn.setAttribute('aria-label',I18N.t('bag.title'));I18N.apply(bag);lastKeys='';refresh();});
 window.TTBag={show:function(v){btn.style.display=v?'flex':'none';if(!v)close();else updBadge();},open:open,close:close,select:function(n){sel=n;}};
+})();
+</script>
+<script>/* ============================================================
+   CÀI ĐẶT: nút bánh răng pixel (dưới túi, góc trái) → bảng Cài đặt
+   - Ngôn ngữ: Tiếng Việt / 繁體中文 / 简体中文 (I18N.set)
+   - Tài khoản: tên đăng nhập + Đăng xuất (TT.logout)
+   - Muốn thêm mục cài đặt mới: thêm một khối <section> trong html và hàm render tương ứng.
+   ============================================================ */
+(function(){
+'use strict';
+var T=function(k,p){return I18N.t(k,p);};
+function $(id){return document.getElementById(id);}
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+
+/* bánh răng 16x16 vẽ bằng công thức (răng cưa 8 cái, lỗ giữa), viền tối + highlight */
+function gear(px){
+  var N=16,c=document.createElement('canvas');c.width=c.height=N*px;var x=c.getContext('2d'),f=[],i,j;
+  for(j=0;j<N;j++){f[j]=[];for(i=0;i<N;i++){
+    var dx=i-7.5,dy=j-7.5,r=Math.sqrt(dx*dx+dy*dy),a=Math.atan2(dy,dx);
+    var tooth=Math.cos(a*8)>0.15;
+    f[j][i]=(r<=5.3||(r<=7.4&&tooth))&&r>2.3;
+  }}
+  for(j=0;j<N;j++)for(i=0;i<N;i++){
+    if(!f[j][i])continue;
+    var edge=!(f[j-1]&&f[j-1][i])||!(f[j+1]&&f[j+1][i])||!f[j][i-1]||!f[j][i+1];
+    var hole=false;
+    x.fillStyle=edge?'#1c2a38':((i+j<12)?'#cfe3f2':((i+j>17)?'#6f8aa2':'#9db8cd'));
+    x.fillRect(i*px,j*px,px,px);
+  }
+  c.style.imageRendering='pixelated';return c;
+}
+
+var css=document.createElement('style');
+css.textContent=
+'#setBtn{position:fixed;left:10px;top:calc(env(safe-area-inset-top,0px) + 92px);width:44px;height:44px;border-radius:50%;border:1px solid #9db8cd88;background:radial-gradient(circle,#1b2c3dcc,#0a1420cc);display:none;align-items:center;justify-content:center;padding:0}'+
+'#setBtn canvas,#set .hd canvas{position:static;inset:auto;display:block;flex:none}'+
+'#setBtn canvas{width:32px;height:32px}'+
+'#set{position:fixed;inset:0;z-index:900;display:none;align-items:center;justify-content:center;background:#000b;padding:14px;box-sizing:border-box}'+
+'#set .box{width:100%;max-width:380px;max-height:100%;overflow:auto;background:linear-gradient(#162636,#0a1520);border:1px solid #4d7494;border-radius:18px;padding:12px;color:#e8f4ff;-webkit-user-select:none;user-select:none}'+
+'#set .hd{display:flex;align-items:center;gap:8px;margin-bottom:6px}'+
+'#set .hd canvas{width:28px;height:28px}'+
+'#set .hd h2{margin:0;font-size:17px;flex:1;letter-spacing:1px}'+
+'#set button{padding:10px 12px;border-radius:10px;border:1px solid #4d7494;background:#1a2f42;color:#fff;font-size:14px}'+
+'#set h3{margin:16px 0 8px;font-size:12px;color:#8fb4d0;letter-spacing:.5px;text-transform:uppercase}'+
+'#set .langs{display:flex;flex-direction:column;gap:7px}'+
+'#set .langs button{display:flex;justify-content:space-between;align-items:center;text-align:left;font-size:15px}'+
+'#set .langs button.on{background:#2a86d6;border-color:#6fd3ff}'+
+'#set .langs button.on:after{content:"✓";font-weight:800}'+
+'#set .note{margin-top:7px;font-size:11px;color:#7f9fb8}'+
+'#set .row{display:flex;justify-content:space-between;gap:10px;font-size:13px;padding:7px 0;border-bottom:1px solid #223a50}'+
+'#set .row b{color:#fff}'+
+'#set .out{margin-top:10px;width:100%;border-color:#a85a5a;color:#ffc0b8;background:#2a1a1e}';
+document.head.appendChild(css);
+
+var btn=document.createElement('button');btn.id='setBtn';btn.type='button';btn.appendChild(gear(2));document.body.appendChild(btn);
+var pn=document.createElement('div');pn.id='set';
+pn.innerHTML=
+'<div class="box"><div class="hd"><span id="setIc"></span><h2 data-i18n="set.title"></h2><button id="setX" type="button" data-i18n="bag.close"></button></div>'+
+'<h3 data-i18n="set.lang"></h3><div class="langs" id="setL"></div><div class="note" data-i18n="set.langnote"></div>'+
+'<h3 data-i18n="set.account"></h3><div id="setA"></div></div>';
+document.body.appendChild(pn);
+$('setIc').appendChild(gear(2));
+
+function render(){
+  var L=$('setL');L.innerHTML='';
+  I18N.LANGS.forEach(function(g){
+    var b=document.createElement('button');b.type='button';b.textContent=g.n;b.className=g.c===I18N.lang?'on':'';
+    b.onclick=function(){I18N.set(g.c);};L.appendChild(b);
+  });
+  var info=(window.TT&&TT.info)?TT.info():{name:'-'};
+  $('setA').innerHTML='<div class="row"><span>'+T('set.name')+'</span><b>'+esc(info.name||'-')+'</b></div><button class="out" id="setOut" type="button">'+T('acc.logout')+'</button>';
+  $('setOut').onclick=function(){if(window.TT&&TT.logout)TT.logout();};
+}
+function open(){render();pn.style.display='flex';}
+function close(){pn.style.display='none';}
+btn.onclick=open;$('setX').onclick=close;
+pn.addEventListener('pointerdown',function(e){if(e.target===pn)close();});
+I18N.apply(pn);
+I18N.on(function(){I18N.apply(pn);render();});
+window.TTSet={show:function(v){btn.style.display=v?'flex':'none';if(!v)close();},open:open,close:close};
 })();
 </script>
 <script>/* ============================================================
@@ -591,14 +907,14 @@ function req(path,method,body,token,keep){
 }
 function rawErr(r){var j=r&&r.j||{};return String(j.msg||j.error_description||j.message||j.error||('HTTP '+(r&&r.status)));}
 function viErr(r){
-  var m=rawErr(r),l=m.toLowerCase();
-  if(l.indexOf('invalid login')>=0)return 'Sai tên tài khoản hoặc mật khẩu.';
-  if(l.indexOf('already registered')>=0||l.indexOf('already been registered')>=0)return 'Tên tài khoản này đã có người dùng, hãy chọn tên khác.';
-  if(l.indexOf('at least')>=0&&l.indexOf('password')>=0)return 'Mật khẩu tối thiểu 6 ký tự.';
-  if(l.indexOf('signups not allowed')>=0||l.indexOf('signup is disabled')>=0)return 'Máy chủ đang tắt đăng ký tài khoản mới.';
-  if(l.indexOf('email logins are disabled')>=0||l.indexOf('provider is not enabled')>=0)return 'Máy chủ chưa bật đăng nhập bằng email (Authentication → Providers → Email).';
-  if(l.indexOf('rate limit')>=0||r.status===429)return 'Thử quá nhiều lần, chờ một lát rồi thử lại.';
-  return 'Lỗi máy chủ: '+m;
+  var m=rawErr(r),l=m.toLowerCase(),T=I18N.t;
+  if(l.indexOf('invalid login')>=0)return T('err.badlogin');
+  if(l.indexOf('already registered')>=0||l.indexOf('already been registered')>=0)return T('err.exists');
+  if(l.indexOf('at least')>=0&&l.indexOf('password')>=0)return T('err.pw6');
+  if(l.indexOf('signups not allowed')>=0||l.indexOf('signup is disabled')>=0)return T('err.signupoff');
+  if(l.indexOf('email logins are disabled')>=0||l.indexOf('provider is not enabled')>=0)return T('err.emailoff');
+  if(l.indexOf('rate limit')>=0||r.status===429)return T('err.rate');
+  return T('err.server',{m:m});
 }
 function mkSession(j,name){
   if(!j||!j.access_token)return null;
@@ -653,7 +969,7 @@ function ensure(){
 /* ---------- dữ liệu save ---------- */
 function collect(){
   var P=G.P,l={};for(var k in G.loot)l[k]=G.loot[k];
-  var st=G.stats;return{v:SAVE_V,x:+P.x.toFixed(1),y:+P.y.toFixed(1),f:P.f,hp:Math.round(P.hp),loot:l,stats:{kills:st.kills|0,steps:Math.round(st.steps),sec:Math.round(st.sec)}};
+  var st=G.stats;return{v:SAVE_V,x:+P.x.toFixed(1),y:+P.y.toFixed(1),f:P.f,hp:Math.round(P.hp),loot:l,stats:{kills:st.kills|0,steps:Math.round(st.steps),sec:Math.round(st.sec)},set:{lang:I18N.lang}};
 }
 function migrate(d){/* d.v cũ → mới. Hiện mới có v=1 nên chưa cần. */return d;}
 function apply(d){
@@ -662,6 +978,7 @@ function apply(d){
   if(isFinite(d.x)&&isFinite(d.y)){P.x=d.x;P.y=d.y;G.cam.x=P.x;G.cam.y=P.y;G.dog.x=P.x-18;G.dog.y=P.y+4;}
   if(d.f===1||d.f===-1)P.f=d.f;
   P.hp=(isFinite(d.hp)&&d.hp>0)?Math.min(P.maxHp,d.hp):P.maxHp;
+  if(d.set&&d.set.lang)I18N.set(d.set.lang,true),markLang();
   if(d.stats&&typeof d.stats==='object'){var st=G.stats;st.kills=+d.stats.kills||0;st.steps=+d.stats.steps||0;st.sec=+d.stats.sec||0;}
   if(d.loot&&typeof d.loot==='object'){for(var k in G.loot)delete G.loot[k];for(var n in d.loot){var c=+d.loot[n];if(c>0)G.loot[n]=c;}if(G.lootUI)G.lootUI();}
 }
@@ -675,23 +992,24 @@ function fetchSave(){
 }
 
 /* ---------- đẩy save lên ---------- */
-function status(s,bad){var e=$('accS');if(e){e.textContent=s;e.style.color=bad?'#ffb0a0':'#bfe6ff';}}
+var lastSt=null;
+function status(k,p,bad){lastSt=[k,p,bad];var e=$('accS');if(e){e.textContent=I18N.t(k,p);e.style.color=bad?'#ffb0a0':'#bfe6ff';}}
 function hh(){var d=new Date();return ('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2);}
 function push(keep,force){
   if(!S||pushing)return Promise.resolve();
   var d=collect(),j=JSON.stringify(d);
   localSet(S.uid,{t:Date.now(),d:d});
   if(!force&&j===lastJson)return Promise.resolve();
-  pushing=true;status('Đang lưu…');
+  pushing=true;status('st.saving');
   return ensure().then(function(ok){
-    if(ok===false){pushing=false;showAuth('Phiên đăng nhập hết hạn, hãy đăng nhập lại.');return;}
-    if(ok===null){pushing=false;status('Offline — lưu tạm trên máy',1);return;}
+    if(ok===false){pushing=false;showAuth('err.expired');return;}
+    if(ok===null){pushing=false;status('st.offline',null,1);return;}
     return req('/rest/v1/saves?on_conflict=user_id','POST',{user_id:S.uid,version:SAVE_V,data:d,updated_at:new Date().toISOString()},S.at,keep)
       .then(function(r){
         pushing=false;
-        if(r.ok){lastJson=j;lastOk=Date.now();status('Đã lưu '+hh());}
-        else status('Lỗi lưu: '+rawErr(r).slice(0,40),1);
-      },function(){pushing=false;status('Offline — lưu tạm trên máy',1);});
+        if(r.ok){lastJson=j;lastOk=Date.now();status('st.saved',{t:hh()});}
+        else status('st.saverr',{m:rawErr(r).slice(0,40)},1);
+      },function(){pushing=false;status('st.offline',null,1);});
   });
 }
 
@@ -699,6 +1017,9 @@ function push(keep,force){
 var css=document.createElement('style');
 css.textContent=
 '#auth{position:fixed;inset:0;z-index:1000;display:none;align-items:center;justify-content:center;background:radial-gradient(ellipse at 50% 30%,#16324a,#0b1620 70%);overflow:auto;padding:20px;box-sizing:border-box;-webkit-user-select:text;user-select:text;touch-action:pan-y}'+
+'#auth .lg{position:absolute;top:calc(env(safe-area-inset-top,0px) + 12px);right:12px;display:flex;gap:6px}'+
+'#auth .lg button{padding:6px 10px;border-radius:9px;border:1px solid #3d6a8e;background:#0e2233;color:#9fc4e0;font-size:12px}'+
+'#auth .lg button.on{background:#2a86d6;border-color:#6fd3ff;color:#fff}'+
 '#auth .card{width:100%;max-width:340px;color:#e8f4ff}'+
 '#auth h1{margin:0 0 4px;font-size:24px;text-align:center;letter-spacing:1px}'+
 '#auth .sub{margin:0 0 18px;text-align:center;font-size:12px;color:#8fb4d0}'+
@@ -712,23 +1033,24 @@ css.textContent=
 '#auth .err{min-height:18px;margin:2px 0 10px;font-size:13px;color:#ffb0a0;line-height:1.35}'+
 '#auth .note{margin-top:14px;font-size:11px;color:#7f9fb8;text-align:center;line-height:1.5}'+
 '#acc{position:fixed;right:12px;top:calc(env(safe-area-inset-top,0px) + 28px);font-size:11px;color:#bfe6ff;text-shadow:0 1px 2px #000;text-align:right;line-height:1.5;display:none}'+
-'#acc button{margin-left:6px;padding:1px 7px;border-radius:8px;border:1px solid #fff5;background:#0007;color:#fff;font-size:10px}';
+'';
 document.head.appendChild(css);
 
 var ov=document.createElement('div');ov.id='auth';
 ov.innerHTML=
+'<div class="lg" id="aLang"></div>'+
 '<form class="card" id="aForm" autocomplete="on">'+
-'<h1>Thế Giới Tu Chân</h1><p class="sub">Chỉ cần tên tài khoản và mật khẩu, không cần email.</p>'+
-'<div class="tabs"><button type="button" id="tLogin" class="on">Đăng nhập</button><button type="button" id="tReg">Tạo tài khoản</button></div>'+
-'<input id="aName" type="text" placeholder="Tên tài khoản (chữ, số, _)" maxlength="20" autocapitalize="none" autocorrect="off" spellcheck="false" autocomplete="username">'+
-'<input id="aPw" type="password" placeholder="Mật khẩu (từ 6 ký tự)" maxlength="64" autocomplete="current-password">'+
-'<input id="aPw2" type="password" placeholder="Nhập lại mật khẩu" maxlength="64" autocomplete="new-password" style="display:none">'+
+'<h1 data-i18n="game.name"></h1><p class="sub" data-i18n="auth.sub"></p>'+
+'<div class="tabs"><button type="button" id="tLogin" class="on" data-i18n="auth.login"></button><button type="button" id="tReg" data-i18n="auth.reg"></button></div>'+
+'<input id="aName" type="text" data-i18n-ph="auth.ph.name" maxlength="20" autocapitalize="none" autocorrect="off" spellcheck="false" autocomplete="username">'+
+'<input id="aPw" type="password" data-i18n-ph="auth.ph.pw" maxlength="64" autocomplete="current-password">'+
+'<input id="aPw2" type="password" data-i18n-ph="auth.ph.pw2" maxlength="64" autocomplete="new-password" style="display:none">'+
 '<div class="err" id="aErr"></div>'+
-'<button class="go" id="aGo" type="submit">Đăng nhập</button>'+
-'<div class="note">Quên mật khẩu sẽ không lấy lại được tài khoản, hãy nhớ kỹ.<br>Tên không phân biệt chữ hoa/thường và dấu.</div>'+
+'<button class="go" id="aGo" type="submit"></button>'+
+'<div class="note" data-i18n-html="auth.note"></div>'+
 '</form>';
 document.body.appendChild(ov);
-var acc=document.createElement('div');acc.id='acc';acc.innerHTML='<span id="accN"></span> · <span id="accS"></span><button id="accOut" type="button">Thoát</button>';
+var acc=document.createElement('div');acc.id='acc';acc.innerHTML='<span id="accN"></span> · <span id="accS"></span>';
 document.body.appendChild(acc);
 /* đếm quãng đường + thời gian chơi (chỉ khi đang chơi) */
 var lp=null;
@@ -743,16 +1065,16 @@ function setMode(m){
   mode=m;$('tLogin').className=m==='login'?'on':'';$('tReg').className=m==='reg'?'on':'';
   $('aPw2').style.display=m==='reg'?'block':'none';
   $('aPw').autocomplete=m==='reg'?'new-password':'current-password';
-  $('aGo').textContent=m==='reg'?'Tạo tài khoản và vào game':'Đăng nhập';
+  $('aGo').textContent=I18N.t(m==='reg'?'auth.go.reg':'auth.login');
   $('aErr').textContent='';
 }
 function showAuth(msg){
   window.__pause=true;S=S&&S.uid?S:null;
-  ov.style.display='flex';acc.style.display='none';if(window.TTBag)TTBag.show(false);setMode('login');
-  $('aErr').textContent=msg||'';busy=false;$('aGo').disabled=false;
+  ov.style.display='flex';acc.style.display='none';if(window.TTBag)TTBag.show(false);if(window.TTSet)TTSet.show(false);setMode('login');
+  $('aErr').textContent=msg?I18N.t(msg):'';busy=false;$('aGo').disabled=false;
 }
 function enter(){
-  ov.style.display='none';acc.style.display='block';if(window.TTBag)TTBag.show(true);$('accN').textContent=S.name;status('Đã tải');
+  ov.style.display='none';acc.style.display='block';if(window.TTBag)TTBag.show(true);if(window.TTSet)TTSet.show(true);$('accN').textContent=S.name;status('st.loaded');
   window.__pause=false;
   clearInterval(timer);timer=setInterval(function(){push(false,false);},10000);
 }
@@ -765,9 +1087,9 @@ function loadAndEnter(){
       pick=srv;
       if(loc&&(!srv||loc.t>srv.t+1000))pick=loc;
     }else{
-      if(f.r&&(f.r.status===401||f.r.status===403)&&/jwt|token/i.test(rawErr(f.r))){S=null;persist();showAuth('Phiên đăng nhập hết hạn, hãy đăng nhập lại.');return;}
+      if(f.r&&(f.r.status===401||f.r.status===403)&&/jwt|token/i.test(rawErr(f.r))){S=null;persist();showAuth('err.expired');return;}
       pick=loc; /* offline hoặc lỗi bảng → dùng bản trên máy */
-      if(!f.net)setTimeout(function(){status('Lỗi tải save: '+rawErr(f.r).slice(0,36),1);},300);
+      if(!f.net)setTimeout(function(){status('st.loaderr',{m:rawErr(f.r).slice(0,36)},1);},300);
     }
     var fromSrv=!!(f.ok&&pick&&f.row&&pick.d===f.row.data);
     if(pick)apply(pick.d);
@@ -775,7 +1097,7 @@ function loadAndEnter(){
     if(fromSrv)lastOk=Date.parse(f.row.updated_at)||Date.now();
     enter();
     if(f.ok&&!pick)push(false,true); /* tài khoản mới: tạo dòng save đầu tiên */
-    if(G.toast)G.toast('Chào '+S.name+(pick?' · đã tải tiến độ':' · bắt đầu hành trình'));
+    if(G.toast)G.toast(I18N.t(pick?'toast.hello_load':'toast.hello_new',{name:S.name}));
   });
 }
 
@@ -784,22 +1106,31 @@ $('tReg').onclick=function(){setMode('reg');};
 $('aForm').addEventListener('submit',function(e){
   e.preventDefault();if(busy)return;
   var name=norm($('aName').value),pw=$('aPw').value,err=$('aErr');
-  if(!/^[a-z0-9_]{3,20}$/.test(name)){err.textContent='Tên tài khoản gồm 3–20 ký tự: chữ không dấu, số hoặc _ (không có khoảng trắng).';return;}
-  if(pw.length<6){err.textContent='Mật khẩu tối thiểu 6 ký tự.';return;}
-  if(mode==='reg'&&pw!==$('aPw2').value){err.textContent='Hai lần nhập mật khẩu chưa giống nhau.';return;}
-  busy=true;$('aGo').disabled=true;err.textContent='Đang kết nối…';
+  if(!/^[a-z0-9_]{3,20}$/.test(name)){err.textContent=I18N.t('err.name');return;}
+  if(pw.length<6){err.textContent=I18N.t('err.pw6');return;}
+  if(mode==='reg'&&pw!==$('aPw2').value){err.textContent=I18N.t('err.pwmatch');return;}
+  busy=true;$('aGo').disabled=true;err.textContent=I18N.t('err.connecting');
   var p=mode==='reg'?signUp(name,pw):signIn(name,pw);
   p.then(function(res){
     busy=false;$('aGo').disabled=false;
     if(res.s){S=res.s;persist();err.textContent='';loadAndEnter();return;}
-    if(res.confirmOn){err.textContent='Máy chủ vẫn đang bật "Confirm email". Vào Supabase → Authentication → Sign In / Providers → tắt Confirm email → Save changes.';return;}
-    err.textContent=viErr(res.err||{status:0,j:{msg:'không rõ'}});
-  },function(){busy=false;$('aGo').disabled=false;err.textContent='Không kết nối được máy chủ. Kiểm tra mạng rồi thử lại.';});
+    if(res.confirmOn){err.textContent=I18N.t('err.confirm');return;}
+    err.textContent=viErr(res.err||{status:0,j:{msg:'unknown'}});
+  },function(){busy=false;$('aGo').disabled=false;err.textContent=I18N.t('err.nonet');});
 });
-$('accOut').onclick=function(){
-  if(!confirm('Đăng xuất khỏi '+(S&&S.name)+'?'))return;
+function logout(){
+  if(!confirm(I18N.t('acc.logout.confirm',{name:S&&S.name})))return;
   push(false,true).then(function(){ls(LSK,null);location.reload();});
-};
+}
+/* thanh chọn ngôn ngữ trên màn hình đăng nhập */
+(function(){var box=$('aLang');I18N.LANGS.forEach(function(L){var b=document.createElement('button');b.type='button';b.textContent=L.n;b.dataset.c=L.c;b.onclick=function(){I18N.set(L.c);};box.appendChild(b);});})();
+function markLang(){var b=$('aLang').children;for(var i=0;i<b.length;i++)b[i].className=b[i].dataset.c===I18N.lang?'on':'';}
+I18N.on(function(){
+  I18N.apply(ov);setMode(mode);markLang();
+  if(lastSt&&acc.style.display!=='none')status(lastSt[0],lastSt[1],lastSt[2]);
+  if(window.TT&&S&&ov.style.display==='none')push(false,false); /* lưu lựa chọn ngôn ngữ vào tài khoản */
+});
+I18N.apply(ov);markLang();setMode('login');
 addEventListener('visibilitychange',function(){if(document.visibilityState==='hidden')push(true,false);});
 addEventListener('pagehide',function(){push(true,false);});
 
@@ -808,12 +1139,12 @@ window.__pause=true;
 (function boot(){
   var t=ls(LSK);if(t){try{S=JSON.parse(t);}catch(e){S=null;}}
   if(!S||!S.rt){showAuth('');return;}
-  ov.style.display='flex';$('aErr').textContent='Đang vào game…';$('aGo').disabled=true;
+  ov.style.display='flex';$('aErr').textContent=I18N.t('err.entering');$('aGo').disabled=true;
   ensure().then(function(ok){
-    if(ok===false){showAuth('Phiên đăng nhập hết hạn, hãy đăng nhập lại.');return;}
+    if(ok===false){showAuth('err.expired');return;}
     loadAndEnter(); /* ok===null (offline) → loadAndEnter tự dùng bản lưu trên máy */
   });
 })();
-window.TT={info:function(){return{name:S?S.name:'',lastOk:lastOk};},state:function(){return{S:S,mode:mode,collect:collect};},push:push,apply:apply,signIn:signIn,signUp:signUp};
+window.TT={logout:logout,info:function(){return{name:S?S.name:'',lastOk:lastOk};},state:function(){return{S:S,mode:mode,collect:collect};},push:push,apply:apply,signIn:signIn,signUp:signUp};
 })();
 </script></body></html>
