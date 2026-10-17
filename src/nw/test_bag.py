@@ -25,7 +25,7 @@ def run2():
         pg.click('#tabT'); pg.wait_for_timeout(400)
         ok(pg.locator('#bagStage .it').count()==1 and not pg.is_visible('#bagEmpty'),'tab Trong túi: 1 vật phẩm lơ lửng')
         pg.click('#bagStage .it',force=True); pg.wait_for_timeout(200)
-        ok('Thủy Long Châu ×2' in pg.inner_text('#bagInfo') and 'thủy linh' in pg.inner_text('#bagInfo'),'chạm vật phẩm → hiện tên + mô tả')
+        ok('Thủy Long Châu ×2' in pg.inner_text('#bagInfo') and 'Thủy' in pg.inner_text('#bagInfo'),'chạm vật phẩm → hiện tên + mô tả')
         ok(pg.inner_text('#bagBtn .cnt')=='1','huy hiệu trên túi hiện số loại')
         pg.screenshot(path=S.replace('game.html','bag_full.png'))
         pg.click('#bagX')

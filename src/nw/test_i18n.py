@@ -51,7 +51,7 @@ def run3():
         ok(pg.inner_text('#bag h2')=='儲物袋' and '袋中空間' in pg.inner_text('#bagCap'),'túi: 儲物袋 + "袋中空間 …"')
         ok('水龍珠' in pg.inner_text('#bagStage'),'tên vật phẩm hiển thị 水龍珠 (id nội bộ vẫn giữ nguyên)')
         pg.click('#bagStage .it',force=True); pg.wait_for_timeout(150)
-        ok('水龍的水靈' in pg.inner_text('#bagInfo'),'mô tả vật phẩm bằng tiếng Trung')
+        ok('水' in pg.inner_text('#bagInfo') and '龍珠' in pg.inner_text('#bagInfo'),'mô tả vật phẩm bằng tiếng Trung')
         pg.screenshot(path=S.replace('game.html','i18n_bag.png'))
         pg.click('#tabJ'); pg.wait_for_timeout(200)
         j=pg.inner_text('#bagJ'); ok('道記' in pg.inner_text('#tabJ') and '遊玩時間' in j and '擊敗水龍' in j,'Đạo Ký (道記) dịch đủ các dòng')

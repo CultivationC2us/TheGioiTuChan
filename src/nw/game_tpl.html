@@ -115,7 +115,7 @@ function lootUI(){const e=document.getElementById('loot');const k=Object.keys(lo
 
 /* ---------- TÀI NGUYÊN · NGŨ HÀNH · LINH CĂN ---------- */
 const TD=window.TTData,RMETA={{RESMETA}};
-const cult={r:{kim:0,moc:0,thuy:0,hoa:0,tho:0},aw:false,qi:0};
+const cult={r:{kim:0,moc:0,thuy:0,hoa:0,tho:0},pl:{kim:[0,0,0],moc:[0,0,0],thuy:[0,0,0],hoa:[0,0,0],tho:[0,0,0]},aw:false,qi:0};
 const nodes=[],nodeCell=new Map(),respawnQ=[];   /* node: {g,x,y,h,gone,shk}; chia ô 4x4 để tìm nhanh */
 const ckey=n=>(n.x/TILE>>2)+','+(n.y/TILE>>2);
 function cellAdd(n){const k=ckey(n);let a=nodeCell.get(k);if(!a)nodeCell.set(k,a=[]);a.push(n);}
@@ -179,9 +179,9 @@ function refineEl(el){ /* nguyên liệu hệ el → điểm hệ el (tối đa 
   return gain;
 }
 function lootDec(n){loot[n]--;if(!(loot[n]>0))delete loot[n];}
-function itemInfo(n){const g=TD.byItem[n],m=TD.misc[n];return {use:!!g,dec:g?g.ls:(m?m.dec:0)};}
+function itemInfo(n){const g=TD.byItem[n],m=TD.misc[n],p=pearlInfo(n);return {use:!!g||!!(p&&p.can),dec:g?g.ls:(m?m.dec:0),pearl:p,fuse:!!(p&&p.next)};}
 function useItem(n){ /* nguyên liệu: luyện hóa 1 cái vào hệ của nó */
-  const g=TD.byItem[n];if(!g||!(loot[n]>0))return false;
+  const g=TD.byItem[n];if(!g)return TD.byPearl[n]?swallow(n):false;if(!(loot[n]>0))return false;
   if(cult.r[g.el]>=TD.NEED){toast(T('toast.full',{el:T('el.'+g.el)}));return false;}
   const add=Math.min(g.pts,TD.NEED-cult.r[g.el]);cult.r[g.el]+=add;lootDec(n);lootUI();toast(T('toast.refine',{n:add,el:T('el.'+g.el)}));return true;}
 function decompose(n){const v=itemInfo(n).dec;if(!(loot[n]>0)||!(v>0))return false;lootDec(n);loot.lt=(loot.lt|0)+v;lootUI();toast(T('toast.dec',{name:I18N.itemName(n),n:v}));return true;}
@@ -213,7 +213,7 @@ function mMoveTo(tx,ty,spd,dt){const dx=tx-M.x,dy=ty-M.y,d=Math.hypot(dx,dy);if(
 function addRing(x,y,r0,r1,dur,col){fxs.push({k:'ring',x,y,r0,r1,t0:now(),dur,col:col||'255,255,255'});}
 function addBubbles(x,y,n){for(let i=0;i<n;i++)fxs.push({k:'bub',x:x+(Math.random()-.5)*16,y:y-4,vy:-14-Math.random()*14,t0:now(),dur:700+Math.random()*500,s:1+Math.random()*1.6});}
 function addSplash(x,y,n){for(let i=0;i<n;i++){const a=-Math.PI/2+(Math.random()-.5)*2.2,v=30+Math.random()*40;fxs.push({k:'spl',x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,t0:now(),dur:520+Math.random()*260,s:1.2+Math.random()*1.4});}}
-function hurtPlayer(d,sx,sy){if(P.dead||P.inv>0)return;P.hp=Math.max(0,P.hp-d);P.inv=.9;P.hurtT=now();floaters.push({x:P.x,y:P.y-30,t0:now(),s:'-'+d,c:'#ff8a8a'});
+function hurtPlayer(d,sx,sy){if(P.dead||P.inv>0)return;d=Math.max(1,Math.round(d*(1-STT.red)));P.hp=Math.max(0,P.hp-d);P.inv=.9;P.hurtT=now();floaters.push({x:P.x,y:P.y-30,t0:now(),s:'-'+d,c:'#ff8a8a'});
   const a=Math.atan2(P.y-sy,P.x-sx);P.kx=Math.cos(a)*90;P.ky=Math.sin(a)*90;
   if(P.hp<=0){P.dead=now();toast(T('toast.dead'));}}
 function mUpdate(dt){const t=now(),e=t-M.t0,dist=Math.hypot(P.x-M.x,P.y-M.y);
@@ -282,11 +282,13 @@ function mUpdate(dt){const t=now(),e=t-M.t0,dist=Math.hypot(P.x-M.x,P.y-M.y);
 }
 function mHit(d){if(!mTargetable()||M.st==='die')return;M.hp=Math.max(0,M.hp-d);M.flash=.14;
   floaters.push({x:M.x,y:M.y-44,t0:now(),s:String(d),c:'#fff'});addSplash(M.x,M.y-18,6);
-  if(M.hp<=0){stats.kills++;setSt('die');addSplash(M.x,M.y,30);toast(T('toast.kill'));return;}
+  if(M.hp<=0){stats.kills++;tameRoll('thuylong');setSt('die');addSplash(M.x,M.y,30);toast(T('toast.kill'));return;}
   if(M.st==='idle'||M.st==='swim'||M.st==='recover'||M.st==='rise'){M.prev=M.st==='rise'?'idle':M.st;setSt('hurt');}}
 
+{{MON_JS}}
+
 /* ---------- ĐIỀU KHIỂN ---------- */
-function attack(){if(P.dead)return;const t=now();if(t-P.atkT<470)return;P.atkT=t;P.hitDone=false;P.fxDone=false;}
+function attack(){if(P.dead)return;const t=now();if(t-P.atkT<atkCd())return;P.atkT=t;P.hitDone=false;P.fxDone=false;}
 addEventListener('keydown',e=>{if(e.target&&e.target.tagName==='INPUT')return;keys[e.key.toLowerCase()]=1;if(e.key===' '||e.key.toLowerCase()==='j'){attack();e.preventDefault();}});
 addEventListener('keyup',e=>{keys[e.key.toLowerCase()]=0;});
 const atkBtn=document.getElementById('atk');
@@ -308,6 +310,7 @@ function update(dt){
   if(P.dead){if(t-P.dead>2200){P.dead=0;P.hp=P.maxHp;P.x=SPAWN.x*TILE+8;P.y=SPAWN.y*TILE+10;P.inv=1.5;}}
   else{
     let ix=(keys.d||keys.arrowright?1:0)-(keys.a||keys.arrowleft?1:0)+joy.dx,iy=(keys.s||keys.arrowdown?1:0)-(keys.w||keys.arrowup?1:0)+joy.dy;
+    if(AUTO.on&&Math.hypot(ix,iy)<.12){const a=autoThink(t);ix=a.x;iy=a.y;}
     const m=Math.hypot(ix,iy);if(m>1){ix/=m;iy/=m;}
     const atking=t-P.atkT<430;const sp=P.spd*(atking?.35:1);
     P.mv=m>.12;
@@ -319,7 +322,8 @@ function update(dt){
     if(!P.hitDone&&t-P.atkT>=270){P.hitDone=true;
       let hitM=false;
       if(mTargetable()&&M.st!=='die'){const cx=M.x,cy=M.y-18,dx=(cx-P.x)*P.f,dy=cy-(P.y-6);
-        if(dx>-10&&Math.hypot(cx-P.x,cy-(P.y-6))<54){mHit(7+Math.floor(Math.random()*6));hitM=true;}}
+        if(dx>-10&&Math.hypot(cx-P.x,cy-(P.y-6))<54){mHit(dmgRoll());hitM=true;}}
+      if(!hitM)hitM=hitMons2(dmgRoll());
       if(!hitM)harvest(t);
 }
     if(!P.fxDone&&t-P.atkT>=140){P.fxDone=true;fxs.push({k:'slash',x:P.x,y:P.y,f:P.f,t0:t,dur:270});}
@@ -329,7 +333,8 @@ function update(dt){
     if(d>14){const sp=Math.min(d*3.2,92)*dt;dog.x+=dx/d*sp;dog.y+=dy/d*sp;dog.rt=t;}
     dog.run=t-dog.rt<170;if(Math.abs(dx)>6)dog.f=dx>0?1:-1;if(d>260){dog.x=P.x;dog.y=P.y;}}
   mUpdate(dt);respawnTick(t);
-  if(cult.aw)cult.qi+=dt;   /* linh khí +1/giây, mọi lúc mọi nơi (kể cả khi chết) */
+  mon2Update(dt,t);
+  if(cult.aw)cult.qi+=dt*(1+STT.qi);   /* linh khí +1/giây, mọi lúc mọi nơi (kể cả khi chết) */
   // nhặt vật phẩm
   for(let i=drops.length-1;i>=0;i--){const d=drops[i];if(d.exp&&t>d.exp){drops.splice(i,1);continue;}if(t-d.t0>(d.ic?250:500)&&(!d.pa||t>d.pa)&&Math.hypot(P.x-d.x,P.y-d.y)<(d.ic?24:16)){loot[d.n]=(loot[d.n]||0)+1;drops.splice(i,1);lootUI();toast(T('toast.pick',{name:I18N.itemName(d.n)}));}}
   fxs=fxs.filter(f=>t-f.t0<f.dur);floaters=floaters.filter(f=>t-f.t0<900);
@@ -442,9 +447,10 @@ function drawNode(n,t){const g=n.g;let fi=0;
   if(t-n.shk<240)fi=(Math.floor((t-n.shk)/60)%2)?1:0;
   const f=RMETA[g.id][fi],sc=g.sc;ctx.drawImage(IMG.res,f[0],f[1],f[2],f[3],n.x+f[4]*sc,n.y+f[5]*sc,f[2]*sc,f[3]*sc);}
 function drawDrops(t){for(const d of drops){const y=d.y-4+Math.sin(t/260)*2;if(d.exp&&d.exp-t<10000&&Math.floor(t/150)%2)continue;
+  const pb=TD.byPearl[d.n],pc=pb?TD.PEARL[pb.el]:{col:'#e8fbff',glow:'#4aa8ff'};
   if(d.ic){const f=RMETA[d.ic][3],sc=.8333,w=f[2]*sc,h=f[3]*sc;ctx.save();ctx.globalAlpha=.35;ctx.fillStyle='#000';ctx.beginPath();ctx.ellipse(d.x,d.y+5,w*.35,2,0,0,7);ctx.fill();ctx.restore();
-    ctx.drawImage(IMG.res,f[0],f[1],f[2],f[3],d.x-w/2,y-h+2,w,h);continue;}const g=ctx.createRadialGradient(d.x,y,1,d.x,y,10);g.addColorStop(0,'rgba(160,230,255,.9)');g.addColorStop(1,'rgba(80,160,255,0)');
-  ctx.fillStyle=g;ctx.beginPath();ctx.arc(d.x,y,10,0,7);ctx.fill();ctx.fillStyle='#e8fbff';ctx.fillRect(d.x-2,y-2,4,4);ctx.fillStyle='#4aa8ff';ctx.fillRect(d.x-2,y+1,4,1);ctx.fillRect(d.x-2,y-2,1,4);}}
+    ctx.drawImage(IMG.res,f[0],f[1],f[2],f[3],d.x-w/2,y-h+2,w,h);continue;}const g=ctx.createRadialGradient(d.x,y,1,d.x,y,10);g.addColorStop(0,pc.col+'e6');g.addColorStop(1,pc.glow+'00');
+  ctx.fillStyle=g;ctx.beginPath();ctx.arc(d.x,y,10,0,7);ctx.fill();ctx.fillStyle=pc.col;ctx.fillRect(d.x-2,y-2,4,4);ctx.fillStyle=pc.glow;ctx.fillRect(d.x-2,y+1,4,1);ctx.fillRect(d.x-2,y-2,1,4);}}
 function draw(){
   const t=now();ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle='#0b1620';ctx.fillRect(0,0,cv.width,cv.height);
   if(!texInit()||ready<NEED-0)return;
@@ -453,14 +459,17 @@ function draw(){
   const tm=t/600;
   for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++)drawTile(tiles[y][x],x,y);
   for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++)tileDeco(tiles[y][x],x,y,tm);
-  drawWorldFx(t);drawDrops(t);
+  drawWorldFx(t);drawDrops(t);drawAutoRing(t);
   // xếp theo y: quái, người, chó
   const L=[{y:M.y,f:()=>drawMonster(t)},{y:P.y,f:()=>drawPlayer(t)},{y:dog.y,f:()=>drawDog(t)}];
   {const rcx=Math.ceil(hw/TILE/4)+1,rcy=Math.ceil(hh/TILE/4)+1,ccx=cam.x/TILE>>2,ccy=cam.y/TILE>>2;
    for(let i=-rcx;i<=rcx;i++)for(let j=-rcy;j<=rcy;j++){const a=nodeCell.get((ccx+i)+','+(ccy+j));if(!a)continue;
     for(const n of a)if(Math.abs(n.x-cam.x)<hw+30&&Math.abs(n.y-cam.y)<hh+30)L.push({y:n.y,f:()=>drawNode(n,t)});}}
+  for(const m of mons2)if(m.st!=='dead'&&Math.abs(m.x-cam.x)<hw+90&&Math.abs(m.y-cam.y)<hh+90)L.push({y:m.y,f:()=>drawMon2(m,t)});
+  for(const o of petObjs)L.push({y:o.y,f:()=>drawPet(o,t)});
   L.sort((a,b)=>a.y-b.y);
   for(const o of L)o.f();
+  drawMonFx(t);
   for(const f of fxs)if(f.k==='slash')drawSlash(f,t);
   // sát thương bay
   ctx.textAlign='center';ctx.font='bold 8px sans-serif';
@@ -475,7 +484,7 @@ function draw(){
 let last=performance.now();
 function loop(n){const dt=Math.min(.05,(n-last)/1000);last=n;if(window.__pause){requestAnimationFrame(loop);return;}try{update(dt);draw();}catch(e){window.dispatchEvent(new ErrorEvent('error',{message:e.message,lineno:0}));return;}requestAnimationFrame(loop);}
 requestAnimationFrame(loop);
-window.G={P,M,dog,fx:()=>fxs,drops,update,draw,tiles,cam,now,attack,setSt,mHit,DR,loot,SPAWN,LAKE,HOME,toast,keys,joy,lootUI,stats,cult,nodes,respawnQ,useItem,decompose,dropItem,itemInfo,RES:TD.RES,TD,RMETA,harvest,refineEl,awaken,canAwake,iconCanvas,nodesNear};
+window.G={P,M,dog,fx:()=>fxs,drops,update,draw,tiles,cam,now,attack,setSt,mHit,DR,loot,SPAWN,LAKE,HOME,toast,keys,joy,lootUI,stats,cult,nodes,respawnQ,S:STT,recalc,pearlInfo,swallow,fuse,mons2,MD,petObjs,PETS,addPet,setPets,tameRoll,AUTO,setAuto,monHit,fx2,projs,setTameP:v=>{TAME_P=v;},useItem,decompose,dropItem,itemInfo,RES:TD.RES,TD,RMETA,harvest,refineEl,awaken,canAwake,iconCanvas,nodesNear};
 toast(T('toast.welcome'));
 })();
 </script>

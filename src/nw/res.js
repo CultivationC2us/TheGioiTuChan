@@ -44,6 +44,36 @@ var LG=['vi','zh-Hant','zh-Hans'];
 var byItem={},byId={},i;
 for(i=0;i<RES.length;i++){var r=RES[i];r.item='nl.'+r.id;r.hits=HITS[r.tier];r.pts=PTS[r.tier];r.ls=LS[r.tier];byItem[r.item]=r;byId[r.id]=r;}
 
+/* ---- NGỌC (linh châu) rơi từ 5 quái ngũ hành: nuốt để tăng chỉ số vĩnh viễn ---- */
+var PCAP=10, PFUSE=10, PT=3;                 /* mỗi bậc nuốt tối đa 10; 10 viên bậc t -> 1 viên bậc t+1; 3 bậc */
+var PEARL={ /* hệ -> tên gốc [vi,hant,hans], chỉ số, mức cộng mỗi viên, màu */
+ kim: {n:['Kim Tinh','金精','金精'],  stat:'dmg',per:1,   col:'#f2d36b',glow:'#e0a82e'},
+ moc: {n:['Mộc Linh','木靈','木灵'],  stat:'hp', per:6,   col:'#8be57a',glow:'#3fae3a'},
+ thuy:{n:['Thủy Long','水龍','水龙'], stat:'qi', per:.1,  col:'#7fd8ff',glow:'#3aa9ff'},
+ hoa: {n:['Hỏa Diễm','火焰','火焰'],  stat:'spd',per:.02, col:'#ff9b6a',glow:'#ff5a2a'},
+ tho: {n:['Thổ Nguyên','土元','土元'],stat:'red',per:.015,col:'#d9b06a',glow:'#a9743a'}
+};
+var PSUF=[['Châu','珠','珠'],['Bảo Châu','寶珠','宝珠'],['Thánh Châu','聖珠','圣珠']];
+var PDEC=[20,200,2000];                      /* rã ra Linh Thạch theo bậc */
+var EFF={ /* mô tả tác dụng: [vi,hant,hans] */
+ kim:['+1 sát thương mỗi đòn đánh','每次攻擊傷害 +1','每次攻击伤害 +1'],
+ moc:['+6 máu tối đa','最大生命 +6','最大生命 +6'],
+ thuy:['+0,1 linh khí/giây (khi đã thức tỉnh Linh Căn)','靈氣吸收 +0.1／秒（覺醒靈根後）','灵气吸收 +0.1／秒（觉醒灵根后）'],
+ hoa:['+2% tốc độ đánh','攻擊速度 +2%','攻击速度 +2%'],
+ tho:['giảm 1,5% sát thương nhận','受到傷害 −1.5%','受到伤害 −1.5%']
+};
+function pearlId(el,t){return (el==='thuy'&&t===1)?'Thủy Long Châu':'ngoc.'+el+'.'+t;}
+var byPearl={};
+EL.forEach(function(e){for(var t=1;t<=PT;t++){byPearl[pearlId(e.id,t)]={el:e.id,tier:t};MISC[pearlId(e.id,t)]={dec:PDEC[t-1]};}});
+/* quái (id, hệ, tên) */
+var MONS=[
+ {id:'thuylong',el:'thuy',n:['Thủy Long','水龍','水龙']},
+ {id:'hoa',el:'hoa',n:['Hỏa Diễm Long','火焰龍','火焰龙']},
+ {id:'tho',el:'tho',n:['Thổ Dực Long','土翼龍','土翼龙']},
+ {id:'kim',el:'kim',n:['Kim Giáp Tê','金甲犀','金甲犀']},
+ {id:'moc',el:'moc',n:['Mộc Linh Thú','木靈獸','木灵兽']}
+];
+
 var S=[ /* chuỗi giao diện mới: [vi, zh-Hant, zh-Hans] */
  ['bag.tab.root','Linh Căn','靈根','灵根'],
  ['cul.hint','Khai thác tài nguyên (nút ĐÁNH khi đứng gần), rồi luyện hóa thành Kim · Mộc · Thủy · Hỏa · Thổ. Đủ 5 hệ đạt {n} sẽ thức tỉnh được Linh Căn.','擊打資源（靠近後按攻擊）獲取材料，再煉化成金、木、水、火、土。五行各達 {n} 即可覺醒靈根。','击打资源（靠近后按攻击）获取材料，再炼化成金、木、水、火、土。五行各达 {n} 即可觉醒灵根。'],
@@ -69,6 +99,25 @@ var S=[ /* chuỗi giao diện mới: [vi, zh-Hant, zh-Hans] */
  ['toast.full','Hệ {el} đã đầy','{el}行已滿','{el}行已满'],
  ['item.lt','Linh Thạch','靈石','灵石'],
  ['itemdesc.lt','Tinh hoa linh khí kết tinh, tiền tệ của giới tu tiên. Chưa có công dụng khác.','靈氣結晶，修仙界的通用貨幣。暫無其他用途。','灵气结晶，修仙界的通用货币。暂无其他用途。'],
+ ['bag.tab.stats','Chỉ số','屬性','属性'],
+ ['act.fuse','Hợp nhất {n} → 1 {name}','合成 {n} → 1 {name}','合成 {n} → 1 {name}'],
+ ['toast.fuse','Hợp nhất thành công: {name}','合成成功：{name}','合成成功：{name}'],
+ ['toast.swallow','Nuốt {name}: {eff}','吞服{name}：{eff}','吞服{name}：{eff}'],
+ ['pl.status','Bậc {t} · đã nuốt {n}/{cap}','第 {t} 階 · 已吞服 {n}/{cap}','第 {t} 阶 · 已吞服 {n}/{cap}'],
+ ['pl.lock','Cần nuốt đủ {cap} viên bậc trước để dùng bậc này.','需先吞服滿 {cap} 顆上一階，才能使用此階。','需先吞服满 {cap} 颗上一阶，才能使用此阶。'],
+ ['pl.cap','Đã nuốt đủ {cap} viên bậc này. Hãy hợp nhất {cap} viên thành 1 viên bậc cao hơn.','此階已吞服滿 {cap} 顆。請將 {cap} 顆合成 1 顆更高階的靈珠。','此阶已吞服满 {cap} 颗。请将 {cap} 颗合成 1 颗更高阶的灵珠。'],
+ ['pl.max','Đã đạt giới hạn hiện tại của hệ này.','此系已達目前上限。','此系已达目前上限。'],
+ ['sx.hp','Máu','生命','生命'],['sx.dmg','Sát thương mỗi đòn','每次攻擊傷害','每次攻击伤害'],['sx.spd','Tốc độ đánh','攻擊速度','攻击速度'],
+ ['sx.spd.v','{n} đòn/giây','{n} 次／秒','{n} 次／秒'],['sx.red','Giảm sát thương nhận','減傷','减伤'],
+ ['sx.qi','Hấp thu linh khí','靈氣吸收','灵气吸收'],['sx.qi.v','{n}/giây','{n}／秒','{n}／秒'],['sx.qitotal','Linh khí đã hấp thu','累計靈氣','累计灵气'],
+ ['sx.roots','Ngũ hành','五行','五行'],['sx.pearls','Châu đã nuốt (bậc 1·2·3)','已吞靈珠（1·2·3 階）','已吞灵珠（1·2·3 阶）'],
+ ['sx.pets','Linh thú','靈獸','灵兽'],['sx.none','Chưa có','暫無','暂无'],['sx.kills','Quái đã hạ','擊殺妖獸','击杀妖兽'],['sx.lt','Linh Thạch','靈石','灵石'],
+ ['toast.tame','Thuần hóa thành công! {name} đã theo bạn.','馴服成功！{name}已跟隨你。','驯服成功！{name}已跟随你。'],
+ ['toast.pearl','Nhận được {name}','獲得{name}','获得{name}'],
+ ['auto.btn','TỰ ĐỘNG','自動','自动'],['auto.btn.on','ĐANG CHẠY','運行中','运行中'],
+ ['toast.auto.on','Tự động săn trong vùng quanh đây ({r} ô).','自動狩獵此處周圍（{r} 格）。','自动狩猎此处周围（{r} 格）。'],
+ ['toast.auto.off','Đã tắt tự động.','已關閉自動。','已关闭自动。'],
+ ['toast.auto.low','Máu thấp — tự động đã tắt.','生命過低，已關閉自動。','生命过低，已关闭自动。'],
  ['itemdesc.nl','{name}: nguyên liệu hệ {el}. Sử dụng: luyện hóa +{pts} điểm {el} cho Linh Căn. Rã: nhận {ls} Linh Thạch.','{name}：{el}系材料。使用：煉化 +{pts} 點{el}行。分解：得 {ls} 靈石。','{name}：{el}系材料。使用：炼化 +{pts} 点{el}行。分解：得 {ls} 灵石。']
 ];
 var add={vi:{},'zh-Hant':{},'zh-Hans':{}};
@@ -82,6 +131,18 @@ RES.forEach(function(r){
   }
 });
 EL.forEach(function(e){for(var k=0;k<3;k++)add[LG[k]]['el.'+e.id]=e.n[k];});
+/* tên & mô tả ngọc */
+var PDESC=[ '{name}: linh châu hệ {el}, kết tinh từ yêu thú. Sử dụng (nuốt): {eff}. Mỗi bậc chỉ nuốt tối đa {cap} viên; đủ {cap} viên thì hợp nhất {cap} viên thành 1 viên bậc cao hơn. Rã: {ls} Linh Thạch.',
+ '{name}：{el}系靈珠，由妖獸凝結而成。使用（吞服）：{eff}。每階最多吞服 {cap} 顆；滿 {cap} 顆後須將 {cap} 顆合成 1 顆更高階靈珠。分解：得 {ls} 靈石。',
+ '{name}：{el}系灵珠，由妖兽凝结而成。使用（吞服）：{eff}。每阶最多吞服 {cap} 颗；满 {cap} 颗后须将 {cap} 颗合成 1 颗更高阶灵珠。分解：得 {ls} 灵石。' ];
+EL.forEach(function(e){for(var t=1;t<=PT;t++){var id=pearlId(e.id,t);
+  for(var k=0;k<3;k++){
+    var nm=PEARL[e.id].n[k]+(k===0?' ':'')+PSUF[t-1][k];
+    add[LG[k]]['item.'+id]=nm;
+    add[LG[k]]['itemdesc.'+id]=PDESC[k].replace(/\{name\}/g,nm).replace(/\{el\}/g,e.n[k]).replace(/\{eff\}/g,EFF[e.id][k]).replace(/\{cap\}/g,PCAP).replace(/\{ls\}/g,PDEC[t-1]);
+    add[LG[k]]['eff.'+e.id]=EFF[e.id][k];
+  }}});
+MONS.forEach(function(m){for(var k=0;k<3;k++)add[LG[k]]['monster.'+m.id]=m.n[k];});
 for(var k=0;k<3;k++)I18N.add(LG[k],add[LG[k]]);
-window.TTData={EL:EL,RES:RES,byItem:byItem,byId:byId,NEED:NEED,HITS:HITS,PTS:PTS,RESPAWN:300000,misc:MISC};
+window.TTData={EL:EL,RES:RES,byItem:byItem,byId:byId,PEARL:PEARL,PCAP:PCAP,PFUSE:PFUSE,PT:PT,pearlId:pearlId,byPearl:byPearl,MONS:MONS,NEED:NEED,HITS:HITS,PTS:PTS,RESPAWN:300000,misc:MISC};
 })();

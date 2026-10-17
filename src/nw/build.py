@@ -2,7 +2,10 @@ import base64,json
 def b64(p): return base64.b64encode(open(p,'rb').read()).decode()
 s=open('nw/game_tpl.html',encoding='utf-8').read()
 M={'idx':json.load(open('nw/dr2/idx_trim.json'))}
-rep={'{{PLAYER}}':b64('nw/assets/player.webp'),'{{DRAGON}}':b64('nw/assets/dragon.webp'),'{{BEAMA}}':b64('nw/assets/beamA.webp'),'{{BEAMB}}':b64('nw/assets/beamB.webp'),
+rep={'{{MON_JS}}':open('nw/mon2.js',encoding='utf-8').read(),
+ '{{MON_HOA}}':b64('nw/mon/atlas_hoa.webp'),'{{MON_THO}}':b64('nw/mon/atlas_tho.webp'),'{{MON_KIM}}':b64('nw/mon/atlas_kim.webp'),'{{MON_MOC}}':b64('nw/mon/atlas_moc.webp'),
+ '{{MONMETA_HOA}}':open('nw/mon/meta_hoa.json').read(),'{{MONMETA_THO}}':open('nw/mon/meta_tho.json').read(),'{{MONMETA_KIM}}':open('nw/mon/meta_kim.json').read(),'{{MONMETA_MOC}}':open('nw/mon/meta_moc.json').read(),
+ '{{PLAYER}}':b64('nw/assets/player.webp'),'{{DRAGON}}':b64('nw/assets/dragon.webp'),'{{BEAMA}}':b64('nw/assets/beamA.webp'),'{{BEAMB}}':b64('nw/assets/beamB.webp'),
  '{{DOG}}':open('nw/assets/dog.b64').read(),'{{DRIDX}}':json.dumps(M['idx'],separators=(',',':')),
  '{{RES_JS}}':open('nw/res.js',encoding='utf-8').read(),'{{RESATLAS}}':b64('nw/assets/res.webp'),'{{RESMETA}}':open('nw/assets/res_meta.json').read(),
  '{{I18N_JS}}':open('nw/i18n.js',encoding='utf-8').read(),

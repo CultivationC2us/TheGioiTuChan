@@ -103,7 +103,7 @@ def run3():
         ok(pg.evaluate("G.drops.every(d=>d.n!=='x')"),'hết 1 phút → biến mất hoàn toàn')
         pg.click('#bagBtn'); pg.click('#tabT'); pg.wait_for_timeout(300)
         pg.click('#bagStage .it[data-n="Thủy Long Châu"]',force=True); pg.wait_for_timeout(200)
-        ok(pg.is_disabled('#biUse') and not pg.is_disabled('#biDec'),'Thủy Long Châu: không dùng được, rã được')
+        ok(not pg.is_disabled('#biDec') and pg.is_visible('#biUse'),'Thủy Long Châu: nuốt được, rã được')
         pg.click('#biDec'); pg.wait_for_timeout(200)
         ok(pg.evaluate("G.loot.lt")==21,'Thủy Long Châu rã → +20 Linh Thạch')
         pg.click('#bagStage .it[data-n="lt"]',force=True); pg.wait_for_timeout(200)
