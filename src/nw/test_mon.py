@@ -14,7 +14,7 @@ def run4():
         # ---- quái ----
         info=pg.evaluate("G.mons2.map(m=>({id:m.id,tx:m.x/16|0,ty:m.y/16|0,t:G.tiles[m.y/16|0][m.x/16|0],d:Math.hypot(m.x/16-100,m.y/16-100),hp:m.hp}))")
         print(info)
-        ok(len(info)==4 and {i['id'] for i in info}=={'hoa','tho','kim','moc'},'có 4 quái Hỏa/Thổ/Kim/Mộc')
+        ok(len(info)==40 and {i['id'] for i in info}=={'hoa','tho','kim','moc'},'có 4 loại quái Hỏa/Thổ/Kim/Mộc, mỗi loại 10 con')
         ok(all(i['t']<=2 for i in info),'cả 4 đứng trên đất liền')
         ok(all(i['d']>45 for i in info),'xa điểm xuất phát (>45 ô)')
         pg.evaluate("G.P.maxHp=1e6;G.P.hp=1e6;G.setTameP(0)")
@@ -33,12 +33,12 @@ def run4():
         # ---- hạ quái: rơi ngọc ----
         pg.evaluate("G.P.x=1608;G.P.y=1610;for(const m of G.mons2){m.st='idle';m.hold=1e9}")
         for k,el in (('hoa','hoa'),('tho','tho'),('kim','kim'),('moc','moc')):
-            pg.evaluate(f"(()=>{{const m=G.mons2.find(o=>o.id=='{k}');m.hold=1e9;G.drops.length=0;G.monHit(m,99999);}})()")
+            pg.evaluate(f"(()=>{{const m=G.mons2.find(o=>o.id=='{k}');m.hold=1e9;G.drops.length=0;const r=Math.random;Math.random=()=>.1;G.monHit(m,99999);Math.random=r;}})()")
             d=pg.evaluate("G.drops.map(d=>d.n)")
             ok(d==['ngoc.%s.1'%el],f'hạ {k} → rơi ngọc ngoc.{el}.1 {d}')
-        ok(pg.evaluate("G.mons2.every(m=>m.st=='die')"),'4 quái vào trạng thái chết')
-        pg.evaluate("for(const m of G.mons2){m.deadAt=G.now()-46000;m.st='dead'}"); pg.wait_for_timeout(300)
-        ok(pg.evaluate("G.mons2.every(m=>m.st=='idle'&&m.hp==m.maxHp&&Math.hypot(m.x-m.hx,m.y-m.hy)<1)"),'hồi sinh tại hang sau 45 giây')
+        ok(pg.evaluate("G.mons2.filter(m=>m.st=='die').length")==4,'4 quái vào trạng thái chết')
+        pg.evaluate("window.__k=G.mons2.filter(m=>m.st=='die');__k.forEach(m=>{m.deadAt=G.now()-8000;m.st='dead'})"); pg.wait_for_timeout(300)
+        ok(pg.evaluate("__k.every(m=>m.st=='idle'&&m.hp==m.maxHp&&Math.hypot(m.x-m.hx,m.y-m.hy)<80)"),'hồi sinh ngay gần chỗ cũ sau 7 giây')
         # ---- thuần hóa ----
         pg.evaluate("G.setPets([]);G.setTameP(1);G.mons2[0].hold=1e9;G.monHit(G.mons2[0],99999)")
         ok(pg.evaluate("G.PETS.includes('hoa')") and 'Thuần hóa' in pg.inner_text('#toast') or pg.evaluate("G.PETS.includes('hoa')"),'tỉ lệ 100% (giả lập) → thuần hóa được')
@@ -106,11 +106,11 @@ def run4():
         ok(pg.evaluate("Math.hypot(G.P.x-G.AUTO.ax,G.P.y-G.AUTO.ay)<G.AUTO.R+60"),'tự động: không đi ra khỏi vùng')
         pg.screenshot(path=S.replace('game.html','mon_auto.png'))
         # tự động đánh quái + linh thú hỗ trợ
-        pg.evaluate("""(()=>{const m=G.mons2.find(o=>o.id=='moc');m.hold=1e12;m.hp=m.maxHp=400;G.P.x=m.x-60;G.P.y=m.y;G.AUTO.ax=G.P.x;G.AUTO.ay=G.P.y;G.setPets(['hoa']);G.cam.x=G.P.x;G.cam.y=G.P.y;G.P.hp=118;G.P.maxHp=1e6;G.P.hp=1e6;
+        pg.evaluate("""(()=>{const m=G.mons2.find(o=>o.id=='moc');G.mons2.filter(o=>o.id=='moc').forEach(o=>{o.hold=1e12;o.hp=o.maxHp=400});G.P.x=m.x-60;G.P.y=m.y;G.AUTO.ax=G.P.x;G.AUTO.ay=G.P.y;G.setPets(['hoa']);G.cam.x=G.P.x;G.cam.y=G.P.y;G.P.hp=118;G.P.maxHp=1e6;G.P.hp=1e6;
            for(const o of G.nodes)o.gone=true;G.P.f=1;})()""")
-        hp0=pg.evaluate("G.mons2.find(o=>o.id=='moc').hp")
+        hp0=pg.evaluate("G.mons2.filter(o=>o.id=='moc').reduce((a,o)=>a+o.hp,0)")
         pg.wait_for_timeout(6000)
-        hp1=pg.evaluate("G.mons2.find(o=>o.id=='moc').hp")
+        hp1=pg.evaluate("G.mons2.filter(o=>o.id=='moc').reduce((a,o)=>a+o.hp,0)")
         ok(hp1<hp0-60,f'tự động đánh quái ({hp0:.0f} → {hp1:.0f})')
         ok(pg.evaluate("G.petObjs[0].cd")>0,'linh thú tham gia tấn công khi bật tự động')
         pg.click('#autoBtn'); pg.wait_for_timeout(200)

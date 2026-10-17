@@ -387,7 +387,10 @@ var LG=['vi','zh-Hant','zh-Hans'];
 var byItem={},byId={},i;
 for(i=0;i<RES.length;i++){var r=RES[i];r.item='nl.'+r.id;r.hits=HITS[r.tier];r.pts=PTS[r.tier];r.ls=LS[r.tier];byItem[r.item]=r;byId[r.id]=r;}
 
-RECIPES['cg.vukhi']={verb:'forge',list:FORGE};
+RECIPES['cg.vukhi']={verb:'forge',list:FORGE};   /* cuộn cũ (gộp) — chỉ còn để chuyển đổi */
+/* mỗi phương pháp rèn = 1 cuộn giản = 1 loại kiếm */
+var SCROLLS=WEAPONS.map(function(w,i){var id='cg.'+w.id.slice(2);RECIPES[id]={verb:'forge',list:[FORGE[i]],w:w.id};MISC[id]={dec:0,keep:1};BAG.sz[id]=2;ICO[id]='s2';return {id:id,w:w};});
+var scrollOf={};SCROLLS.forEach(function(s){scrollOf[s.w.id]=s.id;});
 
 /* danh mục túi */
 function catOf(id){if(byItem[id])return byItem[id].kind==='herb'?'duoc':'vl';if(byPearl[id]||DAN[id])return 'dan';if(RECIPES[id])return 'pp';if(byWeapon[id])return 'vk';if(byOutfit[id])return 'tb';if(byMount[id])return 'mount';return 'vl';}
@@ -433,7 +436,7 @@ var S=[ /* chuỗi giao diện mới: [vi, zh-Hant, zh-Hans] */
  ['cul.done','Linh Căn đã thức tỉnh','靈根已覺醒','灵根已觉醒'],
  ['cul.qi','Linh khí','靈氣','灵气'],
  ['cul.rate','Tu luyện thường {n} tu vi/giây — muốn nhanh hơn phải dùng đan dược','平時修煉每秒 {n} 修為——想更快須服用丹藥','平时修炼每秒 {n} 修为——想更快须服用丹药'],
- ['realm.n','Luyện Khí tầng {n}','練氣第 {n} 層','练气第 {n} 层'],
+ ['npc.bt','Đột phá Luyện Khí tầng {n}!','突破練氣第 {n} 層！','突破练气第 {n} 层！'],['npc.sell','Bán đồ +{n} Linh Thạch','賣材料 +{n} 靈石','卖材料 +{n} 灵石'],['npc.buy','Mua {name}!','購入{name}！','购入{name}！'],['npc.kill','Hạ được một con!','斬殺一隻！','斩杀一只！'],['realm.n','Luyện Khí tầng {n}','練氣第 {n} 層','练气第 {n} 层'],
  ['realm.full','Luyện Khí viên mãn — cần đan dược để vào cảnh giới sau','練氣圓滿——需丹藥方能進入下一境界','练气圆满——需丹药方能进入下一境界'],
  ['realm.cur','Cảnh giới','境界','境界'],['realm.mul','Hệ số cảnh giới','境界倍率','境界倍率'],
  ['realm.exp','Tu vi','修為','修为'],
@@ -483,7 +486,7 @@ var S=[ /* chuỗi giao diện mới: [vi, zh-Hant, zh-Hans] */
  ['alc.forgeall','Chế tối đa ({n})','盡量鍛造（{n}）','尽量锻造（{n}）'],
  ['alc.pick','Chọn vật phẩm cần chế','選擇要製作的物品','选择要制作的物品'],
  ['alc.mat','Vật liệu hệ {el} (quặng/gỗ, bậc ≥{t})','{el}系材料（礦石／木，階 ≥{t}）','{el}系材料（矿石／木，阶 ≥{t}）'],
- ['alc.outw','Thành phẩm: {name} (+{atk} sát thương)','成品：{name}（傷害 +{atk}）','成品：{name}（伤害 +{atk}）'],
+ ['alc.outw','Thành phẩm: {name} (chỉ tạo hình dáng — chỉ số mở bằng Thức Tỉnh)','成品：{name}（僅外形，屬性由覺醒開啟）','成品：{name}（仅外形，属性由觉醒开启）'],
  ['item.cg.vukhi','Cuộn Giản: Chế Tạo Vũ Khí','卷簡：鍛造武器','卷简：锻造武器'],
  ['itemdesc.cg.vukhi','Ghi phương pháp chế tạo 12 loại vũ khí từ quặng, gỗ cùng hệ và Linh Thạch. Bấm Mở lò để chế. Không mất sau khi dùng.','記載以同系礦石、木材與靈石鍛造 12 種武器之法。按「開爐」製作。使用後不會消失。','记载以同系矿石、木材与灵石锻造 12 种武器之法。按「开炉」制作。使用后不会消失。'],
  ['sx.weapon','Vũ khí','武器','武器'],
@@ -589,6 +592,9 @@ EL.forEach(function(e){for(var t=1;t<=PT;t++){var id=pearlId(e.id,t);
     add[LG[k]]['itemdesc.'+id]=PDESC[k].replace(/\{name\}/g,nm).replace(/\{el\}/g,e.n[k]).replace(/\{eff\}/g,EFF[e.id][k]).replace(/\{cap\}/g,PCAP).replace(/\{ls\}/g,PDEC[t-1]);
     add[LG[k]]['eff.'+e.id]=EFF[e.id][k];
   }}});
+SCROLLS.forEach(function(s){var w=s.w;for(var k=0;k<3;k++){
+  add[LG[k]]['item.'+s.id]=['Cuộn Giản: ','卷簡：','卷简：'][k]+w.n[k];
+  add[LG[k]]['itemdesc.'+s.id]=['Ghi duy nhất phương pháp rèn '+w.n[0]+' (vật liệu cùng hệ + Linh Thạch). Bấm Mở lò để rèn. Không mất sau khi dùng.','僅記載「'+w.n[1]+'」的鍛造之法（同系材料＋靈石）。按「開爐」鍛造。使用後不會消失。','仅记载「'+w.n[2]+'」的锻造之法（同系材料＋灵石）。按「开炉」锻造。使用后不会消失。'][k];}});
 WEAPONS.forEach(function(w){
   var e=EL.filter(function(x){return x.id===w.el;})[0];
   for(var k=0;k<3;k++){
@@ -609,7 +615,7 @@ MOUNTS.forEach(function(m){var e=EL.filter(function(x){return x.id===m.el;})[0];
       .replace(/\{name\}/g,m.n[k]).replace(/\{el\}/g,e.n[k]).replace(/\{run\}/g,String(m.spd).replace('.',k?'.':',')).replace(/\{fly\}/g,String(m.fspd).replace('.',k?'.':','));}});
 WTIER.forEach(function(t,i){for(var k=0;k<3;k++)add[LG[k]]['wtier.'+(i+1)]=t[k];});
 for(var k=0;k<3;k++)I18N.add(LG[k],add[LG[k]]);
-window.TTData={EL:EL,RES:RES,byItem:byItem,byId:byId,PEARL:PEARL,PCAP:PCAP,PFUSE:PFUSE,PT:PT,pearlId:pearlId,byPearl:byPearl,MONS:MONS,MOUNTS:MOUNTS,byMount:byMount,OUTFITS:OUTFITS,SLOT:SLOT,STATS:STATS,STU:STU,RAR:RAR,rarOf:rarOf,rollVal:rollVal,PARTN:PARTN,byOutfit:byOutfit,REALM:REALM,WEAPONS:WEAPONS,byWeapon:byWeapon,ICO:ICO,WTIER:WTIER,catOf:catOf,BAG:BAG,AFF:AFF,BASE:BASE,DAN:DAN,RECIPES:RECIPES,NEED:NEED,HITS:HITS,PTS:PTS,RESPAWN:300000,misc:MISC};
+window.TTData={EL:EL,RES:RES,byItem:byItem,byId:byId,PEARL:PEARL,PCAP:PCAP,PFUSE:PFUSE,PT:PT,pearlId:pearlId,byPearl:byPearl,MONS:MONS,SCROLLS:SCROLLS,scrollOf:scrollOf,MOUNTS:MOUNTS,byMount:byMount,OUTFITS:OUTFITS,SLOT:SLOT,STATS:STATS,STU:STU,RAR:RAR,rarOf:rarOf,rollVal:rollVal,PARTN:PARTN,byOutfit:byOutfit,REALM:REALM,WEAPONS:WEAPONS,byWeapon:byWeapon,ICO:ICO,WTIER:WTIER,catOf:catOf,BAG:BAG,AFF:AFF,BASE:BASE,DAN:DAN,RECIPES:RECIPES,NEED:NEED,HITS:HITS,PTS:PTS,RESPAWN:300000,misc:MISC};
 })();
 </script>
 <script>
@@ -896,7 +902,7 @@ const MB64={hoa:'UklGRtxNAABXRUJQVlA4TM9NAAAvP4EsEIfBuLZtMy+2zXFqTl+pwMZYtw22kW0
 const MMETA={hoa:{"r0c3":[0,0,49,44,-24.5,-44.0],"r0c4":[50,0,49,44,-24.5,-44.0],"r0c0":[100,0,47,43,-23.5,-43.0],"r0c2":[148,0,49,43,-24.5,-43.0],"r0c5":[198,0,52,43,-26.0,-43.0],"r0c6":[251,0,53,43,-26.5,-43.0],"r0c1":[0,45,51,42,-25.5,-42.0],"r3c4":[52,45,47,40,-22.6,-40.0],"r3c3":[100,45,45,39,-20.8,-39.0],"r3c2":[146,45,44,36,-21.6,-36.0],"r2c0":[191,45,50,34,-25.0,-34.0],"r2c2":[242,45,68,34,-23.0,-34.0],"r2c1":[0,88,46,33,-23.0,-33.0],"r2c3":[47,88,32,32,-16.0,-32.0],"r3c1":[80,88,50,30,-25.0,-30.0],"r2c5":[131,88,52,30,-26.0,-15.0],"r1c1":[184,88,53,28,-26.5,-28.0],"r1c5":[238,88,53,28,-26.5,-28.0],"r3c0":[0,122,49,28,-24.5,-28.0],"r1c0":[50,122,49,27,-24.5,-27.0],"r1c2":[100,122,52,27,-26.0,-27.0],"r1c3":[153,122,52,27,-26.0,-27.0],"r1c4":[206,122,53,27,-26.5,-27.0],"r1c6":[260,122,52,27,-26.0,-27.0],"r2c4":[0,151,36,27,-18.0,-13.5],"r4c3":[37,151,55,25,-27.5,-25.0],"r4c6":[93,151,53,20,-26.5,-20.0],"r4c5":[147,151,50,18,-25.0,-18.0],"r4c4":[198,151,50,17,-25.0,-17.0]},tho:{"r4c0":[0,0,42,43,-21.0,-43.0],"r0c0":[43,0,51,42,-25.5,-42.0],"r0c5":[95,0,53,42,-26.5,-42.0],"r4c6":[149,0,52,41,-26.3,-41.0],"r0c1":[202,0,48,38,-24.0,-38.0],"r0c2":[251,0,53,38,-26.5,-38.0],"r0c3":[0,44,56,38,-28.0,-38.0],"r0c4":[57,44,54,38,-27.0,-38.0],"r1c0":[112,44,53,37,-26.5,-37.0],"r4c3":[166,44,39,37,-17.8,-37.0],"r0c6":[206,44,50,36,-25.0,-36.0],"r4c1":[257,44,41,36,-19.0,-36.0],"r4c4":[0,83,47,36,-22.2,-36.0],"r1c1":[48,83,49,35,-24.5,-35.0],"r1c2":[98,83,54,35,-27.0,-35.0],"r1c4":[153,83,53,35,-26.5,-35.0],"r1c6":[207,83,50,35,-25.0,-35.0],"r1c3":[258,83,54,34,-27.0,-34.0],"r1c5":[0,120,52,34,-26.0,-34.0],"r2c0":[53,120,53,32,-26.5,-32.0],"r2c1":[107,120,47,31,-23.5,-31.0],"r2c7":[155,120,20,31,-10.0,-15.5],"r2c9":[176,120,26,31,-13.0,-15.5],"r4c5":[203,120,54,31,-25.9,-31.0],"r2c2":[258,120,41,30,-20.5,-30.0],"r2c3":[0,155,41,29,-20.5,-29.0],"r2c5":[42,155,34,29,-17.0,-14.5],"r2c8":[77,155,20,25,-10.0,-12.5],"r2c4":[98,155,17,20,-8.5,-10.0],"r2c6":[116,155,17,19,-8.5,-9.5]},kim:{"r3c5":[0,0,56,44,-27.3,-44.0],"r3c4":[57,0,51,43,-24.0,-43.0],"r3c1":[109,0,51,41,-25.5,-41.0],"r3c2":[161,0,49,39,-24.4,-39.0],"r3c3":[211,0,50,38,-24.4,-38.0],"r2c4":[0,45,59,37,-29.5,-37.0],"r0c0":[60,45,52,36,-26.0,-36.0],"r0c1":[113,45,49,36,-24.5,-36.0],"r0c2":[163,45,50,36,-25.0,-36.0],"r0c5":[214,45,51,36,-25.5,-36.0],"r2c5":[0,83,57,36,-28.5,-36.0],"r0c3":[58,83,48,35,-24.0,-35.0],"r0c4":[107,83,51,35,-25.5,-35.0],"r0c6":[159,83,54,35,-27.0,-35.0],"r1c0":[214,83,55,35,-27.5,-35.0],"r2c0":[0,120,52,35,-26.0,-35.0],"r2c1":[53,120,53,35,-26.5,-35.0],"r2c2":[107,120,86,35,-43.5,-35.0],"r2c3":[194,120,57,35,-28.5,-35.0],"r1c1":[252,120,52,34,-26.0,-34.0],"r1c2":[0,156,52,34,-26.0,-34.0],"r1c3":[53,156,52,34,-26.0,-34.0],"r1c4":[106,156,54,33,-27.0,-33.0],"r1c5":[161,156,52,33,-26.0,-33.0],"r1c6":[214,156,52,33,-26.0,-33.0],"r4c3":[267,156,51,26,-25.5,-26.0],"r4c4":[0,191,51,20,-25.5,-20.0],"r4c6":[52,191,55,18,-27.5,-18.0],"r4c5":[108,191,52,17,-26.0,-17.0]},moc:{"r3c6":[0,0,56,49,-26.9,-49.0],"r3c7":[57,0,50,49,-23.8,-49.0],"r3c5":[108,0,70,48,-34.1,-48.0],"r0c0":[179,0,50,44,-25.0,-44.0],"r3c1":[230,0,47,44,-23.5,-42.0],"r3c0":[0,50,52,43,-26.0,-43.0],"r1c0":[53,50,50,42,-25.0,-42.0],"r0c1":[104,50,46,41,-23.5,-41.0],"r0c2":[151,50,42,41,-21.0,-41.0],"r0c3":[194,50,46,41,-23.5,-41.0],"r0c4":[241,50,44,41,-22.5,-41.0],"r0c5":[0,94,42,41,-21.5,-41.0],"r0c6":[43,94,41,41,-21.0,-41.0],"r0c7":[85,94,40,41,-20.5,-41.0],"r1c1":[126,94,48,40,-24.0,-40.0],"r1c2":[175,94,46,38,-23.0,-38.0],"r1c3":[222,94,49,38,-24.5,-38.0],"r1c4":[0,136,49,38,-24.5,-38.0],"r1c5":[50,136,40,38,-20.0,-38.0],"r1c7":[91,136,38,37,-19.0,-37.0],"r2c0":[130,136,51,37,-26.0,-37.0],"r2c1":[182,136,64,37,-31.5,-37.0],"r1c6":[247,136,39,36,-19.5,-36.0],"r4c3":[0,175,50,30,-25.0,-30.0],"r4c4":[51,175,56,27,-28.5,-27.0],"r3c3":[108,175,27,25,-13.5,-12.5],"r4c5":[136,175,54,23,-27.0,-23.0],"r4c6":[191,175,58,22,-29.0,-22.0],"r3c2":[250,175,35,22,-17.5,-11.0],"r3c4":[286,175,26,21,-13.0,-10.5]}};
 const MIMG={};for(const k in MB64){const i=new Image();i.src='data:image/webp;base64,'+MB64[k];MIMG[k]=i;}
 let TAME_P=0.01;                 /* tỉ lệ thuần hóa mỗi lần hạ quái */
-const MON_RESPAWN=45000;         /* quái hồi sinh sau 45 giây */
+const MON_RESPAWN=7000;          /* quái hồi sinh sau 7 giây, ngay gần chỗ cũ */
 
 /* ---------- CHỈ SỐ NHÂN VẬT ---------- */
 const STT={dmg:0,hp:0,red:0,spd:0,qi:0};
@@ -911,7 +917,7 @@ const realmNeed=l=>l>=TD.REALM.max?Infinity:TD.REALM.base*Math.pow(2,l-1);
 const realmMul=l=>Math.pow(TD.REALM.mul,(l||cult.rl)-1);
 const qiRate=()=>TD.REALM.rate+STT.qi;
 function qiTick(dt){
-  if(!cult.dpg&&!(loot['dp.tukhi']>0)){loot['dp.tukhi']=1;cult.dpg=true;lootUI();}   /* tặng đan phương đầu tiên (1 lần) */
+  if(!cult.dpg&&!(loot['dp.tukhi']>0)){loot['dp.tukhi']=1;loot['cg.tuyet_van']=Math.max(1,loot['cg.tuyet_van']|0);cult.dpg=true;lootUI();}   /* tặng đan phương đầu tiên (1 lần) */
   if(!cult.aw||cult.rl>=TD.REALM.max)return;const nd=realmNeed(cult.rl);if(cult.qi<nd)cult.qi=Math.min(nd,cult.qi+dt*qiRate());
 }
 function breakthrough(){
@@ -965,7 +971,7 @@ const GIFT_CODES={tuchan:()=>{
   TD.RES.forEach(g=>{loot[g.item]=(loot[g.item]|0)+40;});
   TD.EL.forEach(e=>{for(let t=1;t<=TD.PT;t++){const id=TD.pearlId(e.id,t);loot[id]=(loot[id]|0)+10;}});
   loot['dan.tukhi']=(loot['dan.tukhi']|0)+30;loot['lt']=(loot['lt']|0)+5000;
-  loot['dp.tukhi']=Math.max(1,loot['dp.tukhi']|0);loot['cg.vukhi']=Math.max(1,loot['cg.vukhi']|0);
+  loot['dp.tukhi']=Math.max(1,loot['dp.tukhi']|0);TD.SCROLLS.forEach(s=>{loot[s.id]=Math.max(1,loot[s.id]|0);});
   [...TD.WEAPONS,...TD.OUTFITS].forEach(w=>{if(!Object.keys(loot).some(k=>baseId(k)===w.id&&loot[k]>0))mkGear(w.id);});
   TD.RES.forEach(g=>{if(g.kind==='ore'||g.kind==='tree')loot[g.item]=Math.max(30,loot[g.item]|0);});
   TD.MOUNTS.forEach(w=>{loot[w.id]=Math.max(1,loot[w.id]|0);});
@@ -1022,6 +1028,7 @@ function loadEq(u){
   u=u||{};cult.ins={};const si=(u.ins&&typeof u.ins==='object')?u.ins:{};
   for(const k in si){const r=si[k];if(r&&Array.isArray(r.a))cult.ins[k]={a:r.a.filter(x=>Array.isArray(x)&&TD.STATS.includes(x[0])&&x[1]>=1&&x[1]<=50).map(x=>[x[0],x[1]|0]).slice(0,10),cap:Math.max(5,Math.min(10,(r.cap|0)||5))};}
   for(const id of Object.keys(loot))if(id.indexOf('#')>0){if(gearBase(id))regIns(id);else delete loot[id];}
+  if(loot['cg.vukhi']>0){delete loot['cg.vukhi'];TD.SCROLLS.forEach(s=>{loot[s.id]=Math.max(1,loot[s.id]|0);});}
   const map={};
   /* bộ trang phục cũ (1 món gộp) -> 3 món; vũ khí/đồ cũ không có '#' -> bản thể mới */
   if(loot['tb.tu_dien']>0){delete loot['tb.tu_dien'];map['tb.tu_dien']=['h','o','g'].map(p=>mkGear('tb.tu_dien.'+p));}
@@ -1128,8 +1135,15 @@ function findLand(tx,ty){
     if(ok)return{x:x*TILE+8,y:y*TILE+8};
   }return{x:tx*TILE+8,y:ty*TILE+8};
 }
-for(const id in MD){const d=MD[id],h=findLand(d.lair[0],d.lair[1]);
-  mons2.push({id,d,x:h.x,y:h.y,hx:h.x,hy:h.y,f:1,hp:d.hp,maxHp:d.hp,st:'idle',t0:0,cd:[0,0],sk:null,flash:0,hold:0,deadAt:0,dieMs:900,tx:0,ty:0});}
+/* mỗi loại quái là một BẦY 10 con tụ gần hang; con nào chết sẽ hồi sinh ngay gần đó (giữ đủ 10) */
+const PACK_N=10,PACK_HP=.6;
+for(const id in MD){const d=MD[id];
+  for(let i=0;i<PACK_N;i++){const a=i*2.399+(id.charCodeAt(0)%7),rr=i===0?0:1.5+Math.sqrt(i)*1.55;
+    const h=findLand(Math.round(d.lair[0]+Math.cos(a)*rr),Math.round(d.lair[1]+Math.sin(a)*rr));
+    const mh=Math.round(d.hp*PACK_HP);
+    mons2.push({id,d,x:h.x,y:h.y,hx:h.x,hy:h.y,f:i%2?1:-1,hp:mh,maxHp:mh,st:'idle',t0:0,cd:[0,0],sk:null,flash:0,hold:i*150,deadAt:0,dieMs:900,tx:0,ty:0});}}
+function packSpot(m){for(let k=0;k<12;k++){const a=Math.random()*6.283,r=14+Math.random()*50,x=m.hx+Math.cos(a)*r,y=m.hy+Math.sin(a)*r;
+  if(!isWater(x,y)&&!isWater(x,y+8)&&tiles[y/TILE|0]&&[G,D,R].includes(tiles[y/TILE|0][x/TILE|0]))return{x,y};}return{x:m.hx,y:m.hy};}
 const monAlive=m=>m===M?(mTargetable()&&M.st!=='die'):(m.st!=='dead'&&m.st!=='die');
 const pearlOf=el=>TD.pearlId(el,1);
 
@@ -1189,13 +1203,13 @@ function skillStep(m,t,dt){
 }
 function stepMon(m,dt,t){
   const d=m.d;m.flash=Math.max(0,m.flash-dt);
-  if(m.st==='dead'){if(t-m.deadAt>MON_RESPAWN){m.hp=m.maxHp;m.x=m.hx;m.y=m.hy;m.st='idle';m.t0=t;m.hold=t+600;}return;}
+  if(m.st==='dead'){if(t-m.deadAt>MON_RESPAWN){const s=packSpot(m);m.hp=m.maxHp;m.x=s.x;m.y=s.y;m.st='idle';m.t0=t;m.hold=t+600;}return;}
   if(m.st==='die'){if(t-m.t0>m.dieMs){m.st='dead';m.deadAt=t;}return;}
   const pd=Math.hypot(P.x-m.x,P.y-m.y),hd=Math.hypot(m.hx-m.x,m.hy-m.y);
   switch(m.st){
    case'idle':
      if(m.hp<m.maxHp)m.hp=Math.min(m.maxHp,m.hp+dt*m.maxHp*.05);
-     if(!P.dead&&pd<d.aggro&&t>m.hold){m.st='chase';m.t0=t;}
+     if(!P.dead&&t>m.hold&&(pd<d.aggro||mons2.some(o=>o!==m&&o.id===m.id&&o.st==='chase'&&Math.hypot(o.x-m.x,o.y-m.y)<120&&pd<d.aggro*2))){m.st='chase';m.t0=t;}
      break;
    case'chase':{
      if(P.dead||hd>d.leash){m.st='return';m.t0=t;break;}
@@ -1218,8 +1232,9 @@ function monHit(m,dmg){
   if(m.st==='idle'||m.st==='return'){m.st='chase';m.t0=t;m.hold=t;}
   if(m.hp<=0){
     stats.kills++;m.st='die';m.t0=t;m.sk=null;m.dieMs=m.d.die?m.d.die.length*260+500:1000;
-    const pid=pearlOf(m.d.el);drops.push({x:m.x,y:m.y-8,t0:t,n:pid});
-    toast(T('toast.pearl',{name:I18N.itemName(pid)}));tameRoll(m.id);
+    if(Math.random()<.4){const pid=pearlOf(m.d.el);drops.push({x:m.x,y:m.y-8,t0:t,n:pid});toast(T('toast.pearl',{name:I18N.itemName(pid)}));}
+    if(Math.random()<.04){const lk=TD.SCROLLS.map(s=>s.id).filter(id=>!(loot[id]>0));if(lk.length)drops.push({x:m.x+6,y:m.y-8,t0:t,n:lk[Math.floor(Math.random()*lk.length)]});}
+    tameRoll(m.id);
   }
 }
 function hitMons2(dmg){
@@ -1654,6 +1669,134 @@ function drawMounted(t){
   setInterval(()=>window.mtUi(),150);
 })();
 
+/* ============================================================
+   NPC ẢO — 6 tu sĩ tự sống trong thế giới: khai thác nguyên liệu thật (cùng nguồn với người chơi, tranh nhau),
+   săn quái bầy, bán nguyên liệu lấy Linh Thạch, MUA trang bị / đan dược, uống đan, đột phá cảnh giới.
+   Tiến độ lưu ở máy (localStorage) và được tính bù khi quay lại (tối đa 8 giờ).
+   Dùng chung biến của game: P, cult, tiles, nodes, mons2, ctx, floaters, TD, T, now().
+   ============================================================ */
+const NPC_NAMES=[['Lăng Phong','凌風','凌风'],['Mộ Dung Tuyết','慕容雪','慕容雪'],['Tiêu Viêm Tử','蕭炎子','萧炎子'],['Liễu Như Yên','柳如煙','柳如烟'],['Cố Trường Ca','顧長歌','顾长歌'],['Dạ Thanh Vân','夜青雲','夜青云']];
+const NPC_KEY='tc_npc_v1',NPC_PLAZA=[100*TILE,100*TILE];
+const npcLang=()=>({vi:0,'zh-Hant':1,'zh-Hans':2}[I18N.lang]||0);
+const npcNeed=l=>l>=TD.REALM.max?Infinity:TD.REALM.base*Math.pow(2,l-1);
+const NPC_GEAR=[...TD.WEAPONS.map(w=>({id:w.id,slot:'w',price:{1:150,2:400,3:900}[w.tier],name:w})),
+  ...TD.OUTFITS.filter(o=>o.part==='head'||o.part==='torso'||o.part==='boot').map(o=>({id:o.id,slot:TD.SLOT[o.part],price:o.def*40,name:o}))];
+const npcPrice=id=>{const g=NPC_GEAR.find(x=>x.id===id);return g?g.price:0;};
+const NPCS=[];
+function npcMk(i){
+  const a=Math.random()*6.283,r=30+Math.random()*60;
+  return{i,x:NPC_PLAZA[0]+Math.cos(a)*r,y:NPC_PLAZA[1]+Math.sin(a)*r,f:1,rl:1+Math.floor(Math.random()*3),qi:0,lt:20+Math.floor(Math.random()*120),
+    inv:{},eq:{w:null,h:null,o:null,g:null,r:null,l:null,p:null},hp:100,mhp:100,st:'idle',t0:0,tgt:null,atkT:-999,mv:false,ph:Math.random()*4000,say:null,sayT:0,want:6+Math.floor(Math.random()*5),cdA:0};
+}
+function npcSave(){try{localStorage.setItem(NPC_KEY,JSON.stringify({ts:Date.now(),n:NPCS.map(n=>({rl:n.rl,qi:n.qi,lt:n.lt,eq:n.eq,inv:n.inv}))}));}catch(e){}}
+function npcLoad(){
+  let d=null;try{d=JSON.parse(localStorage.getItem(NPC_KEY)||'null');}catch(e){}
+  for(let i=0;i<NPC_NAMES.length;i++){const n=npcMk(i);NPCS.push(n);
+    const s=d&&d.n&&d.n[i];if(s){n.rl=Math.max(1,Math.min(TD.REALM.max,s.rl|0||1));n.qi=+s.qi||0;n.lt=+s.lt||0;n.inv=s.inv&&typeof s.inv==='object'?s.inv:{};
+      for(const k in n.eq)n.eq[k]=(s.eq&&NPC_GEAR.some(g=>g.id===s.eq[k]))?s.eq[k]:null;}
+    else{n.eq.h=null;}
+    if(d&&d.ts)npcOffline(n,Math.min(8*3600,(Date.now()-d.ts)/1000));}
+}
+const npcPow=n=>{let a=0;const w=n.eq.w&&TD.byWeapon[n.eq.w];if(w)a+=w.tier*4;for(const k of['h','o','g'])if(n.eq[k])a+=3;return a;};
+const npcDef=n=>['h','o','g'].reduce((s,k)=>s+(n.eq[k]?(TD.byOutfit[n.eq[k]]||{def:0}).def:0),0);
+function npcSay(n,s){n.say=s;n.sayT=now()+3200;}
+function npcBreak(n){while(n.rl<TD.REALM.max&&n.qi>=npcNeed(n.rl)){n.qi-=npcNeed(n.rl);n.rl++;npcSay(n,T('npc.bt',{n:n.rl}));}
+  if(n.rl>=TD.REALM.max)n.qi=0;n.mhp=Math.round(100*Math.pow(TD.REALM.mul,n.rl-1))+npcDef(n)*3;}
+function npcShop(n,quiet){
+  /* bán nguyên liệu */
+  let g=0;for(const k in n.inv){const r=TD.byItem[k];if(r)g+=r.ls*n.inv[k];}
+  if(g>0){n.lt+=g;n.inv={};if(!quiet)npcSay(n,T('npc.sell',{n:g}));}
+  /* mua trang bị tốt hơn rẻ nhất */
+  for(let guard=0;guard<6;guard++){
+    const cand=NPC_GEAR.filter(x=>x.price<=n.lt&&x.price>npcPrice(n.eq[x.slot])).sort((a,b)=>a.price-b.price)[0];
+    if(!cand)break;n.lt-=cand.price;n.eq[cand.slot]=cand.id;if(!quiet)npcSay(n,T('npc.buy',{name:I18N.itemName(cand.id)}));}
+  /* mua & uống đan */
+  while(n.lt>=40&&n.rl<TD.REALM.max&&n.qi<npcNeed(n.rl)*.9){n.lt-=40;n.qi=Math.min(npcNeed(n.rl),n.qi+TD.DAN['dan.tukhi'].qi);}
+  npcBreak(n);
+}
+function npcOffline(n,sec){
+  if(!(sec>30))return;const rate=.5*(1+.1*n.rl);let left=sec;
+  while(left>0&&n.rl<TD.REALM.max){n.qi+=Math.min(left,60)*rate;left-=60;n.lt+=Math.min(left+60,60)*.12;if(Math.random()<.2)npcShop(n,true);npcBreak(n);}
+  npcShop(n,true);
+}
+function npcMove(n,tx,ty,spd,dt){
+  const dx=tx-n.x,dy=ty-n.y,d=Math.hypot(dx,dy);if(d<2){n.mv=false;return true;}
+  const base=Math.atan2(dy,dx);n.mv=false;
+  for(const da of[0,.9,-.9,1.8,-1.8]){const a=base+da,nx=n.x+Math.cos(a)*spd*dt,ny=n.y+Math.sin(a)*spd*dt;
+    if(nx<48||ny<48||nx>MW*TILE-48||ny>MH*TILE-48||isWater(nx,ny+4))continue;n.x=nx;n.y=ny;n.mv=true;if(Math.abs(Math.cos(a))>.2)n.f=Math.cos(a)>0?1:-1;break;}
+  return d<(spd*dt+1);
+}
+function npcPick(n){
+  const t=now();
+  if(n.hp<n.mhp*.35){n.st='rest';n.t0=t;n.tgt=null;return;}
+  const tot=Object.values(n.inv).reduce((a,b)=>a+b,0);
+  if(tot>=n.want){n.st='shop';n.t0=t;n.tgt=null;return;}
+  if(n.rl>=3&&npcPow(n)>=6&&Math.random()<.35){
+    let best=null,bd=1e9;for(const m of mons2){if(m.st==='dead'||m.st==='die')continue;const d=Math.hypot(m.x-n.x,m.y-n.y);if(d<bd){bd=d;best=m;}}
+    if(best){n.st='hunt';n.tgt=best;n.t0=t;return;}}
+  let best=null,bd=1e9;for(const o of nodesNear(n.x,n.y,5)){if(o.gone)continue;const d=Math.hypot(o.x-n.x,o.y-n.y);if(d<bd){bd=d;best=o;}}
+  if(best){n.st='farm';n.tgt=best;n.t0=t;return;}
+  n.st='wander';n.t0=t;const a=Math.random()*6.283;n.tgt={x:n.x+Math.cos(a)*120,y:n.y+Math.sin(a)*120};
+}
+function npcStep(n,dt,t){
+  n.hp=Math.min(n.mhp,n.hp+dt*n.mhp*(n.st==='rest'?.08:.01));
+  n.qi+=dt*.5*(1+.1*n.rl)*(n.st==='rest'?2.5:1);if(n.qi>=npcNeed(n.rl))npcBreak(n);
+  const spd=50+n.rl*1.5;
+  switch(n.st){
+   case'idle':n.mv=false;if(t-n.t0>600+n.ph%900)npcPick(n);break;
+   case'wander':if(npcMove(n,n.tgt.x,n.tgt.y,spd*.6,dt)||t-n.t0>5000){n.st='idle';n.t0=t;}break;
+   case'rest':n.mv=false;if(n.hp>=n.mhp*.85||t-n.t0>20000){n.st='idle';n.t0=t;}break;
+   case'shop':if(npcMove(n,NPC_PLAZA[0]+((n.i%3)-1)*34,NPC_PLAZA[1]+34+(n.i>2?18:0),spd,dt)){npcShop(n);npcSave();n.st='idle';n.t0=t;}break;
+   case'farm':{const o=n.tgt;if(!o||o.gone){n.st='idle';n.t0=t;break;}
+     if(Math.hypot(o.x-n.x,o.y-n.y)>20){npcMove(n,o.x-(o.x>n.x?14:-14),o.y,spd,dt);if(t-n.t0>14000){n.st='idle';n.t0=t;}break;}
+     n.mv=false;n.f=o.x>=n.x?1:-1;
+     if(t>=n.cdA){n.cdA=t+Math.max(380,900-n.rl*30-npcPow(n)*6);n.atkT=t;o.h++;o.shk=t;const g=o.g;
+       if(o.h>=g.hits){o.gone=true;cellDel(o);respawnQ.push({n:o,at:t+TD.RESPAWN});const c=1+(Math.random()<.35?1:0);n.inv[g.item]=(n.inv[g.item]|0)+c;
+         floaters.push({x:o.x,y:o.y-22,t0:t,s:'+'+c,c:'#9fe3b0'});n.st='idle';n.t0=t;}}
+     break;}
+   case'hunt':{const m=n.tgt;if(!m||m.st==='dead'||m.st==='die'){n.st='idle';n.t0=t;break;}
+     if(Math.hypot(m.x-n.x,m.y-n.y)>38){npcMove(n,m.x-(m.x>n.x?30:-30),m.y,spd,dt);if(t-n.t0>30000){n.st='idle';n.t0=t;}break;}
+     n.mv=false;n.f=m.x>=n.x?1:-1;
+     if(t>=n.cdA){n.cdA=t+Math.max(450,950-n.rl*30);n.atkT=t;
+       const dmg=Math.round((7+Math.floor(Math.random()*6)+npcPow(n))*Math.pow(TD.REALM.mul,n.rl-1));
+       m.hp=Math.max(0,m.hp-dmg);m.flash=.12;floaters.push({x:m.x,y:m.y-m.d.sc*38,t0:t,s:String(dmg),c:'#9fd8ff'});
+       n.hp-=(3+Math.random()*7)*Math.max(.35,1-npcDef(n)*.04);
+       if(m.hp<=0){m.st='die';m.t0=t;m.sk=null;m.dieMs=m.d.die?m.d.die.length*260+500:1000;n.lt+=12+Math.floor(Math.random()*10);n.qi+=25;
+         npcSay(n,T('npc.kill'));n.st='idle';n.t0=t;}
+       if(n.hp<n.mhp*.3){n.st='rest';n.t0=t;}}
+     break;}
+  }
+}
+let npcSaveT=0;
+function npcUpdate(dt,t){
+  if(!NPCS.length)return;
+  for(const n of NPCS)npcStep(n,dt,t);
+  if(t-npcSaveT>15000){npcSaveT=t;npcSave();}
+}
+function drawNpc(n,t){
+  const atking=t-n.atkT<430;let row,fr;
+  if(atking){row=NC.rows.atk;fr=Math.min(7,Math.floor((t-n.atkT)/430*8));}
+  else if(n.mv){row=NC.rows.walk;fr=Math.floor((t+n.ph)/95)%8;}
+  else{row=NC.rows.idle;fr=ncIdle(t+n.ph);}
+  const se=cult.eq,sa=P.atkT,sm=P.mv,sd=P.dead;cult.eq=n.eq;P.atkT=n.atkT;P.mv=n.mv;P.dead=0;
+  const wd=isWater(n.x,n.y+6);
+  ctx.save();if(!wd){ctx.fillStyle='rgba(0,0,0,.28)';ctx.beginPath();ctx.ellipse(n.x,n.y+1,8,2.6,0,0,7);ctx.fill();}
+  ctx.translate(n.x,n.y);ctx.scale(n.f,1);
+  if(OF.on()){OF.draw(row,fr);OF.boots();}else ctx.drawImage(IMG.player,fr*NC.W,row*NC.H,NC.W,NC.H,-NC.CX*PX,-NC.FEET*PX,NC.W*PX,NC.H*PX);
+  drawHeld(t,atking,row,fr);
+  ctx.restore();cult.eq=se;P.atkT=sa;P.mv=sm;P.dead=sd;
+  /* tên + cảnh giới + lời nói */
+  const x=Math.round(n.x),y=Math.round(n.y-29);
+  ctx.save();ctx.imageSmoothingEnabled=false;ctx.textAlign='center';ctx.textBaseline='alphabetic';ctx.font='bold 6px system-ui,sans-serif';
+  const nm=NPC_NAMES[n.i][npcLang()],rl=T('realm.n',{n:n.rl});
+  ctx.fillStyle='#07060c';for(const[dx,dy]of[[-.5,0],[.5,0],[0,-.5],[0,.5]]){ctx.fillText(nm,x+dx,y+dy);ctx.fillText(rl,x+dx,y+7+dy);}
+  ctx.fillStyle='#9fe3ff';ctx.fillText(nm,x,y);ctx.fillStyle='#bfffd0';ctx.font='bold 5px system-ui,sans-serif';ctx.fillText(rl,x,y+7);
+  if(n.say&&t<n.sayT){ctx.font='bold 6px system-ui,sans-serif';const w=ctx.measureText(n.say).width+8,by=y-14;
+    ctx.fillStyle='#07060ccc';ctx.fillRect(x-w/2,by-7,w,10);ctx.fillStyle='#ffe9b0';ctx.fillText(n.say,x,by);}
+  ctx.restore();
+}
+npcLoad();
+
 
 /* ---------- ĐIỀU KHIỂN ---------- */
 function attack(){if(P.dead)return;if(P.fly){mtNoAtk();return;}const t=now();if(t-P.atkT<atkCd())return;P.atkT=t;P.hitDone=false;P.fxDone=false;}
@@ -1703,6 +1846,7 @@ function update(dt){
     dog.run=t-dog.rt<170;if(Math.abs(dx)>6)dog.f=dx>0?1:-1;if(d>260){dog.x=P.x;dog.y=P.y;}}
   mtTick(dt,t);mUpdate(dt);respawnTick(t);
   mon2Update(dt,t);
+  npcUpdate(dt,t);
   qiTick(dt);   /* tu luyện thường: mọi lúc mọi nơi (kể cả khi chết); xem mon2.js */
   // nhặt vật phẩm
   for(let i=drops.length-1;i>=0;i--){const d=drops[i];if(d.exp&&t>d.exp){drops.splice(i,1);continue;}if(t-d.t0>(d.ic?250:500)&&(!d.pa||t>d.pa)&&Math.hypot(P.x-d.x,P.y-d.y)<(d.ic?24:16)){if(bagFree()<itemSize(d.n)){if(t-bagFullT>2500){bagFullT=t;toast(T('toast.bagfull'));}continue;}loot[d.n]=(loot[d.n]||0)+1;drops.splice(i,1);lootUI();toast(T('toast.pick',{name:I18N.itemName(d.n)}));}}
@@ -1848,6 +1992,7 @@ function drawWorld(t,hw,hh,ph){   /* ph=0: mặt đất · ph=1: vật thể (t�
     for(const n of a)if(Math.abs(n.x-cam.x)<hw+30&&Math.abs(n.y-cam.y)<hh+30)L.push({y:n.y,f:()=>drawNode(n,t)});}}
   for(const m of mons2)if(m.st!=='dead'&&Math.abs(m.x-cam.x)<hw+90&&Math.abs(m.y-cam.y)<hh+90)L.push({y:m.y,f:()=>drawMon2(m,t)});
   for(const o of petObjs)L.push({y:o.y,f:()=>drawPet(o,t)});
+  for(const n of NPCS)if(Math.abs(n.x-cam.x)<hw+60&&Math.abs(n.y-cam.y)<hh+60)L.push({y:n.y,f:()=>drawNpc(n,t)});
   L.sort((a,b)=>a.y-b.y);
   for(const o of L)o.f();
   drawMonFx(t);
@@ -1874,7 +2019,7 @@ let last=performance.now();
 function loop(n){const dt=Math.min(.05,(n-last)/1000);last=n;if(window.__pause){requestAnimationFrame(loop);return;}try{update(dt);draw();}catch(e){window.dispatchEvent(new ErrorEvent('error',{message:e.message,lineno:0}));return;}requestAnimationFrame(loop);}
 requestAnimationFrame(loop);
 function dogIcon(s){const c=document.createElement('canvas');c.width=26*s/3|0||26;c.height=24*s/3|0||24;const x=c.getContext('2d');x.imageSmoothingEnabled=true;if(IMG.dog&&IMG.dog.complete)x.drawImage(IMG.dog,0,0,64,59,0,0,c.width,c.height);return c;}
-window.G={dogIcon,GS,setEq,awakenGear,awakeCost,gearRec,gearBase,lineText,saveEq,loadEq,atkCd,regIns,mkGear,baseId,OF,rideToggle,dismount,flyToggle,dashGo,MTM,P,M,dog,fx:()=>fxs,drops,update,draw,tiles,cam,now,attack,setSt,mHit,DR,loot,SPAWN,LAKE,HOME,toast,keys,joy,lootUI,stats,cult,nodes,IMG,redeem,breakthrough,craft,ingHave,equipToggle,wAtk,bagUsed,bagFree,itemSize,defVal,BAG:()=>({cap:TD.BAG.cap+(cult.bc|0)+GS.bag}),craftMax,realmNeed,realmMul,qiRate,respawnQ,S:STT,recalc,pearlInfo,swallow,fuse,mons2,MD,petObjs,PETS,addPet,setPets,tameRoll,AUTO,setAuto,monHit,fx2,projs,setTameP:v=>{TAME_P=v;},useItem,decompose,dropItem,itemInfo,RES:TD.RES,TD,RMETA,harvest,refineEl,awaken,canAwake,iconCanvas,nodesNear};
+window.G={NPCS,npcShop,dogIcon,GS,setEq,awakenGear,awakeCost,gearRec,gearBase,lineText,saveEq,loadEq,atkCd,regIns,mkGear,baseId,OF,rideToggle,dismount,flyToggle,dashGo,MTM,P,M,dog,fx:()=>fxs,drops,update,draw,tiles,cam,now,attack,setSt,mHit,DR,loot,SPAWN,LAKE,HOME,toast,keys,joy,lootUI,stats,cult,nodes,IMG,redeem,breakthrough,craft,ingHave,equipToggle,wAtk,bagUsed,bagFree,itemSize,defVal,BAG:()=>({cap:TD.BAG.cap+(cult.bc|0)+GS.bag}),craftMax,realmNeed,realmMul,qiRate,respawnQ,S:STT,recalc,pearlInfo,swallow,fuse,mons2,MD,petObjs,PETS,addPet,setPets,tameRoll,AUTO,setAuto,monHit,fx2,projs,setTameP:v=>{TAME_P=v;},useItem,decompose,dropItem,itemInfo,RES:TD.RES,TD,RMETA,harvest,refineEl,awaken,canAwake,iconCanvas,nodesNear};
 toast(T('toast.welcome'));
 })();
 </script>
@@ -2053,26 +2198,47 @@ $('tuScene').appendChild(uimg('tu_scene'));
 var btn=document.createElement('button');btn.id='bagBtn';btn.type='button';btn.setAttribute('aria-label',I18N.t('bag.title'));
 btn.appendChild(pouch(3));var cnt=document.createElement('span');cnt.className='cnt';cnt.style.display='none';btn.appendChild(cnt);document.body.appendChild(btn);
 
-/* ----- lò luyện đan (đan phương) ----- */
-var alc=document.createElement('div');alc.id='alc';
-alc.style.cssText='position:fixed;inset:0;z-index:950;display:none;align-items:center;justify-content:center;background:#000c;padding:14px;box-sizing:border-box';
-alc.innerHTML='<div style="width:100%;max-width:340px;background:linear-gradient(#1b1236,#0b0818);border:1px solid #6b4a9a;border-radius:18px;padding:14px;color:#efe6ff"><h3 id="alcT" style="margin:0 0 8px;font-size:16px"></h3><div id="alcB"></div></div>';
-document.body.appendChild(alc);
-var alcR='',alcI=0;var cs=document.createElement('style');cs.textContent='#alc button{padding:9px 6px;border-radius:10px;border:1px solid #6b4a9a;background:#241a45;color:#fff;font-size:13px}#alc button[disabled]{opacity:.4}#alc .opts{display:flex;flex-direction:column;gap:5px;max-height:34vh;overflow-y:auto;margin-bottom:8px}#alc .opts button{text-align:left;display:flex;justify-content:space-between;gap:8px;padding:8px 10px;font-size:12.5px}#alc .opts button.on{background:#6b3fb4;border-color:#ffe58f}';document.head.appendChild(cs);
+/* ----- lò luyện đan / lò rèn (đan phương, cuộn giản) ----- */
+var alc=document.createElement('div');alc.id='alc';alc.style.display='none';
+alc.innerHTML='<div class="pf2"><div id="alcB"></div></div>';document.body.appendChild(alc);
+(function(){var m=css.textContent.match(/#eqPop[^{]*\{[^}]*\}/g)||[];var add=m.map(function(r){return r.replace(/#eqPop/g,'#alc');}).join('');
+  add+='#alc .fgs{position:relative;width:64px;height:64px;flex:none;display:flex;align-items:center;justify-content:center;border:8px solid transparent;'+BI('slot','4',8)+'}'+
+   '#alc .fgs canvas{max-width:44px;max-height:44px;image-rendering:pixelated;display:block}'+
+   '#alc .fgs.fx{animation:fgp 1.6s ease-in-out infinite}@keyframes fgp{50%{filter:brightness(1.35)}}'+
+   '#alc .ing{display:flex;align-items:center;gap:8px;padding:5px 0;border-top:2px solid #1b3052}#alc .ing:first-child{border-top:0}'+
+   '#alc .ing .ic{width:30px;height:30px;flex:none;display:flex;align-items:center;justify-content:center;background:#0a1222;border:2px solid #27456f}'+
+   '#alc .ing .ic canvas{max-width:24px;max-height:24px;image-rendering:pixelated}#alc .ing .ic i{width:16px;height:16px;border-radius:50%;display:block}'+
+   '#alc .ing .tx{flex:1;min-width:0;font-size:11px;font-weight:800;color:#dbe8fa;line-height:13px}'+
+   '#alc .ing .tx .pgb{height:6px;margin-top:3px;background:#070b16;border:1px solid #27456f}#alc .ing .tx .pgb b{display:block;height:100%}'+
+   '#alc .ing .nn{font-size:12px;font-weight:900;white-space:nowrap}'+
+   '#alc .sub2{font-size:10px;color:#9fb6d6;margin:5px 0 8px;text-align:center;line-height:13px}'+
+   '#alc .eb{font-size:11px;letter-spacing:-.3px}#alc .eb#alcA{flex:1.5}';
+  css.textContent+=add;})();
+var alcR='',alcI=0;
 function openAlc(rid){alcR=rid;alcI=0;alc.style.display='flex';renderAlc();}
+alc.addEventListener('pointerdown',function(e){if(e.target===alc)closeAlc();});
+function closeAlc(){alc.style.display='none';lastKeys='';refresh();}
 function ingLabel(k){if(k==='@herb1')return T('alc.herb1');if(k.indexOf('@mat:')===0){var p=k.split(':');return T('alc.mat',{el:T('el.'+p[1]),t:p[2]});}return I18N.itemName(k);}
+function ingIcon(k){var d=document.createElement('div');d.className='ic';
+  if(k==='lt'){d.innerHTML='<i style="background:radial-gradient(circle at 35% 30%,#fff,#ffd75e 45%,#b8860b);box-shadow:0 0 5px #ffd75e"></i>';return d;}
+  if(k==='@herb1'){d.innerHTML='<i style="background:radial-gradient(circle at 35% 30%,#fff,#8be57a 45%,#2f8a2c);box-shadow:0 0 5px #8be57a"></i>';return d;}
+  if(k.indexOf('@mat:')===0){var e=elOf(k.split(':')[1]);d.innerHTML='<i style="background:radial-gradient(circle at 35% 30%,#fff,'+e.c+' 45%,'+e.c+'88);box-shadow:0 0 5px '+e.c+'"></i>';return d;}
+  var c=G.iconCanvas(k,3);if(c){c.style.cssText='display:block;image-rendering:pixelated';d.appendChild(c);}return d;}
 function renderAlc(){
   var R=G.TD.RECIPES[alcR];if(!R)return;var forge=R.verb==='forge',r=R.list[alcI]||R.list[0],mx=G.craftMax(alcR,alcI),h='';
-  $('alcT').textContent=I18N.itemName(alcR)+' · '+T(forge?'alc.forge':'alc.title');
-  if(R.list.length>1){h+='<div style="font-size:12px;color:#a999d0;margin-bottom:5px">'+esc(T('alc.pick'))+'</div><div class="opts">';
-    R.list.forEach(function(o,i){var w=G.TD.byWeapon[o.out],can=G.craftMax(alcR,i)>0;h+='<button type="button" data-i="'+i+'" class="'+(i===alcI?'on':'')+'"><span style="color:'+(w?elOf(w.el).c:'#fff')+'">'+esc(I18N.itemName(o.out))+'</span><span style="color:'+(can?'#9bf0a8':'#8f7fbd')+'">'+(w?'+'+w.atk:'')+(can?' ✓':'')+'</span></button>';});h+='</div>';}
-  r.ing.forEach(function(g){var have=G.ingHave(g[0]);h+='<div class="row" style="display:flex;justify-content:space-between;gap:8px;padding:7px 0;border-bottom:1px solid #2a1f4d;font-size:13px"><span>'+esc(ingLabel(g[0]))+' ×'+g[1]+'</span><b style="color:'+(have>=g[1]?'#9bf0a8':'#ff9b8a')+'">'+esc(T('alc.have',{n:have}))+'</b></div>';});
-  var wo=G.TD.byWeapon[r.out];
-  h+='<div style="margin:9px 0;font-size:12.5px;color:#cbbbee">'+esc(wo?T('alc.outw',{name:I18N.itemName(r.out),atk:wo.atk}):T('alc.out',{name:I18N.itemName(r.out),eff:'+'+G.TD.DAN[r.out].qi+' '+T('realm.exp')}))+'<br>'+esc(T('alc.keep'))+'</div>'+
-   '<div style="display:flex;gap:6px"><button type="button" id="alcX" style="flex:1">'+esc(T('bag.close'))+'</button><button type="button" id="alcM" style="flex:1.2;background:#6b3fb4;border-color:#c58bf0"'+(mx>0?'':' disabled')+'>'+esc(T(forge?'alc.forge':'alc.make'))+'</button><button type="button" id="alcA" style="flex:1.4"'+(mx>1?'':' disabled')+'>'+esc(T(forge?'alc.forgeall':'alc.makeall',{n:mx}))+'</button></div>';
+  var wo=G.TD.byWeapon[r.out],col=wo?elOf(wo.el).c:'#b58cff';
+  h+='<div class="eqx"><button type="button" class="xb" id="alcX2" aria-label="×"></button></div>';
+  h+='<div class="eqh"><div class="fgs fx" id="alcIc" style="filter:drop-shadow(0 0 6px '+col+')"></div><div><div class="eqn">'+esc(I18N.itemName(r.out))+'</div><div class="eqs">'+esc(I18N.itemName(alcR))+'</div></div></div>';
+  h+='<div class="eqi">';
+  r.ing.forEach(function(g){var have=G.ingHave(g[0]),ok=have>=g[1];
+    h+='<div class="ing" data-k="'+esc(g[0])+'"><span class="ph"></span><div class="tx">'+esc(ingLabel(g[0]))+'<div class="pgb"><b style="width:'+Math.min(100,have/g[1]*100)+'%;background:'+(ok?'#59d27a':'#e0584c')+'"></b></div></div><div class="nn" style="color:'+(ok?'#9bf0a8':'#ff9b8a')+'">'+Math.min(have,9999)+' / '+g[1]+'</div></div>';});
+  h+='</div>';
+  h+='<div class="sub2">'+esc(wo?T('alc.outw',{name:I18N.itemName(r.out)}):T('alc.out',{name:I18N.itemName(r.out),eff:'+'+G.TD.DAN[r.out].qi+' '+T('realm.exp')}))+'<br>'+esc(T('alc.keep'))+'</div>';
+  h+='<div class="eqa"><button type="button" class="eb blue" id="alcX">'+esc(T('bag.close'))+'</button><button type="button" class="eb gold" id="alcM"'+(mx>0?'':' disabled')+'>'+esc(T(forge?'alc.forge':'alc.make'))+'</button><button type="button" class="eb gold" id="alcA"'+(mx>1?'':' disabled')+'>'+esc(T(forge?'alc.forgeall':'alc.makeall',{n:mx}))+'</button></div>';
   $('alcB').innerHTML=h;
-  var ob=$('alcB').querySelectorAll('.opts button');for(var q=0;q<ob.length;q++)ob[q].onclick=function(){alcI=+this.getAttribute('data-i');renderAlc();};
-  $('alcX').onclick=function(){alc.style.display='none';lastKeys='';refresh();};
+  var ic=$('alcIc'),c=G.iconCanvas(r.out,4);if(c)ic.appendChild(c);
+  var phs=$('alcB').querySelectorAll('.ing');for(var q=0;q<phs.length;q++){var k=phs[q].getAttribute('data-k');phs[q].replaceChild(ingIcon(k),phs[q].firstChild);}
+  $('alcX').onclick=closeAlc;$('alcX2').onclick=closeAlc;
   $('alcM').onclick=function(){G.craft(alcR,1,alcI);afterAlc();};
   $('alcA').onclick=function(){G.craft(alcR,mx,alcI);afterAlc();};
 }
@@ -2389,7 +2555,7 @@ pn.innerHTML=
 '<div class="box"><div class="hd"><span id="setIc"></span><h2 data-i18n="set.title"></h2><button id="setX" type="button" data-i18n="bag.close"></button></div>'+
 '<h3 data-i18n="set.lang"></h3><div class="langs" id="setL"></div><div class="note" data-i18n="set.langnote"></div>'+
 '<h3 data-i18n="set.code"></h3><div class="codeRow"><input id="setCode" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false"><button id="setCodeGo" type="button" data-i18n="set.code.go"></button></div><div class="note" id="setCodeMsg"></div>'+
-'<h3 data-i18n="set.account"></h3><div id="setA"></div><div class="note" style="text-align:center;margin-top:14px">v1018.0418</div></div>';
+'<h3 data-i18n="set.account"></h3><div id="setA"></div><div class="note" style="text-align:center;margin-top:14px">v1018.0444</div></div>';
 document.body.appendChild(pn);
 $('setIc').appendChild(gear(2));
 
@@ -2765,7 +2931,7 @@ ov.innerHTML=
 '<div class="err" id="aErr"></div>'+
 '<button class="go" id="aGo" type="submit"></button>'+
 '<div class="note" data-i18n-html="auth.note"></div>'+
-'<div class="note" style="opacity:.7">v1018.0418</div>'+
+'<div class="note" style="opacity:.7">v1018.0444</div>'+
 '</form>';
 document.body.appendChild(ov);
 var acc=document.createElement('div');acc.id='acc';acc.innerHTML='<span id="accN"></span> · <span id="accS"></span>';

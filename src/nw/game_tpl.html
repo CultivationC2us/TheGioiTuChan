@@ -300,6 +300,7 @@ function mHit(d){if(!mTargetable()||M.st==='die')return;M.hp=Math.max(0,M.hp-d);
 {{MON_JS}}
 {{OF_JS}}
 {{MNT_JS}}
+{{NPC_JS}}
 
 /* ---------- ĐIỀU KHIỂN ---------- */
 function attack(){if(P.dead)return;if(P.fly){mtNoAtk();return;}const t=now();if(t-P.atkT<atkCd())return;P.atkT=t;P.hitDone=false;P.fxDone=false;}
@@ -349,6 +350,7 @@ function update(dt){
     dog.run=t-dog.rt<170;if(Math.abs(dx)>6)dog.f=dx>0?1:-1;if(d>260){dog.x=P.x;dog.y=P.y;}}
   mtTick(dt,t);mUpdate(dt);respawnTick(t);
   mon2Update(dt,t);
+  npcUpdate(dt,t);
   qiTick(dt);   /* tu luyện thường: mọi lúc mọi nơi (kể cả khi chết); xem mon2.js */
   // nhặt vật phẩm
   for(let i=drops.length-1;i>=0;i--){const d=drops[i];if(d.exp&&t>d.exp){drops.splice(i,1);continue;}if(t-d.t0>(d.ic?250:500)&&(!d.pa||t>d.pa)&&Math.hypot(P.x-d.x,P.y-d.y)<(d.ic?24:16)){if(bagFree()<itemSize(d.n)){if(t-bagFullT>2500){bagFullT=t;toast(T('toast.bagfull'));}continue;}loot[d.n]=(loot[d.n]||0)+1;drops.splice(i,1);lootUI();toast(T('toast.pick',{name:I18N.itemName(d.n)}));}}
@@ -494,6 +496,7 @@ function drawWorld(t,hw,hh,ph){   /* ph=0: mặt đất · ph=1: vật thể (t�
     for(const n of a)if(Math.abs(n.x-cam.x)<hw+30&&Math.abs(n.y-cam.y)<hh+30)L.push({y:n.y,f:()=>drawNode(n,t)});}}
   for(const m of mons2)if(m.st!=='dead'&&Math.abs(m.x-cam.x)<hw+90&&Math.abs(m.y-cam.y)<hh+90)L.push({y:m.y,f:()=>drawMon2(m,t)});
   for(const o of petObjs)L.push({y:o.y,f:()=>drawPet(o,t)});
+  for(const n of NPCS)if(Math.abs(n.x-cam.x)<hw+60&&Math.abs(n.y-cam.y)<hh+60)L.push({y:n.y,f:()=>drawNpc(n,t)});
   L.sort((a,b)=>a.y-b.y);
   for(const o of L)o.f();
   drawMonFx(t);
@@ -520,7 +523,7 @@ let last=performance.now();
 function loop(n){const dt=Math.min(.05,(n-last)/1000);last=n;if(window.__pause){requestAnimationFrame(loop);return;}try{update(dt);draw();}catch(e){window.dispatchEvent(new ErrorEvent('error',{message:e.message,lineno:0}));return;}requestAnimationFrame(loop);}
 requestAnimationFrame(loop);
 function dogIcon(s){const c=document.createElement('canvas');c.width=26*s/3|0||26;c.height=24*s/3|0||24;const x=c.getContext('2d');x.imageSmoothingEnabled=true;if(IMG.dog&&IMG.dog.complete)x.drawImage(IMG.dog,0,0,64,59,0,0,c.width,c.height);return c;}
-window.G={dogIcon,GS,setEq,awakenGear,awakeCost,gearRec,gearBase,lineText,saveEq,loadEq,atkCd,regIns,mkGear,baseId,OF,rideToggle,dismount,flyToggle,dashGo,MTM,P,M,dog,fx:()=>fxs,drops,update,draw,tiles,cam,now,attack,setSt,mHit,DR,loot,SPAWN,LAKE,HOME,toast,keys,joy,lootUI,stats,cult,nodes,IMG,redeem,breakthrough,craft,ingHave,equipToggle,wAtk,bagUsed,bagFree,itemSize,defVal,BAG:()=>({cap:TD.BAG.cap+(cult.bc|0)+GS.bag}),craftMax,realmNeed,realmMul,qiRate,respawnQ,S:STT,recalc,pearlInfo,swallow,fuse,mons2,MD,petObjs,PETS,addPet,setPets,tameRoll,AUTO,setAuto,monHit,fx2,projs,setTameP:v=>{TAME_P=v;},useItem,decompose,dropItem,itemInfo,RES:TD.RES,TD,RMETA,harvest,refineEl,awaken,canAwake,iconCanvas,nodesNear};
+window.G={NPCS,npcShop,dogIcon,GS,setEq,awakenGear,awakeCost,gearRec,gearBase,lineText,saveEq,loadEq,atkCd,regIns,mkGear,baseId,OF,rideToggle,dismount,flyToggle,dashGo,MTM,P,M,dog,fx:()=>fxs,drops,update,draw,tiles,cam,now,attack,setSt,mHit,DR,loot,SPAWN,LAKE,HOME,toast,keys,joy,lootUI,stats,cult,nodes,IMG,redeem,breakthrough,craft,ingHave,equipToggle,wAtk,bagUsed,bagFree,itemSize,defVal,BAG:()=>({cap:TD.BAG.cap+(cult.bc|0)+GS.bag}),craftMax,realmNeed,realmMul,qiRate,respawnQ,S:STT,recalc,pearlInfo,swallow,fuse,mons2,MD,petObjs,PETS,addPet,setPets,tameRoll,AUTO,setAuto,monHit,fx2,projs,setTameP:v=>{TAME_P=v;},useItem,decompose,dropItem,itemInfo,RES:TD.RES,TD,RMETA,harvest,refineEl,awaken,canAwake,iconCanvas,nodesNear};
 toast(T('toast.welcome'));
 })();
 </script>

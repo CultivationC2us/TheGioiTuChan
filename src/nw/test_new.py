@@ -15,7 +15,7 @@ with sync_playwright() as p:
     pg.click('#setX')
     ok(pg.evaluate("G.bagFree()")>=0 and pg.evaluate("G.BAG().cap")>1000,'túi tự mở rộng đủ chứa quà')
     ok(pg.evaluate("Object.keys(G.loot).filter(k=>k.startsWith('w.')).length")>=10,'có đủ vũ khí')
-    ok(pg.evaluate("G.loot['dp.tukhi']>0&&G.loot['cg.vukhi']>0&&G.loot['lt']>=5000"),'có đan phương, cuộn giản, linh thạch')
+    ok(pg.evaluate("G.loot['dp.tukhi']>0&&G.loot['cg.tuyet_van']>0&&G.loot['lt']>=5000"),'có đan phương, cuộn giản, linh thạch')
     # vũ khí
     a0=pg.evaluate("G.wAtk()"); pg.evaluate("G.equipToggle(Object.keys(G.loot).find(k=>k.startsWith('w.u_minh')))"); a1=pg.evaluate("G.cult.eq.w")
     ok(a0==0 and a1.startswith('w.u_minh'),f'trang bị U Minh Kiếm: {a1}')
@@ -25,7 +25,7 @@ with sync_playwright() as p:
     ok(pg.evaluate("G.loot['dan.tukhi']")==n0-1,'dùng đan: giảm 1 viên')
     ok(pg.evaluate("G.loot['dp.tukhi']")>=1,'đan phương không bị tiêu')
     # cuộn giản chế vũ khí
-    pg.evaluate("delete G.loot['w.tuyet_van']"); r=pg.evaluate("G.TD.RECIPES['cg.vukhi'].list.length")
+    pg.evaluate("delete G.loot['w.tuyet_van']"); r=pg.evaluate("G.TD.SCROLLS.length")
     ok(r>=10,f'cuộn giản có {r} công thức')
     # danh mục
     cats=pg.evaluate("[...new Set(Object.keys(G.loot).map(k=>G.TD.catOf(k)))].sort().join()")

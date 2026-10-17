@@ -133,7 +133,10 @@ var LG=['vi','zh-Hant','zh-Hans'];
 var byItem={},byId={},i;
 for(i=0;i<RES.length;i++){var r=RES[i];r.item='nl.'+r.id;r.hits=HITS[r.tier];r.pts=PTS[r.tier];r.ls=LS[r.tier];byItem[r.item]=r;byId[r.id]=r;}
 
-RECIPES['cg.vukhi']={verb:'forge',list:FORGE};
+RECIPES['cg.vukhi']={verb:'forge',list:FORGE};   /* cuộn cũ (gộp) — chỉ còn để chuyển đổi */
+/* mỗi phương pháp rèn = 1 cuộn giản = 1 loại kiếm */
+var SCROLLS=WEAPONS.map(function(w,i){var id='cg.'+w.id.slice(2);RECIPES[id]={verb:'forge',list:[FORGE[i]],w:w.id};MISC[id]={dec:0,keep:1};BAG.sz[id]=2;ICO[id]='s2';return {id:id,w:w};});
+var scrollOf={};SCROLLS.forEach(function(s){scrollOf[s.w.id]=s.id;});
 
 /* danh mục túi */
 function catOf(id){if(byItem[id])return byItem[id].kind==='herb'?'duoc':'vl';if(byPearl[id]||DAN[id])return 'dan';if(RECIPES[id])return 'pp';if(byWeapon[id])return 'vk';if(byOutfit[id])return 'tb';if(byMount[id])return 'mount';return 'vl';}
@@ -179,7 +182,7 @@ var S=[ /* chuỗi giao diện mới: [vi, zh-Hant, zh-Hans] */
  ['cul.done','Linh Căn đã thức tỉnh','靈根已覺醒','灵根已觉醒'],
  ['cul.qi','Linh khí','靈氣','灵气'],
  ['cul.rate','Tu luyện thường {n} tu vi/giây — muốn nhanh hơn phải dùng đan dược','平時修煉每秒 {n} 修為——想更快須服用丹藥','平时修炼每秒 {n} 修为——想更快须服用丹药'],
- ['realm.n','Luyện Khí tầng {n}','練氣第 {n} 層','练气第 {n} 层'],
+ ['npc.bt','Đột phá Luyện Khí tầng {n}!','突破練氣第 {n} 層！','突破练气第 {n} 层！'],['npc.sell','Bán đồ +{n} Linh Thạch','賣材料 +{n} 靈石','卖材料 +{n} 灵石'],['npc.buy','Mua {name}!','購入{name}！','购入{name}！'],['npc.kill','Hạ được một con!','斬殺一隻！','斩杀一只！'],['realm.n','Luyện Khí tầng {n}','練氣第 {n} 層','练气第 {n} 层'],
  ['realm.full','Luyện Khí viên mãn — cần đan dược để vào cảnh giới sau','練氣圓滿——需丹藥方能進入下一境界','练气圆满——需丹药方能进入下一境界'],
  ['realm.cur','Cảnh giới','境界','境界'],['realm.mul','Hệ số cảnh giới','境界倍率','境界倍率'],
  ['realm.exp','Tu vi','修為','修为'],
@@ -229,7 +232,7 @@ var S=[ /* chuỗi giao diện mới: [vi, zh-Hant, zh-Hans] */
  ['alc.forgeall','Chế tối đa ({n})','盡量鍛造（{n}）','尽量锻造（{n}）'],
  ['alc.pick','Chọn vật phẩm cần chế','選擇要製作的物品','选择要制作的物品'],
  ['alc.mat','Vật liệu hệ {el} (quặng/gỗ, bậc ≥{t})','{el}系材料（礦石／木，階 ≥{t}）','{el}系材料（矿石／木，阶 ≥{t}）'],
- ['alc.outw','Thành phẩm: {name} (+{atk} sát thương)','成品：{name}（傷害 +{atk}）','成品：{name}（伤害 +{atk}）'],
+ ['alc.outw','Thành phẩm: {name} (chỉ tạo hình dáng — chỉ số mở bằng Thức Tỉnh)','成品：{name}（僅外形，屬性由覺醒開啟）','成品：{name}（仅外形，属性由觉醒开启）'],
  ['item.cg.vukhi','Cuộn Giản: Chế Tạo Vũ Khí','卷簡：鍛造武器','卷简：锻造武器'],
  ['itemdesc.cg.vukhi','Ghi phương pháp chế tạo 12 loại vũ khí từ quặng, gỗ cùng hệ và Linh Thạch. Bấm Mở lò để chế. Không mất sau khi dùng.','記載以同系礦石、木材與靈石鍛造 12 種武器之法。按「開爐」製作。使用後不會消失。','记载以同系矿石、木材与灵石锻造 12 种武器之法。按「开炉」制作。使用后不会消失。'],
  ['sx.weapon','Vũ khí','武器','武器'],
@@ -335,6 +338,9 @@ EL.forEach(function(e){for(var t=1;t<=PT;t++){var id=pearlId(e.id,t);
     add[LG[k]]['itemdesc.'+id]=PDESC[k].replace(/\{name\}/g,nm).replace(/\{el\}/g,e.n[k]).replace(/\{eff\}/g,EFF[e.id][k]).replace(/\{cap\}/g,PCAP).replace(/\{ls\}/g,PDEC[t-1]);
     add[LG[k]]['eff.'+e.id]=EFF[e.id][k];
   }}});
+SCROLLS.forEach(function(s){var w=s.w;for(var k=0;k<3;k++){
+  add[LG[k]]['item.'+s.id]=['Cuộn Giản: ','卷簡：','卷简：'][k]+w.n[k];
+  add[LG[k]]['itemdesc.'+s.id]=['Ghi duy nhất phương pháp rèn '+w.n[0]+' (vật liệu cùng hệ + Linh Thạch). Bấm Mở lò để rèn. Không mất sau khi dùng.','僅記載「'+w.n[1]+'」的鍛造之法（同系材料＋靈石）。按「開爐」鍛造。使用後不會消失。','仅记载「'+w.n[2]+'」的锻造之法（同系材料＋灵石）。按「开炉」锻造。使用后不会消失。'][k];}});
 WEAPONS.forEach(function(w){
   var e=EL.filter(function(x){return x.id===w.el;})[0];
   for(var k=0;k<3;k++){
@@ -355,5 +361,5 @@ MOUNTS.forEach(function(m){var e=EL.filter(function(x){return x.id===m.el;})[0];
       .replace(/\{name\}/g,m.n[k]).replace(/\{el\}/g,e.n[k]).replace(/\{run\}/g,String(m.spd).replace('.',k?'.':',')).replace(/\{fly\}/g,String(m.fspd).replace('.',k?'.':','));}});
 WTIER.forEach(function(t,i){for(var k=0;k<3;k++)add[LG[k]]['wtier.'+(i+1)]=t[k];});
 for(var k=0;k<3;k++)I18N.add(LG[k],add[LG[k]]);
-window.TTData={EL:EL,RES:RES,byItem:byItem,byId:byId,PEARL:PEARL,PCAP:PCAP,PFUSE:PFUSE,PT:PT,pearlId:pearlId,byPearl:byPearl,MONS:MONS,MOUNTS:MOUNTS,byMount:byMount,OUTFITS:OUTFITS,SLOT:SLOT,STATS:STATS,STU:STU,RAR:RAR,rarOf:rarOf,rollVal:rollVal,PARTN:PARTN,byOutfit:byOutfit,REALM:REALM,WEAPONS:WEAPONS,byWeapon:byWeapon,ICO:ICO,WTIER:WTIER,catOf:catOf,BAG:BAG,AFF:AFF,BASE:BASE,DAN:DAN,RECIPES:RECIPES,NEED:NEED,HITS:HITS,PTS:PTS,RESPAWN:300000,misc:MISC};
+window.TTData={EL:EL,RES:RES,byItem:byItem,byId:byId,PEARL:PEARL,PCAP:PCAP,PFUSE:PFUSE,PT:PT,pearlId:pearlId,byPearl:byPearl,MONS:MONS,SCROLLS:SCROLLS,scrollOf:scrollOf,MOUNTS:MOUNTS,byMount:byMount,OUTFITS:OUTFITS,SLOT:SLOT,STATS:STATS,STU:STU,RAR:RAR,rarOf:rarOf,rollVal:rollVal,PARTN:PARTN,byOutfit:byOutfit,REALM:REALM,WEAPONS:WEAPONS,byWeapon:byWeapon,ICO:ICO,WTIER:WTIER,catOf:catOf,BAG:BAG,AFF:AFF,BASE:BASE,DAN:DAN,RECIPES:RECIPES,NEED:NEED,HITS:HITS,PTS:PTS,RESPAWN:300000,misc:MISC};
 })();

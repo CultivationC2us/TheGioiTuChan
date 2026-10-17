@@ -172,26 +172,47 @@ $('tuScene').appendChild(uimg('tu_scene'));
 var btn=document.createElement('button');btn.id='bagBtn';btn.type='button';btn.setAttribute('aria-label',I18N.t('bag.title'));
 btn.appendChild(pouch(3));var cnt=document.createElement('span');cnt.className='cnt';cnt.style.display='none';btn.appendChild(cnt);document.body.appendChild(btn);
 
-/* ----- lò luyện đan (đan phương) ----- */
-var alc=document.createElement('div');alc.id='alc';
-alc.style.cssText='position:fixed;inset:0;z-index:950;display:none;align-items:center;justify-content:center;background:#000c;padding:14px;box-sizing:border-box';
-alc.innerHTML='<div style="width:100%;max-width:340px;background:linear-gradient(#1b1236,#0b0818);border:1px solid #6b4a9a;border-radius:18px;padding:14px;color:#efe6ff"><h3 id="alcT" style="margin:0 0 8px;font-size:16px"></h3><div id="alcB"></div></div>';
-document.body.appendChild(alc);
-var alcR='',alcI=0;var cs=document.createElement('style');cs.textContent='#alc button{padding:9px 6px;border-radius:10px;border:1px solid #6b4a9a;background:#241a45;color:#fff;font-size:13px}#alc button[disabled]{opacity:.4}#alc .opts{display:flex;flex-direction:column;gap:5px;max-height:34vh;overflow-y:auto;margin-bottom:8px}#alc .opts button{text-align:left;display:flex;justify-content:space-between;gap:8px;padding:8px 10px;font-size:12.5px}#alc .opts button.on{background:#6b3fb4;border-color:#ffe58f}';document.head.appendChild(cs);
+/* ----- lò luyện đan / lò rèn (đan phương, cuộn giản) ----- */
+var alc=document.createElement('div');alc.id='alc';alc.style.display='none';
+alc.innerHTML='<div class="pf2"><div id="alcB"></div></div>';document.body.appendChild(alc);
+(function(){var m=css.textContent.match(/#eqPop[^{]*\{[^}]*\}/g)||[];var add=m.map(function(r){return r.replace(/#eqPop/g,'#alc');}).join('');
+  add+='#alc .fgs{position:relative;width:64px;height:64px;flex:none;display:flex;align-items:center;justify-content:center;border:8px solid transparent;'+BI('slot','4',8)+'}'+
+   '#alc .fgs canvas{max-width:44px;max-height:44px;image-rendering:pixelated;display:block}'+
+   '#alc .fgs.fx{animation:fgp 1.6s ease-in-out infinite}@keyframes fgp{50%{filter:brightness(1.35)}}'+
+   '#alc .ing{display:flex;align-items:center;gap:8px;padding:5px 0;border-top:2px solid #1b3052}#alc .ing:first-child{border-top:0}'+
+   '#alc .ing .ic{width:30px;height:30px;flex:none;display:flex;align-items:center;justify-content:center;background:#0a1222;border:2px solid #27456f}'+
+   '#alc .ing .ic canvas{max-width:24px;max-height:24px;image-rendering:pixelated}#alc .ing .ic i{width:16px;height:16px;border-radius:50%;display:block}'+
+   '#alc .ing .tx{flex:1;min-width:0;font-size:11px;font-weight:800;color:#dbe8fa;line-height:13px}'+
+   '#alc .ing .tx .pgb{height:6px;margin-top:3px;background:#070b16;border:1px solid #27456f}#alc .ing .tx .pgb b{display:block;height:100%}'+
+   '#alc .ing .nn{font-size:12px;font-weight:900;white-space:nowrap}'+
+   '#alc .sub2{font-size:10px;color:#9fb6d6;margin:5px 0 8px;text-align:center;line-height:13px}'+
+   '#alc .eb{font-size:11px;letter-spacing:-.3px}#alc .eb#alcA{flex:1.5}';
+  css.textContent+=add;})();
+var alcR='',alcI=0;
 function openAlc(rid){alcR=rid;alcI=0;alc.style.display='flex';renderAlc();}
+alc.addEventListener('pointerdown',function(e){if(e.target===alc)closeAlc();});
+function closeAlc(){alc.style.display='none';lastKeys='';refresh();}
 function ingLabel(k){if(k==='@herb1')return T('alc.herb1');if(k.indexOf('@mat:')===0){var p=k.split(':');return T('alc.mat',{el:T('el.'+p[1]),t:p[2]});}return I18N.itemName(k);}
+function ingIcon(k){var d=document.createElement('div');d.className='ic';
+  if(k==='lt'){d.innerHTML='<i style="background:radial-gradient(circle at 35% 30%,#fff,#ffd75e 45%,#b8860b);box-shadow:0 0 5px #ffd75e"></i>';return d;}
+  if(k==='@herb1'){d.innerHTML='<i style="background:radial-gradient(circle at 35% 30%,#fff,#8be57a 45%,#2f8a2c);box-shadow:0 0 5px #8be57a"></i>';return d;}
+  if(k.indexOf('@mat:')===0){var e=elOf(k.split(':')[1]);d.innerHTML='<i style="background:radial-gradient(circle at 35% 30%,#fff,'+e.c+' 45%,'+e.c+'88);box-shadow:0 0 5px '+e.c+'"></i>';return d;}
+  var c=G.iconCanvas(k,3);if(c){c.style.cssText='display:block;image-rendering:pixelated';d.appendChild(c);}return d;}
 function renderAlc(){
   var R=G.TD.RECIPES[alcR];if(!R)return;var forge=R.verb==='forge',r=R.list[alcI]||R.list[0],mx=G.craftMax(alcR,alcI),h='';
-  $('alcT').textContent=I18N.itemName(alcR)+' · '+T(forge?'alc.forge':'alc.title');
-  if(R.list.length>1){h+='<div style="font-size:12px;color:#a999d0;margin-bottom:5px">'+esc(T('alc.pick'))+'</div><div class="opts">';
-    R.list.forEach(function(o,i){var w=G.TD.byWeapon[o.out],can=G.craftMax(alcR,i)>0;h+='<button type="button" data-i="'+i+'" class="'+(i===alcI?'on':'')+'"><span style="color:'+(w?elOf(w.el).c:'#fff')+'">'+esc(I18N.itemName(o.out))+'</span><span style="color:'+(can?'#9bf0a8':'#8f7fbd')+'">'+(w?'+'+w.atk:'')+(can?' ✓':'')+'</span></button>';});h+='</div>';}
-  r.ing.forEach(function(g){var have=G.ingHave(g[0]);h+='<div class="row" style="display:flex;justify-content:space-between;gap:8px;padding:7px 0;border-bottom:1px solid #2a1f4d;font-size:13px"><span>'+esc(ingLabel(g[0]))+' ×'+g[1]+'</span><b style="color:'+(have>=g[1]?'#9bf0a8':'#ff9b8a')+'">'+esc(T('alc.have',{n:have}))+'</b></div>';});
-  var wo=G.TD.byWeapon[r.out];
-  h+='<div style="margin:9px 0;font-size:12.5px;color:#cbbbee">'+esc(wo?T('alc.outw',{name:I18N.itemName(r.out),atk:wo.atk}):T('alc.out',{name:I18N.itemName(r.out),eff:'+'+G.TD.DAN[r.out].qi+' '+T('realm.exp')}))+'<br>'+esc(T('alc.keep'))+'</div>'+
-   '<div style="display:flex;gap:6px"><button type="button" id="alcX" style="flex:1">'+esc(T('bag.close'))+'</button><button type="button" id="alcM" style="flex:1.2;background:#6b3fb4;border-color:#c58bf0"'+(mx>0?'':' disabled')+'>'+esc(T(forge?'alc.forge':'alc.make'))+'</button><button type="button" id="alcA" style="flex:1.4"'+(mx>1?'':' disabled')+'>'+esc(T(forge?'alc.forgeall':'alc.makeall',{n:mx}))+'</button></div>';
+  var wo=G.TD.byWeapon[r.out],col=wo?elOf(wo.el).c:'#b58cff';
+  h+='<div class="eqx"><button type="button" class="xb" id="alcX2" aria-label="×"></button></div>';
+  h+='<div class="eqh"><div class="fgs fx" id="alcIc" style="filter:drop-shadow(0 0 6px '+col+')"></div><div><div class="eqn">'+esc(I18N.itemName(r.out))+'</div><div class="eqs">'+esc(I18N.itemName(alcR))+'</div></div></div>';
+  h+='<div class="eqi">';
+  r.ing.forEach(function(g){var have=G.ingHave(g[0]),ok=have>=g[1];
+    h+='<div class="ing" data-k="'+esc(g[0])+'"><span class="ph"></span><div class="tx">'+esc(ingLabel(g[0]))+'<div class="pgb"><b style="width:'+Math.min(100,have/g[1]*100)+'%;background:'+(ok?'#59d27a':'#e0584c')+'"></b></div></div><div class="nn" style="color:'+(ok?'#9bf0a8':'#ff9b8a')+'">'+Math.min(have,9999)+' / '+g[1]+'</div></div>';});
+  h+='</div>';
+  h+='<div class="sub2">'+esc(wo?T('alc.outw',{name:I18N.itemName(r.out)}):T('alc.out',{name:I18N.itemName(r.out),eff:'+'+G.TD.DAN[r.out].qi+' '+T('realm.exp')}))+'<br>'+esc(T('alc.keep'))+'</div>';
+  h+='<div class="eqa"><button type="button" class="eb blue" id="alcX">'+esc(T('bag.close'))+'</button><button type="button" class="eb gold" id="alcM"'+(mx>0?'':' disabled')+'>'+esc(T(forge?'alc.forge':'alc.make'))+'</button><button type="button" class="eb gold" id="alcA"'+(mx>1?'':' disabled')+'>'+esc(T(forge?'alc.forgeall':'alc.makeall',{n:mx}))+'</button></div>';
   $('alcB').innerHTML=h;
-  var ob=$('alcB').querySelectorAll('.opts button');for(var q=0;q<ob.length;q++)ob[q].onclick=function(){alcI=+this.getAttribute('data-i');renderAlc();};
-  $('alcX').onclick=function(){alc.style.display='none';lastKeys='';refresh();};
+  var ic=$('alcIc'),c=G.iconCanvas(r.out,4);if(c)ic.appendChild(c);
+  var phs=$('alcB').querySelectorAll('.ing');for(var q=0;q<phs.length;q++){var k=phs[q].getAttribute('data-k');phs[q].replaceChild(ingIcon(k),phs[q].firstChild);}
+  $('alcX').onclick=closeAlc;$('alcX2').onclick=closeAlc;
   $('alcM').onclick=function(){G.craft(alcR,1,alcI);afterAlc();};
   $('alcA').onclick=function(){G.craft(alcR,mx,alcI);afterAlc();};
 }

@@ -10,7 +10,7 @@ const MB64={hoa:'{{MON_HOA}}',tho:'{{MON_THO}}',kim:'{{MON_KIM}}',moc:'{{MON_MOC
 const MMETA={hoa:{{MONMETA_HOA}},tho:{{MONMETA_THO}},kim:{{MONMETA_KIM}},moc:{{MONMETA_MOC}}};
 const MIMG={};for(const k in MB64){const i=new Image();i.src='data:image/webp;base64,'+MB64[k];MIMG[k]=i;}
 let TAME_P=0.01;                 /* tỉ lệ thuần hóa mỗi lần hạ quái */
-const MON_RESPAWN=45000;         /* quái hồi sinh sau 45 giây */
+const MON_RESPAWN=7000;          /* quái hồi sinh sau 7 giây, ngay gần chỗ cũ */
 
 /* ---------- CHỈ SỐ NHÂN VẬT ---------- */
 const STT={dmg:0,hp:0,red:0,spd:0,qi:0};
@@ -25,7 +25,7 @@ const realmNeed=l=>l>=TD.REALM.max?Infinity:TD.REALM.base*Math.pow(2,l-1);
 const realmMul=l=>Math.pow(TD.REALM.mul,(l||cult.rl)-1);
 const qiRate=()=>TD.REALM.rate+STT.qi;
 function qiTick(dt){
-  if(!cult.dpg&&!(loot['dp.tukhi']>0)){loot['dp.tukhi']=1;cult.dpg=true;lootUI();}   /* tặng đan phương đầu tiên (1 lần) */
+  if(!cult.dpg&&!(loot['dp.tukhi']>0)){loot['dp.tukhi']=1;loot['cg.tuyet_van']=Math.max(1,loot['cg.tuyet_van']|0);cult.dpg=true;lootUI();}   /* tặng đan phương đầu tiên (1 lần) */
   if(!cult.aw||cult.rl>=TD.REALM.max)return;const nd=realmNeed(cult.rl);if(cult.qi<nd)cult.qi=Math.min(nd,cult.qi+dt*qiRate());
 }
 function breakthrough(){
@@ -79,7 +79,7 @@ const GIFT_CODES={tuchan:()=>{
   TD.RES.forEach(g=>{loot[g.item]=(loot[g.item]|0)+40;});
   TD.EL.forEach(e=>{for(let t=1;t<=TD.PT;t++){const id=TD.pearlId(e.id,t);loot[id]=(loot[id]|0)+10;}});
   loot['dan.tukhi']=(loot['dan.tukhi']|0)+30;loot['lt']=(loot['lt']|0)+5000;
-  loot['dp.tukhi']=Math.max(1,loot['dp.tukhi']|0);loot['cg.vukhi']=Math.max(1,loot['cg.vukhi']|0);
+  loot['dp.tukhi']=Math.max(1,loot['dp.tukhi']|0);TD.SCROLLS.forEach(s=>{loot[s.id]=Math.max(1,loot[s.id]|0);});
   [...TD.WEAPONS,...TD.OUTFITS].forEach(w=>{if(!Object.keys(loot).some(k=>baseId(k)===w.id&&loot[k]>0))mkGear(w.id);});
   TD.RES.forEach(g=>{if(g.kind==='ore'||g.kind==='tree')loot[g.item]=Math.max(30,loot[g.item]|0);});
   TD.MOUNTS.forEach(w=>{loot[w.id]=Math.max(1,loot[w.id]|0);});
@@ -136,6 +136,7 @@ function loadEq(u){
   u=u||{};cult.ins={};const si=(u.ins&&typeof u.ins==='object')?u.ins:{};
   for(const k in si){const r=si[k];if(r&&Array.isArray(r.a))cult.ins[k]={a:r.a.filter(x=>Array.isArray(x)&&TD.STATS.includes(x[0])&&x[1]>=1&&x[1]<=50).map(x=>[x[0],x[1]|0]).slice(0,10),cap:Math.max(5,Math.min(10,(r.cap|0)||5))};}
   for(const id of Object.keys(loot))if(id.indexOf('#')>0){if(gearBase(id))regIns(id);else delete loot[id];}
+  if(loot['cg.vukhi']>0){delete loot['cg.vukhi'];TD.SCROLLS.forEach(s=>{loot[s.id]=Math.max(1,loot[s.id]|0);});}
   const map={};
   /* bộ trang phục cũ (1 món gộp) -> 3 món; vũ khí/đồ cũ không có '#' -> bản thể mới */
   if(loot['tb.tu_dien']>0){delete loot['tb.tu_dien'];map['tb.tu_dien']=['h','o','g'].map(p=>mkGear('tb.tu_dien.'+p));}
@@ -242,8 +243,15 @@ function findLand(tx,ty){
     if(ok)return{x:x*TILE+8,y:y*TILE+8};
   }return{x:tx*TILE+8,y:ty*TILE+8};
 }
-for(const id in MD){const d=MD[id],h=findLand(d.lair[0],d.lair[1]);
-  mons2.push({id,d,x:h.x,y:h.y,hx:h.x,hy:h.y,f:1,hp:d.hp,maxHp:d.hp,st:'idle',t0:0,cd:[0,0],sk:null,flash:0,hold:0,deadAt:0,dieMs:900,tx:0,ty:0});}
+/* mỗi loại quái là một BẦY 10 con tụ gần hang; con nào chết sẽ hồi sinh ngay gần đó (giữ đủ 10) */
+const PACK_N=10,PACK_HP=.6;
+for(const id in MD){const d=MD[id];
+  for(let i=0;i<PACK_N;i++){const a=i*2.399+(id.charCodeAt(0)%7),rr=i===0?0:1.5+Math.sqrt(i)*1.55;
+    const h=findLand(Math.round(d.lair[0]+Math.cos(a)*rr),Math.round(d.lair[1]+Math.sin(a)*rr));
+    const mh=Math.round(d.hp*PACK_HP);
+    mons2.push({id,d,x:h.x,y:h.y,hx:h.x,hy:h.y,f:i%2?1:-1,hp:mh,maxHp:mh,st:'idle',t0:0,cd:[0,0],sk:null,flash:0,hold:i*150,deadAt:0,dieMs:900,tx:0,ty:0});}}
+function packSpot(m){for(let k=0;k<12;k++){const a=Math.random()*6.283,r=14+Math.random()*50,x=m.hx+Math.cos(a)*r,y=m.hy+Math.sin(a)*r;
+  if(!isWater(x,y)&&!isWater(x,y+8)&&tiles[y/TILE|0]&&[G,D,R].includes(tiles[y/TILE|0][x/TILE|0]))return{x,y};}return{x:m.hx,y:m.hy};}
 const monAlive=m=>m===M?(mTargetable()&&M.st!=='die'):(m.st!=='dead'&&m.st!=='die');
 const pearlOf=el=>TD.pearlId(el,1);
 
@@ -303,13 +311,13 @@ function skillStep(m,t,dt){
 }
 function stepMon(m,dt,t){
   const d=m.d;m.flash=Math.max(0,m.flash-dt);
-  if(m.st==='dead'){if(t-m.deadAt>MON_RESPAWN){m.hp=m.maxHp;m.x=m.hx;m.y=m.hy;m.st='idle';m.t0=t;m.hold=t+600;}return;}
+  if(m.st==='dead'){if(t-m.deadAt>MON_RESPAWN){const s=packSpot(m);m.hp=m.maxHp;m.x=s.x;m.y=s.y;m.st='idle';m.t0=t;m.hold=t+600;}return;}
   if(m.st==='die'){if(t-m.t0>m.dieMs){m.st='dead';m.deadAt=t;}return;}
   const pd=Math.hypot(P.x-m.x,P.y-m.y),hd=Math.hypot(m.hx-m.x,m.hy-m.y);
   switch(m.st){
    case'idle':
      if(m.hp<m.maxHp)m.hp=Math.min(m.maxHp,m.hp+dt*m.maxHp*.05);
-     if(!P.dead&&pd<d.aggro&&t>m.hold){m.st='chase';m.t0=t;}
+     if(!P.dead&&t>m.hold&&(pd<d.aggro||mons2.some(o=>o!==m&&o.id===m.id&&o.st==='chase'&&Math.hypot(o.x-m.x,o.y-m.y)<120&&pd<d.aggro*2))){m.st='chase';m.t0=t;}
      break;
    case'chase':{
      if(P.dead||hd>d.leash){m.st='return';m.t0=t;break;}
@@ -332,8 +340,9 @@ function monHit(m,dmg){
   if(m.st==='idle'||m.st==='return'){m.st='chase';m.t0=t;m.hold=t;}
   if(m.hp<=0){
     stats.kills++;m.st='die';m.t0=t;m.sk=null;m.dieMs=m.d.die?m.d.die.length*260+500:1000;
-    const pid=pearlOf(m.d.el);drops.push({x:m.x,y:m.y-8,t0:t,n:pid});
-    toast(T('toast.pearl',{name:I18N.itemName(pid)}));tameRoll(m.id);
+    if(Math.random()<.4){const pid=pearlOf(m.d.el);drops.push({x:m.x,y:m.y-8,t0:t,n:pid});toast(T('toast.pearl',{name:I18N.itemName(pid)}));}
+    if(Math.random()<.04){const lk=TD.SCROLLS.map(s=>s.id).filter(id=>!(loot[id]>0));if(lk.length)drops.push({x:m.x+6,y:m.y-8,t0:t,n:lk[Math.floor(Math.random()*lk.length)]});}
+    tameRoll(m.id);
   }
 }
 function hitMons2(dmg){
