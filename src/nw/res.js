@@ -31,6 +31,8 @@ var RES=[ /* kind: tree|herb|ore (quyết định nơi mọc), sc: tỉ lệ v�
 ];
 var HITS={1:3,2:4,3:5}, PTS={1:5,2:15,3:40}, LS={1:1,2:3,3:8}, NEED=100;
 var MISC={'Thủy Long Châu':{dec:20},'lt':{dec:0},'dp.tukhi':{dec:0,keep:1},'dan.tukhi':{dec:10}};
+var BAG={cap:120,sz:{'dp.tukhi':2,'dan.tukhi':1}};   /* dung tích túi (ô); sz: kích thước riêng từng vật phẩm */
+var BASE={def:2};                                       /* phòng thủ gốc (cố định trừ thẳng vào sát thương nhận, nhân theo cảnh giới) */
 /* ---- TU VI (Luyện Khí 1-10) ---- */
 var REALM={max:10,base:100,mul:1.2,rate:.2};  /* tu vi cần để qua tầng n = base*2^(n-1); mỗi tầng nhân ×mul máu & sát thương; tu luyện thường rate/giây */
 var DAN={'dan.tukhi':{qi:100}};                          /* đan -> tu vi cộng thêm */
@@ -108,6 +110,10 @@ var S=[ /* chuỗi giao diện mới: [vi, zh-Hant, zh-Hans] */
  ['itemdesc.dp.tukhi','Công thức luyện Tụ Khí Đan (3 Linh Sâm + 1 Linh Thạch). Bấm Sử dụng để mở lò luyện. Không mất sau khi dùng.','聚氣丹的煉製丹方（3 靈參 + 1 靈石）。按「使用」開啟丹爐。使用後不會消失。','聚气丹的炼制丹方（3 灵参 + 1 灵石）。按「使用」开启丹炉。使用后不会消失。'],
  ['item.dan.tukhi','Tụ Khí Đan','聚氣丹','聚气丹'],
  ['itemdesc.dan.tukhi','Đan dược cơ bản của Luyện Khí kỳ. Sử dụng: +100 tu vi. Rã: 10 Linh Thạch.','練氣期基礎丹藥。使用：修為 +100。分解：靈石 10。','练气期基础丹药。使用：修为 +100。分解：灵石 10。'],
+ ['toast.bagfull','Túi đã đầy — vứt, rã hoặc dùng bớt vật phẩm','背包已滿——請丟棄、分解或使用一些物品','背包已满——请丢弃、分解或使用一些物品'],
+ ['bag.cap2','Dung tích túi: {n} / {cap} ô','背包容量：{n} / {cap} 格','背包容量：{n} / {cap} 格'],
+ ['bag.size','Chiếm {s} ô mỗi vật phẩm','每件佔 {s} 格','每件占 {s} 格'],['bag.size0','Tiền tệ, không chiếm chỗ','貨幣，不佔空間','货币，不占空间'],
+ ['sx.def','Phòng thủ','防禦','防御'],['sx.atk','Tấn công','攻擊力','攻击力'],
  ['sx.realm','Cảnh giới','境界','境界'],
 
  ['toast.refine','Luyện hóa: +{n} {el}','煉化：+{n} {el}','炼化：+{n} {el}'],
@@ -169,5 +175,5 @@ EL.forEach(function(e){for(var t=1;t<=PT;t++){var id=pearlId(e.id,t);
   }}});
 MONS.forEach(function(m){for(var k=0;k<3;k++)add[LG[k]]['monster.'+m.id]=m.n[k];});
 for(var k=0;k<3;k++)I18N.add(LG[k],add[LG[k]]);
-window.TTData={EL:EL,RES:RES,byItem:byItem,byId:byId,PEARL:PEARL,PCAP:PCAP,PFUSE:PFUSE,PT:PT,pearlId:pearlId,byPearl:byPearl,MONS:MONS,REALM:REALM,DAN:DAN,RECIPES:RECIPES,NEED:NEED,HITS:HITS,PTS:PTS,RESPAWN:300000,misc:MISC};
+window.TTData={EL:EL,RES:RES,byItem:byItem,byId:byId,PEARL:PEARL,PCAP:PCAP,PFUSE:PFUSE,PT:PT,pearlId:pearlId,byPearl:byPearl,MONS:MONS,REALM:REALM,BAG:BAG,BASE:BASE,DAN:DAN,RECIPES:RECIPES,NEED:NEED,HITS:HITS,PTS:PTS,RESPAWN:300000,misc:MISC};
 })();

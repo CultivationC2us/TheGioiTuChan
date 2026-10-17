@@ -68,6 +68,17 @@ def run():
         # sát thương tầng 2 ×1,2
         pg.evaluate("G.cult.pl.kim=[0,0,0];G.cult.rl=1;G.recalc()")
         ok(pg.evaluate("Math.max(...Array.from({length:300},()=>G.dmgRoll?G.dmgRoll():0))")>=0 or True,'dmg')
+        # phòng thủ & túi đầy
+        pg.evaluate("G.cult.rl=1;G.cult.pl.tho=[0,0,0];G.recalc()")
+        ok(pg.evaluate("G.defVal()")==2,'phòng thủ gốc = 2')
+        pg.evaluate("G.P.maxHp=100;G.P.hp=100;G.P.inv=0;G.P.dead=0;G.P.x=1608;G.P.y=1610"); 
+        ok(pg.evaluate("G.itemSize('nl.thao_duoc')")==1 and pg.evaluate("G.itemSize('nl.thao_quy')")==3 and pg.evaluate("G.itemSize('ngoc.kim.3')")==8 and pg.evaluate("G.itemSize('lt')")==0,'kích thước: bậc1=1, bậc3=3, Thánh Châu=8, Linh Thạch=0')
+        pg.evaluate("for(const k in G.loot)delete G.loot[k];G.loot['nl.thao_quy']=Math.floor(G.BAG().cap/3);G.lootUI()")
+        ok(pg.evaluate("G.bagFree()")==pg.evaluate("G.BAG().cap-3*Math.floor(G.BAG().cap/3)"),'dung tích dùng = số lượng × kích thước')
+        pg.evaluate("G.loot['nl.thao_quy']=0;delete G.loot['nl.thao_quy'];G.loot['nl.thao_duoc']=G.BAG().cap-2;G.drops.length=0;G.drops.push({x:G.P.x,y:G.P.y,t0:G.now()-9999,n:'nl.da_linh'});G.drops.push({x:G.P.x,y:G.P.y,t0:G.now()-9999,n:'nl.thao_duoc'})"); pg.wait_for_timeout(500)
+        ok(pg.evaluate("G.loot['nl.da_linh']|0")==0 and pg.evaluate("G.loot['nl.thao_duoc']")==pg.evaluate("G.BAG().cap-1"),'túi gần đầy: vật 3 ô bị từ chối, vật 1 ô nhặt được')
+        pg.evaluate("G.loot['nl.thao_duoc']=G.BAG().cap;G.drops.length=0;G.drops.push({x:G.P.x,y:G.P.y,t0:G.now()-9999,n:'nl.thao_duoc'})"); pg.wait_for_timeout(500)
+        ok(pg.evaluate("G.drops.length")==1,'túi đầy: vật phẩm nằm lại trên đất')
         # lưu / tải
         pg.evaluate("G.cult.rl=5;G.cult.qi=321;G.recalc()"); pg.evaluate("TT.push&&TT.push(true,true)"); pg.wait_for_timeout(400)
         sv=pg.evaluate("TT.collect?TT.collect():null")

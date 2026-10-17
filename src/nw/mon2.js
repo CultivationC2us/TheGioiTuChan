@@ -50,6 +50,17 @@ function recalc(){
   if(cult.qi>realmNeed(cult.rl)+TD.DAN['dan.tukhi'].qi)cult.qi=realmNeed(cult.rl);   /* save cũ: tu vi vượt trần → về trần */
   const mx=Math.round((100+STT.hp)*realmMul()),old=P.maxHp;P.maxHp=mx;P.hp=mx>old?Math.min(mx,P.hp+(mx-old)):Math.min(P.hp,mx);
 }
+/* ---------- DEF · TÚI CÓ DUNG TÍCH ---------- */
+const defVal=()=>Math.round(TD.BASE.def*realmMul());
+/* kích thước (ô) mỗi vật phẩm: nguyên liệu theo bậc 1/2/3, châu 2/4/8, đan 1, đan phương 2, Linh Thạch tiền tệ 0 */
+function itemSize(n){
+  if(n==='lt')return 0;if(TD.BAG.sz[n]!=null)return TD.BAG.sz[n];
+  const g=TD.byItem[n];if(g)return g.tier;const p=TD.byPearl[n];if(p)return [2,4,8][p.tier-1];
+  return 1;
+}
+function bagUsed(){let s=0;for(const k in loot)if(loot[k]>0)s+=itemSize(k)*loot[k];return s;}
+const bagFree=()=>TD.BAG.cap-bagUsed();
+let bagFullT=0;
 const dmgRoll=()=>Math.round((7+Math.floor(Math.random()*6)+STT.dmg)*realmMul());
 const atkCd=()=>470/(1+STT.spd);
 

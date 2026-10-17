@@ -21,8 +21,9 @@ function norm(n){return String(n||'').normalize('NFD').replace(/[̀-ͯ]/g,'').re
 function emailOf(name,i){return name+'@'+DOMAINS[i];}
 
 /* ---------- gọi API ---------- */
-function req(path,method,body,token,keep){
+function req(path,method,body,token,keep,prefer){
   var h={apikey:KEY,'Content-Type':'application/json'};
+  if(prefer)h.Prefer=prefer;
   if(token)h.Authorization='Bearer '+token;
   return fetch(URL_+path,{method:method,headers:h,body:body?JSON.stringify(body):undefined,keepalive:!!keep}).then(function(r){
     return r.text().then(function(t){var j=null;try{j=t?JSON.parse(t):null;}catch(e){}return{ok:r.ok,status:r.status,j:j};});
@@ -131,7 +132,7 @@ function push(keep,force){
   return ensure().then(function(ok){
     if(ok===false){pushing=false;showAuth('err.expired');return;}
     if(ok===null){pushing=false;status('st.offline',null,1);return;}
-    return req('/rest/v1/saves?on_conflict=user_id','POST',{user_id:S.uid,version:SAVE_V,data:d,updated_at:new Date().toISOString()},S.at,keep)
+    return req('/rest/v1/saves?on_conflict=user_id','POST',{user_id:S.uid,version:SAVE_V,data:d,updated_at:new Date().toISOString()},S.at,keep,'resolution=merge-duplicates,return=minimal')
       .then(function(r){
         pushing=false;
         if(r.ok){lastJson=j;lastOk=Date.now();status('st.saved',{t:hh()});}

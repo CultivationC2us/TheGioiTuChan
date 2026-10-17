@@ -62,6 +62,8 @@ class Mock:
                 return route.fulfill(status=200, headers=h, body=json.dumps([row] if row else []))
             if m == 'POST':
                 assert body['user_id'] == uid
+                if uid in s.saves and 'merge-duplicates' not in req.headers.get('prefer', ''):   # giống PostgREST thật
+                    return route.fulfill(status=409, headers=h, body=json.dumps({'message': 'duplicate key value violates unique constraint "saves_pkey"'}))
                 s.saves[uid] = {'data': body['data'], 'updated_at': body['updated_at']}
                 return route.fulfill(status=201, headers=h, body='')
         route.fulfill(status=404, headers=h, body='{}')

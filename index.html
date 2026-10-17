@@ -285,6 +285,8 @@ var RES=[ /* kind: tree|herb|ore (quyết định nơi mọc), sc: tỉ lệ v�
 ];
 var HITS={1:3,2:4,3:5}, PTS={1:5,2:15,3:40}, LS={1:1,2:3,3:8}, NEED=100;
 var MISC={'Thủy Long Châu':{dec:20},'lt':{dec:0},'dp.tukhi':{dec:0,keep:1},'dan.tukhi':{dec:10}};
+var BAG={cap:120,sz:{'dp.tukhi':2,'dan.tukhi':1}};   /* dung tích túi (ô); sz: kích thước riêng từng vật phẩm */
+var BASE={def:2};                                       /* phòng thủ gốc (cố định trừ thẳng vào sát thương nhận, nhân theo cảnh giới) */
 /* ---- TU VI (Luyện Khí 1-10) ---- */
 var REALM={max:10,base:100,mul:1.2,rate:.2};  /* tu vi cần để qua tầng n = base*2^(n-1); mỗi tầng nhân ×mul máu & sát thương; tu luyện thường rate/giây */
 var DAN={'dan.tukhi':{qi:100}};                          /* đan -> tu vi cộng thêm */
@@ -362,6 +364,10 @@ var S=[ /* chuỗi giao diện mới: [vi, zh-Hant, zh-Hans] */
  ['itemdesc.dp.tukhi','Công thức luyện Tụ Khí Đan (3 Linh Sâm + 1 Linh Thạch). Bấm Sử dụng để mở lò luyện. Không mất sau khi dùng.','聚氣丹的煉製丹方（3 靈參 + 1 靈石）。按「使用」開啟丹爐。使用後不會消失。','聚气丹的炼制丹方（3 灵参 + 1 灵石）。按「使用」开启丹炉。使用后不会消失。'],
  ['item.dan.tukhi','Tụ Khí Đan','聚氣丹','聚气丹'],
  ['itemdesc.dan.tukhi','Đan dược cơ bản của Luyện Khí kỳ. Sử dụng: +100 tu vi. Rã: 10 Linh Thạch.','練氣期基礎丹藥。使用：修為 +100。分解：靈石 10。','练气期基础丹药。使用：修为 +100。分解：灵石 10。'],
+ ['toast.bagfull','Túi đã đầy — vứt, rã hoặc dùng bớt vật phẩm','背包已滿——請丟棄、分解或使用一些物品','背包已满——请丢弃、分解或使用一些物品'],
+ ['bag.cap2','Dung tích túi: {n} / {cap} ô','背包容量：{n} / {cap} 格','背包容量：{n} / {cap} 格'],
+ ['bag.size','Chiếm {s} ô mỗi vật phẩm','每件佔 {s} 格','每件占 {s} 格'],['bag.size0','Tiền tệ, không chiếm chỗ','貨幣，不佔空間','货币，不占空间'],
+ ['sx.def','Phòng thủ','防禦','防御'],['sx.atk','Tấn công','攻擊力','攻击力'],
  ['sx.realm','Cảnh giới','境界','境界'],
 
  ['toast.refine','Luyện hóa: +{n} {el}','煉化：+{n} {el}','炼化：+{n} {el}'],
@@ -423,7 +429,7 @@ EL.forEach(function(e){for(var t=1;t<=PT;t++){var id=pearlId(e.id,t);
   }}});
 MONS.forEach(function(m){for(var k=0;k<3;k++)add[LG[k]]['monster.'+m.id]=m.n[k];});
 for(var k=0;k<3;k++)I18N.add(LG[k],add[LG[k]]);
-window.TTData={EL:EL,RES:RES,byItem:byItem,byId:byId,PEARL:PEARL,PCAP:PCAP,PFUSE:PFUSE,PT:PT,pearlId:pearlId,byPearl:byPearl,MONS:MONS,REALM:REALM,DAN:DAN,RECIPES:RECIPES,NEED:NEED,HITS:HITS,PTS:PTS,RESPAWN:300000,misc:MISC};
+window.TTData={EL:EL,RES:RES,byItem:byItem,byId:byId,PEARL:PEARL,PCAP:PCAP,PFUSE:PFUSE,PT:PT,pearlId:pearlId,byPearl:byPearl,MONS:MONS,REALM:REALM,BAG:BAG,BASE:BASE,DAN:DAN,RECIPES:RECIPES,NEED:NEED,HITS:HITS,PTS:PTS,RESPAWN:300000,misc:MISC};
 })();
 </script>
 <script>
@@ -614,7 +620,7 @@ function mMoveTo(tx,ty,spd,dt){const dx=tx-M.x,dy=ty-M.y,d=Math.hypot(dx,dy);if(
 function addRing(x,y,r0,r1,dur,col){fxs.push({k:'ring',x,y,r0,r1,t0:now(),dur,col:col||'255,255,255'});}
 function addBubbles(x,y,n){for(let i=0;i<n;i++)fxs.push({k:'bub',x:x+(Math.random()-.5)*16,y:y-4,vy:-14-Math.random()*14,t0:now(),dur:700+Math.random()*500,s:1+Math.random()*1.6});}
 function addSplash(x,y,n){for(let i=0;i<n;i++){const a=-Math.PI/2+(Math.random()-.5)*2.2,v=30+Math.random()*40;fxs.push({k:'spl',x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,t0:now(),dur:520+Math.random()*260,s:1.2+Math.random()*1.4});}}
-function hurtPlayer(d,sx,sy){if(P.dead||P.inv>0)return;d=Math.max(1,Math.round(d*(1-STT.red)));P.hp=Math.max(0,P.hp-d);P.inv=.9;P.hurtT=now();floaters.push({x:P.x,y:P.y-30,t0:now(),s:'-'+d,c:'#ff8a8a'});
+function hurtPlayer(d,sx,sy){if(P.dead||P.inv>0)return;d=Math.max(1,Math.round(d*.25),Math.round(d*(1-STT.red))-defVal());P.hp=Math.max(0,P.hp-d);P.inv=.9;P.hurtT=now();floaters.push({x:P.x,y:P.y-30,t0:now(),s:'-'+d,c:'#ff8a8a'});
   const a=Math.atan2(P.y-sy,P.x-sx);P.kx=Math.cos(a)*90;P.ky=Math.sin(a)*90;
   if(P.hp<=0){P.dead=now();toast(T('toast.dead'));}}
 function mUpdate(dt){const t=now(),e=t-M.t0,dist=Math.hypot(P.x-M.x,P.y-M.y);
@@ -738,6 +744,17 @@ function recalc(){
   if(cult.qi>realmNeed(cult.rl)+TD.DAN['dan.tukhi'].qi)cult.qi=realmNeed(cult.rl);   /* save cũ: tu vi vượt trần → về trần */
   const mx=Math.round((100+STT.hp)*realmMul()),old=P.maxHp;P.maxHp=mx;P.hp=mx>old?Math.min(mx,P.hp+(mx-old)):Math.min(P.hp,mx);
 }
+/* ---------- DEF · TÚI CÓ DUNG TÍCH ---------- */
+const defVal=()=>Math.round(TD.BASE.def*realmMul());
+/* kích thước (ô) mỗi vật phẩm: nguyên liệu theo bậc 1/2/3, châu 2/4/8, đan 1, đan phương 2, Linh Thạch tiền tệ 0 */
+function itemSize(n){
+  if(n==='lt')return 0;if(TD.BAG.sz[n]!=null)return TD.BAG.sz[n];
+  const g=TD.byItem[n];if(g)return g.tier;const p=TD.byPearl[n];if(p)return [2,4,8][p.tier-1];
+  return 1;
+}
+function bagUsed(){let s=0;for(const k in loot)if(loot[k]>0)s+=itemSize(k)*loot[k];return s;}
+const bagFree=()=>TD.BAG.cap-bagUsed();
+let bagFullT=0;
 const dmgRoll=()=>Math.round((7+Math.floor(Math.random()*6)+STT.dmg)*realmMul());
 const atkCd=()=>470/(1+STT.spd);
 
@@ -1036,7 +1053,7 @@ function update(dt){
   mon2Update(dt,t);
   qiTick(dt);   /* tu luyện thường: mọi lúc mọi nơi (kể cả khi chết); xem mon2.js */
   // nhặt vật phẩm
-  for(let i=drops.length-1;i>=0;i--){const d=drops[i];if(d.exp&&t>d.exp){drops.splice(i,1);continue;}if(t-d.t0>(d.ic?250:500)&&(!d.pa||t>d.pa)&&Math.hypot(P.x-d.x,P.y-d.y)<(d.ic?24:16)){loot[d.n]=(loot[d.n]||0)+1;drops.splice(i,1);lootUI();toast(T('toast.pick',{name:I18N.itemName(d.n)}));}}
+  for(let i=drops.length-1;i>=0;i--){const d=drops[i];if(d.exp&&t>d.exp){drops.splice(i,1);continue;}if(t-d.t0>(d.ic?250:500)&&(!d.pa||t>d.pa)&&Math.hypot(P.x-d.x,P.y-d.y)<(d.ic?24:16)){if(bagFree()<itemSize(d.n)){if(t-bagFullT>2500){bagFullT=t;toast(T('toast.bagfull'));}continue;}loot[d.n]=(loot[d.n]||0)+1;drops.splice(i,1);lootUI();toast(T('toast.pick',{name:I18N.itemName(d.n)}));}}
   fxs=fxs.filter(f=>t-f.t0<f.dur);floaters=floaters.filter(f=>t-f.t0<900);
   cam.x+=(P.x-cam.x)*Math.min(1,dt*7);cam.y+=(P.y-18-cam.y)*Math.min(1,dt*7);
 }
@@ -1184,7 +1201,7 @@ function draw(){
 let last=performance.now();
 function loop(n){const dt=Math.min(.05,(n-last)/1000);last=n;if(window.__pause){requestAnimationFrame(loop);return;}try{update(dt);draw();}catch(e){window.dispatchEvent(new ErrorEvent('error',{message:e.message,lineno:0}));return;}requestAnimationFrame(loop);}
 requestAnimationFrame(loop);
-window.G={P,M,dog,fx:()=>fxs,drops,update,draw,tiles,cam,now,attack,setSt,mHit,DR,loot,SPAWN,LAKE,HOME,toast,keys,joy,lootUI,stats,cult,nodes,breakthrough,craft,craftMax,realmNeed,realmMul,qiRate,respawnQ,S:STT,recalc,pearlInfo,swallow,fuse,mons2,MD,petObjs,PETS,addPet,setPets,tameRoll,AUTO,setAuto,monHit,fx2,projs,setTameP:v=>{TAME_P=v;},useItem,decompose,dropItem,itemInfo,RES:TD.RES,TD,RMETA,harvest,refineEl,awaken,canAwake,iconCanvas,nodesNear};
+window.G={P,M,dog,fx:()=>fxs,drops,update,draw,tiles,cam,now,attack,setSt,mHit,DR,loot,SPAWN,LAKE,HOME,toast,keys,joy,lootUI,stats,cult,nodes,breakthrough,craft,bagUsed,bagFree,itemSize,defVal,BAG:()=>TD.BAG,craftMax,realmNeed,realmMul,qiRate,respawnQ,S:STT,recalc,pearlInfo,swallow,fuse,mons2,MD,petObjs,PETS,addPet,setPets,tameRoll,AUTO,setAuto,monHit,fx2,projs,setTameP:v=>{TAME_P=v;},useItem,decompose,dropItem,itemInfo,RES:TD.RES,TD,RMETA,harvest,refineEl,awaken,canAwake,iconCanvas,nodesNear};
 toast(T('toast.welcome'));
 })();
 </script>
@@ -1303,10 +1320,10 @@ document.body.appendChild(btn);
 var bag=document.createElement('div');bag.id='bag';
 bag.innerHTML=
 '<div class="box"><div class="hd"><span id="bagIc"></span><h2 data-i18n="bag.title"></h2><button id="bagX" type="button" data-i18n="bag.close"></button></div>'+
-'<div class="tabs"><button type="button" id="tabT" class="on" data-i18n="bag.tab.in"></button><button type="button" id="tabR" data-i18n="bag.tab.root"></button><button type="button" id="tabS" data-i18n="bag.tab.stats"></button><button type="button" id="tabJ" data-i18n="bag.tab.journal"></button></div>'+
+'<div class="tabs"><button type="button" id="tabT" class="on" data-i18n="bag.tab.in"></button><button type="button" id="tabR" data-i18n="bag.tab.root"></button><button type="button" id="tabS" data-i18n="bag.tab.stats"></button></div>'+
 '<div id="bagV"><div id="bagStage"><canvas id="bagCv"></canvas><div class="empty" id="bagEmpty" data-i18n-html="bag.empty"></div></div>'+
 '<div id="bagInfo"></div><div id="bagCap"></div></div>'+
-'<div id="bagR" style="display:none"></div><div id="bagS" style="display:none"></div><div id="bagJ" style="display:none"></div></div>';
+'<div id="bagR" style="display:none"></div><div id="bagS" style="display:none"></div></div>';
 document.body.appendChild(bag);
 $('bagIc').appendChild(pouch(2));
 function $(id){return document.getElementById(id);}
@@ -1345,7 +1362,7 @@ function renderStage(){
   var l=G.loot,k=Object.keys(l).filter(function(n){return l[n]>0;}),st=$('bagStage'),h='',i;
   var sig=k.map(function(n){return n+':'+l[n];}).join('|');
   $('bagEmpty').style.display=k.length?'none':'block';
-  $('bagCap').textContent=T('bag.cap',{n:k.length,cap:CAP});
+  $('bagCap').textContent=T('bag.cap2',{n:G.bagUsed(),cap:G.BAG().cap});
   if(sig===lastKeys)return;lastKeys=sig;
   var old=st.querySelectorAll('.it');for(i=0;i<old.length;i++)st.removeChild(old[i]);
   k.forEach(function(n,i){
@@ -1365,9 +1382,9 @@ function renderStage(){
 function showInfo(){
   var l=G.loot,box=$('bagInfo');
   if(!sel||!l[sel]){box.textContent=T('bag.tap');return;}
-  var inf=G.itemInfo(sel),sg=sel,pi=inf.pearl,ps='';
+  var inf=G.itemInfo(sel),sg=sel,pi=inf.pearl,ps='',sz=G.itemSize(sel);
   if(pi){ps='<div class="pl">'+esc(T('pl.status',{t:pi.tier,n:pi.done,cap:pi.cap}))+(pi.reason?' — '+esc(T('pl.'+pi.reason,{cap:pi.cap})):'')+'</div>';}
-  box.innerHTML='<b>'+esc(I18N.itemName(sel))+' ×'+l[sel]+'</b>'+esc(I18N.itemDesc(sel))+ps+
+  box.innerHTML='<b>'+esc(I18N.itemName(sel))+' ×'+l[sel]+'</b>'+esc(I18N.itemDesc(sel))+'<div class="pl" style="color:#9fc4e0">'+esc(sz?T('bag.size',{s:sz}):T('bag.size0'))+'</div>'+ps+
     '<div class="acts"><button type="button" class="dr" id="biDr"'+(inf.keep?' disabled':'')+'>'+esc(T('act.drop'))+'</button>'+
     '<button type="button" class="mid" id="biDec"'+(inf.dec>0?'':' disabled')+'>'+esc(T('act.dec',{n:inf.dec}))+'</button>'+
     '<button type="button" class="us" id="biUse"'+(inf.use?'':' disabled')+'>'+esc(T('act.use'))+'</button></div>'+
@@ -1395,9 +1412,15 @@ function renderJournal(){
    row('j.lastsave',info.lastOk?hhmm(info.lastOk):T('j.never'));
 }
 var rootSig='';
+function baseGrid(){
+  var S=G.S,P=G.P,m=G.realmMul(),cd=470/(1+S.spd);
+  function c(a,v){return '<div style="background:#150f2d;border:1px solid #33265a;border-radius:10px;padding:7px 9px"><div style="font-size:11px;color:#a999d0">'+esc(T(a))+'</div><div style="font-size:15px;font-weight:800;color:#fff">'+v+'</div></div>';}
+  return '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:10px;text-align:left">'+
+    c('sx.hp',P.maxHp)+c('sx.atk',Math.round((7+S.dmg)*m)+'–'+Math.round((12+S.dmg)*m))+c('sx.def',G.defVal())+c('sx.spd',(1000/cd).toFixed(2).replace('.',I18N.lang==='vi'?',':'.')+'/s')+'</div>';
+}
 function matCount(el){var n=0;G.TD.RES.forEach(function(g){if(g.el===el)n+=G.loot[g.item]|0;});return n;}
 function renderRoot(force){
-  var C=G.cult,N=G.TD.NEED,sig=G.TD.EL.map(function(e){return C.r[e.id]+':'+matCount(e.id);}).join('|')+(C.aw?'A'+C.rl:G.canAwake()?'C':'-')+I18N.lang;
+  var C=G.cult,N=G.TD.NEED,sig=G.TD.EL.map(function(e){return C.r[e.id]+':'+matCount(e.id);}).join('|')+(C.aw?'A'+C.rl+':'+G.P.maxHp+':'+G.S.dmg+':'+G.S.spd:G.canAwake()?'C':'-')+I18N.lang;
   if(!force&&sig===rootSig){var q=$('rootQi');if(q)q.textContent=Math.floor(C.qi);var br=$('rootBr');if(br)br.disabled=!(C.qi>=G.realmNeed(C.rl));return;}
   rootSig=sig;var h='<div class="hint">'+esc(T('cul.hint',{n:N}))+'</div>';
   G.TD.EL.forEach(function(e){
@@ -1412,6 +1435,7 @@ function renderRoot(force){
         '<br><span style="color:#a999d0;font-size:12px">'+esc(T('cul.rate',{n:(I18N.lang==='vi'?G.qiRate().toFixed(2).replace('.',','):G.qiRate().toFixed(2))}))+'</span>'+
         '<br><button type="button" class="aw" id="rootBr" style="margin-top:8px"'+(ready?'':' disabled')+'>'+esc(T('act.break',{n:C.rl+1}))+'</button>')+
       '<br><span style="color:#a999d0;font-size:12px">'+esc(T('realm.bonus',{m:'1,2'.replace(',',I18N.lang==='vi'?',':'.')}))+'</span></div>';
+    h+=baseGrid();
   }
   else h+='<button type="button" class="aw" id="rootAw"'+(G.canAwake()?'':' disabled')+'>'+esc(G.canAwake()?T('cul.awake'):T('cul.need',{n:N}))+'</button>';
   $('bagR').innerHTML=h;
@@ -1428,6 +1452,7 @@ function renderStats(){
   $('bagS').innerHTML=
    row('sx.hp',Math.round(P.hp)+' / '+P.maxHp)+
    row('sx.realm',esc(T('realm.n',{n:C.rl}))+' (×'+N(G.realmMul().toFixed(2))+')')+
+   row('sx.def',G.defVal())+
    row('sx.dmg',Math.round((7+S.dmg)*G.realmMul())+' – '+Math.round((12+S.dmg)*G.realmMul()))+
    row('sx.spd',T('sx.spd.v',{n:N((1000/cd).toFixed(2))}))+
    row('sx.red',N((S.red*100).toFixed(1))+'%')+
@@ -1437,7 +1462,7 @@ function renderStats(){
    '<div class="row" style="border:0;padding-bottom:0"><span>'+T('sx.pearls')+'</span></div>'+pl+
    row('sx.pets',pets)+row('sx.kills',G.stats.kills)+row('sx.lt',G.loot.lt|0);
 }
-function refresh(){if(tab==='T')renderStage();else if(tab==='R')renderRoot();else if(tab==='S')renderStats();else renderJournal();updBadge();}
+function refresh(){if(tab==='T')renderStage();else if(tab==='R')renderRoot();else if(tab==='S')renderStats();updBadge();}
 function updBadge(){var n=Object.keys(G.loot).filter(function(k){return G.loot[k]>0;}).length;cnt.textContent=n;cnt.style.display=n?'block':'none';}
 
 /* ----- linh khí (hạt sáng trôi lên) ----- */
@@ -1455,14 +1480,14 @@ function startFx(){
   cancelAnimationFrame(raf);raf=requestAnimationFrame(f);
 }
 function setTab(t){
-  tab=t;$('tabT').className=t==='T'?'on':'';$('tabR').className=t==='R'?'on':'';$('tabS').className=t==='S'?'on':'';$('tabJ').className=t==='J'?'on':'';
-  $('bagV').style.display=t==='T'?'block':'none';$('bagR').style.display=t==='R'?'block':'none';$('bagS').style.display=t==='S'?'block':'none';$('bagJ').style.display=t==='J'?'block':'none';
+  tab=t;$('tabT').className=t==='T'?'on':'';$('tabR').className=t==='R'?'on':'';$('tabS').className=t==='S'?'on':'';
+  $('bagV').style.display=t==='T'?'block':'none';$('bagR').style.display=t==='R'?'block':'none';$('bagS').style.display=t==='S'?'block':'none';
   lastKeys='';rootSig='';refresh();if(t==='T')startFx();else cancelAnimationFrame(raf);
 }
 function open(){bag.style.display='flex';setTab(tab);clearInterval(tmr);tmr=setInterval(refresh,1000);}
 function close(){bag.style.display='none';clearInterval(tmr);cancelAnimationFrame(raf);}
 btn.onclick=open;$('bagX').onclick=close;
-$('tabT').onclick=function(){setTab('T');};$('tabR').onclick=function(){setTab('R');};$('tabS').onclick=function(){setTab('S');};$('tabJ').onclick=function(){setTab('J');};
+$('tabT').onclick=function(){setTab('T');};$('tabR').onclick=function(){setTab('R');};$('tabS').onclick=function(){setTab('S');};
 bag.addEventListener('pointerdown',function(e){if(e.target===bag)close();});
 setInterval(function(){if(btn.style.display!=='none')updBadge();},1500);
 
@@ -1531,7 +1556,7 @@ var pn=document.createElement('div');pn.id='set';
 pn.innerHTML=
 '<div class="box"><div class="hd"><span id="setIc"></span><h2 data-i18n="set.title"></h2><button id="setX" type="button" data-i18n="bag.close"></button></div>'+
 '<h3 data-i18n="set.lang"></h3><div class="langs" id="setL"></div><div class="note" data-i18n="set.langnote"></div>'+
-'<h3 data-i18n="set.account"></h3><div id="setA"></div><div class="note" style="text-align:center;margin-top:14px">v1018.0024</div></div>';
+'<h3 data-i18n="set.account"></h3><div id="setA"></div><div class="note" style="text-align:center;margin-top:14px">v1018.0036</div></div>';
 document.body.appendChild(pn);
 $('setIc').appendChild(gear(2));
 
@@ -1577,8 +1602,9 @@ function norm(n){return String(n||'').normalize('NFD').replace(/[̀-ͯ]/g,'').re
 function emailOf(name,i){return name+'@'+DOMAINS[i];}
 
 /* ---------- gọi API ---------- */
-function req(path,method,body,token,keep){
+function req(path,method,body,token,keep,prefer){
   var h={apikey:KEY,'Content-Type':'application/json'};
+  if(prefer)h.Prefer=prefer;
   if(token)h.Authorization='Bearer '+token;
   return fetch(URL_+path,{method:method,headers:h,body:body?JSON.stringify(body):undefined,keepalive:!!keep}).then(function(r){
     return r.text().then(function(t){var j=null;try{j=t?JSON.parse(t):null;}catch(e){}return{ok:r.ok,status:r.status,j:j};});
@@ -1687,7 +1713,7 @@ function push(keep,force){
   return ensure().then(function(ok){
     if(ok===false){pushing=false;showAuth('err.expired');return;}
     if(ok===null){pushing=false;status('st.offline',null,1);return;}
-    return req('/rest/v1/saves?on_conflict=user_id','POST',{user_id:S.uid,version:SAVE_V,data:d,updated_at:new Date().toISOString()},S.at,keep)
+    return req('/rest/v1/saves?on_conflict=user_id','POST',{user_id:S.uid,version:SAVE_V,data:d,updated_at:new Date().toISOString()},S.at,keep,'resolution=merge-duplicates,return=minimal')
       .then(function(r){
         pushing=false;
         if(r.ok){lastJson=j;lastOk=Date.now();status('st.saved',{t:hh()});}
@@ -1731,7 +1757,7 @@ ov.innerHTML=
 '<div class="err" id="aErr"></div>'+
 '<button class="go" id="aGo" type="submit"></button>'+
 '<div class="note" data-i18n-html="auth.note"></div>'+
-'<div class="note" style="opacity:.7">v1018.0024</div>'+
+'<div class="note" style="opacity:.7">v1018.0036</div>'+
 '</form>';
 document.body.appendChild(ov);
 var acc=document.createElement('div');acc.id='acc';acc.innerHTML='<span id="accN"></span> · <span id="accS"></span>';

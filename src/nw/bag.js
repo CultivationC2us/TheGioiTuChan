@@ -113,10 +113,10 @@ document.body.appendChild(btn);
 var bag=document.createElement('div');bag.id='bag';
 bag.innerHTML=
 '<div class="box"><div class="hd"><span id="bagIc"></span><h2 data-i18n="bag.title"></h2><button id="bagX" type="button" data-i18n="bag.close"></button></div>'+
-'<div class="tabs"><button type="button" id="tabT" class="on" data-i18n="bag.tab.in"></button><button type="button" id="tabR" data-i18n="bag.tab.root"></button><button type="button" id="tabS" data-i18n="bag.tab.stats"></button><button type="button" id="tabJ" data-i18n="bag.tab.journal"></button></div>'+
+'<div class="tabs"><button type="button" id="tabT" class="on" data-i18n="bag.tab.in"></button><button type="button" id="tabR" data-i18n="bag.tab.root"></button><button type="button" id="tabS" data-i18n="bag.tab.stats"></button></div>'+
 '<div id="bagV"><div id="bagStage"><canvas id="bagCv"></canvas><div class="empty" id="bagEmpty" data-i18n-html="bag.empty"></div></div>'+
 '<div id="bagInfo"></div><div id="bagCap"></div></div>'+
-'<div id="bagR" style="display:none"></div><div id="bagS" style="display:none"></div><div id="bagJ" style="display:none"></div></div>';
+'<div id="bagR" style="display:none"></div><div id="bagS" style="display:none"></div></div>';
 document.body.appendChild(bag);
 $('bagIc').appendChild(pouch(2));
 function $(id){return document.getElementById(id);}
@@ -155,7 +155,7 @@ function renderStage(){
   var l=G.loot,k=Object.keys(l).filter(function(n){return l[n]>0;}),st=$('bagStage'),h='',i;
   var sig=k.map(function(n){return n+':'+l[n];}).join('|');
   $('bagEmpty').style.display=k.length?'none':'block';
-  $('bagCap').textContent=T('bag.cap',{n:k.length,cap:CAP});
+  $('bagCap').textContent=T('bag.cap2',{n:G.bagUsed(),cap:G.BAG().cap});
   if(sig===lastKeys)return;lastKeys=sig;
   var old=st.querySelectorAll('.it');for(i=0;i<old.length;i++)st.removeChild(old[i]);
   k.forEach(function(n,i){
@@ -175,9 +175,9 @@ function renderStage(){
 function showInfo(){
   var l=G.loot,box=$('bagInfo');
   if(!sel||!l[sel]){box.textContent=T('bag.tap');return;}
-  var inf=G.itemInfo(sel),sg=sel,pi=inf.pearl,ps='';
+  var inf=G.itemInfo(sel),sg=sel,pi=inf.pearl,ps='',sz=G.itemSize(sel);
   if(pi){ps='<div class="pl">'+esc(T('pl.status',{t:pi.tier,n:pi.done,cap:pi.cap}))+(pi.reason?' — '+esc(T('pl.'+pi.reason,{cap:pi.cap})):'')+'</div>';}
-  box.innerHTML='<b>'+esc(I18N.itemName(sel))+' ×'+l[sel]+'</b>'+esc(I18N.itemDesc(sel))+ps+
+  box.innerHTML='<b>'+esc(I18N.itemName(sel))+' ×'+l[sel]+'</b>'+esc(I18N.itemDesc(sel))+'<div class="pl" style="color:#9fc4e0">'+esc(sz?T('bag.size',{s:sz}):T('bag.size0'))+'</div>'+ps+
     '<div class="acts"><button type="button" class="dr" id="biDr"'+(inf.keep?' disabled':'')+'>'+esc(T('act.drop'))+'</button>'+
     '<button type="button" class="mid" id="biDec"'+(inf.dec>0?'':' disabled')+'>'+esc(T('act.dec',{n:inf.dec}))+'</button>'+
     '<button type="button" class="us" id="biUse"'+(inf.use?'':' disabled')+'>'+esc(T('act.use'))+'</button></div>'+
@@ -205,9 +205,15 @@ function renderJournal(){
    row('j.lastsave',info.lastOk?hhmm(info.lastOk):T('j.never'));
 }
 var rootSig='';
+function baseGrid(){
+  var S=G.S,P=G.P,m=G.realmMul(),cd=470/(1+S.spd);
+  function c(a,v){return '<div style="background:#150f2d;border:1px solid #33265a;border-radius:10px;padding:7px 9px"><div style="font-size:11px;color:#a999d0">'+esc(T(a))+'</div><div style="font-size:15px;font-weight:800;color:#fff">'+v+'</div></div>';}
+  return '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:10px;text-align:left">'+
+    c('sx.hp',P.maxHp)+c('sx.atk',Math.round((7+S.dmg)*m)+'–'+Math.round((12+S.dmg)*m))+c('sx.def',G.defVal())+c('sx.spd',(1000/cd).toFixed(2).replace('.',I18N.lang==='vi'?',':'.')+'/s')+'</div>';
+}
 function matCount(el){var n=0;G.TD.RES.forEach(function(g){if(g.el===el)n+=G.loot[g.item]|0;});return n;}
 function renderRoot(force){
-  var C=G.cult,N=G.TD.NEED,sig=G.TD.EL.map(function(e){return C.r[e.id]+':'+matCount(e.id);}).join('|')+(C.aw?'A'+C.rl:G.canAwake()?'C':'-')+I18N.lang;
+  var C=G.cult,N=G.TD.NEED,sig=G.TD.EL.map(function(e){return C.r[e.id]+':'+matCount(e.id);}).join('|')+(C.aw?'A'+C.rl+':'+G.P.maxHp+':'+G.S.dmg+':'+G.S.spd:G.canAwake()?'C':'-')+I18N.lang;
   if(!force&&sig===rootSig){var q=$('rootQi');if(q)q.textContent=Math.floor(C.qi);var br=$('rootBr');if(br)br.disabled=!(C.qi>=G.realmNeed(C.rl));return;}
   rootSig=sig;var h='<div class="hint">'+esc(T('cul.hint',{n:N}))+'</div>';
   G.TD.EL.forEach(function(e){
@@ -222,6 +228,7 @@ function renderRoot(force){
         '<br><span style="color:#a999d0;font-size:12px">'+esc(T('cul.rate',{n:(I18N.lang==='vi'?G.qiRate().toFixed(2).replace('.',','):G.qiRate().toFixed(2))}))+'</span>'+
         '<br><button type="button" class="aw" id="rootBr" style="margin-top:8px"'+(ready?'':' disabled')+'>'+esc(T('act.break',{n:C.rl+1}))+'</button>')+
       '<br><span style="color:#a999d0;font-size:12px">'+esc(T('realm.bonus',{m:'1,2'.replace(',',I18N.lang==='vi'?',':'.')}))+'</span></div>';
+    h+=baseGrid();
   }
   else h+='<button type="button" class="aw" id="rootAw"'+(G.canAwake()?'':' disabled')+'>'+esc(G.canAwake()?T('cul.awake'):T('cul.need',{n:N}))+'</button>';
   $('bagR').innerHTML=h;
@@ -238,6 +245,7 @@ function renderStats(){
   $('bagS').innerHTML=
    row('sx.hp',Math.round(P.hp)+' / '+P.maxHp)+
    row('sx.realm',esc(T('realm.n',{n:C.rl}))+' (×'+N(G.realmMul().toFixed(2))+')')+
+   row('sx.def',G.defVal())+
    row('sx.dmg',Math.round((7+S.dmg)*G.realmMul())+' – '+Math.round((12+S.dmg)*G.realmMul()))+
    row('sx.spd',T('sx.spd.v',{n:N((1000/cd).toFixed(2))}))+
    row('sx.red',N((S.red*100).toFixed(1))+'%')+
@@ -247,7 +255,7 @@ function renderStats(){
    '<div class="row" style="border:0;padding-bottom:0"><span>'+T('sx.pearls')+'</span></div>'+pl+
    row('sx.pets',pets)+row('sx.kills',G.stats.kills)+row('sx.lt',G.loot.lt|0);
 }
-function refresh(){if(tab==='T')renderStage();else if(tab==='R')renderRoot();else if(tab==='S')renderStats();else renderJournal();updBadge();}
+function refresh(){if(tab==='T')renderStage();else if(tab==='R')renderRoot();else if(tab==='S')renderStats();updBadge();}
 function updBadge(){var n=Object.keys(G.loot).filter(function(k){return G.loot[k]>0;}).length;cnt.textContent=n;cnt.style.display=n?'block':'none';}
 
 /* ----- linh khí (hạt sáng trôi lên) ----- */
@@ -265,14 +273,14 @@ function startFx(){
   cancelAnimationFrame(raf);raf=requestAnimationFrame(f);
 }
 function setTab(t){
-  tab=t;$('tabT').className=t==='T'?'on':'';$('tabR').className=t==='R'?'on':'';$('tabS').className=t==='S'?'on':'';$('tabJ').className=t==='J'?'on':'';
-  $('bagV').style.display=t==='T'?'block':'none';$('bagR').style.display=t==='R'?'block':'none';$('bagS').style.display=t==='S'?'block':'none';$('bagJ').style.display=t==='J'?'block':'none';
+  tab=t;$('tabT').className=t==='T'?'on':'';$('tabR').className=t==='R'?'on':'';$('tabS').className=t==='S'?'on':'';
+  $('bagV').style.display=t==='T'?'block':'none';$('bagR').style.display=t==='R'?'block':'none';$('bagS').style.display=t==='S'?'block':'none';
   lastKeys='';rootSig='';refresh();if(t==='T')startFx();else cancelAnimationFrame(raf);
 }
 function open(){bag.style.display='flex';setTab(tab);clearInterval(tmr);tmr=setInterval(refresh,1000);}
 function close(){bag.style.display='none';clearInterval(tmr);cancelAnimationFrame(raf);}
 btn.onclick=open;$('bagX').onclick=close;
-$('tabT').onclick=function(){setTab('T');};$('tabR').onclick=function(){setTab('R');};$('tabS').onclick=function(){setTab('S');};$('tabJ').onclick=function(){setTab('J');};
+$('tabT').onclick=function(){setTab('T');};$('tabR').onclick=function(){setTab('R');};$('tabS').onclick=function(){setTab('S');};
 bag.addEventListener('pointerdown',function(e){if(e.target===bag)close();});
 setInterval(function(){if(btn.style.display!=='none')updBadge();},1500);
 
