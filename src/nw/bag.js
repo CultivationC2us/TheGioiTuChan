@@ -11,7 +11,8 @@
 var G=window.G;
 var CAP=30; /* số loại vật phẩm tối đa trong túi (tạm) */
 var ITEMS={
-  'Thủy Long Châu':{col:'#7fd8ff',glow:'#3aa9ff'}
+  'Thủy Long Châu':{col:'#7fd8ff',glow:'#3aa9ff'},
+  'lt':{col:'#e8f6ff',glow:'#6fd3ff'}
 };
 var DEF={col:'#ffe58f',glow:'#ffb347'};
 var T=function(k,p){return I18N.t(k,p);};
@@ -68,7 +69,7 @@ css.textContent=
 '#bag .it .nm{margin-top:4px;font-size:10px;line-height:1.15;color:#e9defc;text-shadow:0 1px 3px #000}'+
 '#bag .it.sel .orb{outline:2px solid #fff8;outline-offset:3px}'+
 '@keyframes bagfloat{0%,100%{transform:translateY(-4px)}50%{transform:translateY(5px)}}'+
-'#bagInfo{margin-top:10px;min-height:62px;padding:9px 11px;border-radius:12px;background:#150f2d;border:1px solid #33265a;font-size:12.5px;line-height:1.5;color:#cbbbee}'+
+'#bagInfo{margin-top:10px;min-height:96px;padding:9px 11px;border-radius:12px;background:#150f2d;border:1px solid #33265a;font-size:12.5px;line-height:1.5;color:#cbbbee}'+
 '#bagInfo b{display:block;font-size:14px;color:#fff;margin-bottom:2px}'+
 '#bagCap{margin-top:8px;font-size:11px;color:#8f7fbd;text-align:right}'+
 '#bagJ .row{display:flex;justify-content:space-between;gap:10px;font-size:13px;padding:7px 0;border-bottom:1px solid #2a1f4d}'+
@@ -89,7 +90,12 @@ css.textContent=
 '#bagR .done{margin-top:12px;text-align:center;padding:12px;border-radius:12px;background:#150f2d;border:1px solid #ffe58f77;color:#ffe58f;font-size:13px}'+
 '#bagR .done b{display:block;font-size:24px;color:#fff;margin:4px 0}'+
 '#qi{position:fixed;left:12px;bottom:calc(env(safe-area-inset-bottom,0px) + 14px);display:none;color:#ffe58f;font-size:13px;font-weight:700;text-shadow:0 1px 3px #000,0 0 8px #ffb34788;pointer-events:none}'+
-'#bagJ .test{margin-top:12px;width:100%;border-style:dashed;color:#b9a6df}';
+'#bagInfo .acts{display:flex;gap:6px;margin-top:9px}'+
+'#bagInfo .acts button{flex:1;padding:8px 4px;font-size:12px;line-height:1.25}'+
+'#bagInfo .acts button.mid{flex:1.5}'+
+'#bagInfo .acts button.dr{border-color:#a85a5a;color:#ffc0b8;background:#2a1a1e}'+
+'#bagInfo .acts button.us{background:#6b3fb4;border-color:#c58bf0}'+
+'#bagInfo .acts button[disabled]{opacity:.35}';
 document.head.appendChild(css);
 
 /* ----- nút túi ----- */
@@ -143,7 +149,15 @@ function renderStage(){
 function showInfo(){
   var l=G.loot,box=$('bagInfo');
   if(!sel||!l[sel]){box.textContent=T('bag.tap');return;}
-  box.innerHTML='<b>'+esc(I18N.itemName(sel))+' ×'+l[sel]+'</b>'+esc(I18N.itemDesc(sel));
+  var inf=G.itemInfo(sel),sg=sel;
+  box.innerHTML='<b>'+esc(I18N.itemName(sel))+' ×'+l[sel]+'</b>'+esc(I18N.itemDesc(sel))+
+    '<div class="acts"><button type="button" class="dr" id="biDr">'+esc(T('act.drop'))+'</button>'+
+    '<button type="button" class="mid" id="biDec"'+(inf.dec>0?'':' disabled')+'>'+esc(T('act.dec',{n:inf.dec}))+'</button>'+
+    '<button type="button" class="us" id="biUse"'+(inf.use?'':' disabled')+'>'+esc(T('act.use'))+'</button></div>';
+  function after(){lastKeys='';refresh();if(window.TT&&TT.push)TT.push(false,false);}
+  $('biDr').onclick=function(){G.dropItem(sg);after();};
+  $('biDec').onclick=function(){G.decompose(sg);after();};
+  $('biUse').onclick=function(){G.useItem(sg);after();};
 }
 function renderJournal(){
   var P=G.P,st=G.stats,l=G.loot,k=Object.keys(l).filter(function(n){return l[n]>0;});
@@ -159,9 +173,7 @@ function renderJournal(){
    row('j.steps',T('j.steps.v',{n:Math.round(st.steps)}))+
    row('j.kills',st.kills)+
    row('j.time',I18N.fmtTime(st.sec))+
-   row('j.lastsave',info.lastOk?hhmm(info.lastOk):T('j.never'))+
-   '<button class="test" id="bagT" type="button">'+T('j.test')+'</button>';
-  $('bagT').onclick=function(){G.loot['Thủy Long Châu']=(G.loot['Thủy Long Châu']||0)+1;if(G.lootUI)G.lootUI();renderJournal();if(window.TT&&TT.push)TT.push(false,false);};
+   row('j.lastsave',info.lastOk?hhmm(info.lastOk):T('j.never'));
 }
 var rootSig='';
 function matCount(el){var n=0;G.TD.RES.forEach(function(g){if(g.el===el)n+=G.loot[g.item]|0;});return n;}

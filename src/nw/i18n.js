@@ -65,7 +65,6 @@ D.vi={
  'j.account':'Tài khoản','j.items':'Vật phẩm','j.none':'Chưa có','j.hp':'Máu','j.pos':'Vị trí (ô)',
  'j.steps':'Quãng đường đã đi','j.steps.v':'{n} ô','j.kills':'Thủy Long đã hạ','j.time':'Thời gian chơi',
  'j.lastsave':'Lần lưu lên máy chủ','j.never':'chưa',
- 'j.test':'🧪 Thêm 1 vật phẩm thử (để kiểm tra lưu)',
  't.h':'{n} giờ','t.m':'{n} phút','t.s':'{n} giây',
  'set.title':'Cài đặt','set.lang':'Ngôn ngữ','set.account':'Tài khoản','set.name':'Tên đăng nhập','set.langnote':'Ngôn ngữ được lưu theo tài khoản.'
 };
@@ -124,7 +123,6 @@ D['zh-Hant']={
  'j.account':'帳號','j.items':'物品','j.none':'尚無','j.hp':'氣血','j.pos':'位置（格）',
  'j.steps':'已行走距離','j.steps.v':'{n} 格','j.kills':'擊敗水龍','j.time':'遊玩時間',
  'j.lastsave':'上次儲存至伺服器','j.never':'尚未',
- 'j.test':'🧪 新增 1 個測試物品（用來檢查存檔）',
  't.h':'{n} 小時','t.m':'{n} 分','t.s':'{n} 秒',
  'set.title':'設定','set.lang':'語言','set.account':'帳號','set.name':'登入名稱','set.langnote':'語言設定會隨帳號儲存。'
 };
@@ -183,7 +181,6 @@ D['zh-Hans']={
  'j.account':'账号','j.items':'物品','j.none':'暂无','j.hp':'气血','j.pos':'位置（格）',
  'j.steps':'已行走距离','j.steps.v':'{n} 格','j.kills':'击败水龙','j.time':'游玩时间',
  'j.lastsave':'上次保存到服务器','j.never':'尚未',
- 'j.test':'🧪 添加 1 个测试物品（用来检查存档）',
  't.h':'{n} 小时','t.m':'{n} 分','t.s':'{n} 秒',
  'set.title':'设置','set.lang':'语言','set.account':'账号','set.name':'登录名称','set.langnote':'语言设置会随账号保存。'
 };

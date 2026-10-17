@@ -29,7 +29,8 @@ var RES=[ /* kind: tree|herb|ore (quyết định nơi mọc), sc: tỉ lệ v�
  {id:'linh_thach',  el:'kim', tier:3,kind:'ore', sc:.8333},
  {id:'da_linh',     el:'tho', tier:3,kind:'ore', sc:.8333}
 ];
-var HITS={1:3,2:4,3:5}, PTS={1:5,2:15,3:40}, NEED=100;
+var HITS={1:3,2:4,3:5}, PTS={1:5,2:15,3:40}, LS={1:1,2:3,3:8}, NEED=100;
+var MISC={'Thủy Long Châu':{dec:20},'lt':{dec:0}};
 var NAMES={ /* vi, zh-Hant, zh-Hans */
  cay_coi:['Linh Mộc','靈木','灵木'], cay_cao:['Đào Hoa Mộc','桃花木','桃花木'], tre:['Linh Trúc','靈竹','灵竹'],
  thao_duoc:['Linh Sâm','靈參','灵参'], da:['Thanh Ngọc Thạch','青玉石','青玉石'],
@@ -41,7 +42,7 @@ var NAMES={ /* vi, zh-Hant, zh-Hans */
 };
 var LG=['vi','zh-Hant','zh-Hans'];
 var byItem={},byId={},i;
-for(i=0;i<RES.length;i++){var r=RES[i];r.item='nl.'+r.id;r.hits=HITS[r.tier];r.pts=PTS[r.tier];byItem[r.item]=r;byId[r.id]=r;}
+for(i=0;i<RES.length;i++){var r=RES[i];r.item='nl.'+r.id;r.hits=HITS[r.tier];r.pts=PTS[r.tier];r.ls=LS[r.tier];byItem[r.item]=r;byId[r.id]=r;}
 
 var S=[ /* chuỗi giao diện mới: [vi, zh-Hant, zh-Hans] */
  ['bag.tab.root','Linh Căn','靈根','灵根'],
@@ -62,7 +63,13 @@ var S=[ /* chuỗi giao diện mới: [vi, zh-Hant, zh-Hans] */
  ['j.roots','Ngũ hành','五行','五行'],
  ['j.qi','Linh khí','靈氣','灵气'],
  ['j.asleep','chưa thức tỉnh','未覺醒','未觉醒'],
- ['itemdesc.nl','{name}: nguyên liệu hệ {el}. Luyện hóa để tích tụ {el} cho Linh Căn.','{name}：{el}系材料。煉化後可積累{el}行，用於靈根。','{name}：{el}系材料。炼化后可积累{el}行，用于灵根。']
+ ['act.drop','Vứt','丟棄','丢弃'],['act.dec','Rã thành Linh Thạch (+{n})','分解成靈石（+{n}）','分解成灵石（+{n}）'],['act.use','Sử dụng','使用','使用'],
+ ['toast.drop','Đã vứt {name} (biến mất sau 1 phút)','已丟棄{name}（1 分鐘後消失）','已丢弃{name}（1 分钟后消失）'],
+ ['toast.dec','Rã {name} → +{n} Linh Thạch','分解{name} → 靈石 +{n}','分解{name} → 灵石 +{n}'],
+ ['toast.full','Hệ {el} đã đầy','{el}行已滿','{el}行已满'],
+ ['item.lt','Linh Thạch','靈石','灵石'],
+ ['itemdesc.lt','Tinh hoa linh khí kết tinh, tiền tệ của giới tu tiên. Chưa có công dụng khác.','靈氣結晶，修仙界的通用貨幣。暫無其他用途。','灵气结晶，修仙界的通用货币。暂无其他用途。'],
+ ['itemdesc.nl','{name}: nguyên liệu hệ {el}. Sử dụng: luyện hóa +{pts} điểm {el} cho Linh Căn. Rã: nhận {ls} Linh Thạch.','{name}：{el}系材料。使用：煉化 +{pts} 點{el}行。分解：得 {ls} 靈石。','{name}：{el}系材料。使用：炼化 +{pts} 点{el}行。分解：得 {ls} 灵石。']
 ];
 var add={vi:{},'zh-Hant':{},'zh-Hans':{}};
 S.forEach(function(r){if(r[0]==='itemdesc.nl')return;for(var k=0;k<3;k++)add[LG[k]][r[0]]=r[k+1];});
@@ -71,10 +78,10 @@ RES.forEach(function(r){
   var e=EL.filter(function(x){return x.id===r.el;})[0];
   for(var k=0;k<3;k++){
     add[LG[k]]['item.'+r.item]=NAMES[r.id][k];
-    add[LG[k]]['itemdesc.'+r.item]=tpl[k+1].replace(/\{name\}/g,NAMES[r.id][k]).replace(/\{el\}/g,e.n[k]);
+    add[LG[k]]['itemdesc.'+r.item]=tpl[k+1].replace(/\{name\}/g,NAMES[r.id][k]).replace(/\{el\}/g,e.n[k]).replace(/\{pts\}/g,r.pts).replace(/\{ls\}/g,r.ls);
   }
 });
 EL.forEach(function(e){for(var k=0;k<3;k++)add[LG[k]]['el.'+e.id]=e.n[k];});
 for(var k=0;k<3;k++)I18N.add(LG[k],add[LG[k]]);
-window.TTData={EL:EL,RES:RES,byItem:byItem,byId:byId,NEED:NEED,HITS:HITS,PTS:PTS,RESPAWN:90000};
+window.TTData={EL:EL,RES:RES,byItem:byItem,byId:byId,NEED:NEED,HITS:HITS,PTS:PTS,RESPAWN:300000,misc:MISC};
 })();

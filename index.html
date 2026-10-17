@@ -90,7 +90,6 @@ D.vi={
  'j.account':'Tài khoản','j.items':'Vật phẩm','j.none':'Chưa có','j.hp':'Máu','j.pos':'Vị trí (ô)',
  'j.steps':'Quãng đường đã đi','j.steps.v':'{n} ô','j.kills':'Thủy Long đã hạ','j.time':'Thời gian chơi',
  'j.lastsave':'Lần lưu lên máy chủ','j.never':'chưa',
- 'j.test':'🧪 Thêm 1 vật phẩm thử (để kiểm tra lưu)',
  't.h':'{n} giờ','t.m':'{n} phút','t.s':'{n} giây',
  'set.title':'Cài đặt','set.lang':'Ngôn ngữ','set.account':'Tài khoản','set.name':'Tên đăng nhập','set.langnote':'Ngôn ngữ được lưu theo tài khoản.'
 };
@@ -149,7 +148,6 @@ D['zh-Hant']={
  'j.account':'帳號','j.items':'物品','j.none':'尚無','j.hp':'氣血','j.pos':'位置（格）',
  'j.steps':'已行走距離','j.steps.v':'{n} 格','j.kills':'擊敗水龍','j.time':'遊玩時間',
  'j.lastsave':'上次儲存至伺服器','j.never':'尚未',
- 'j.test':'🧪 新增 1 個測試物品（用來檢查存檔）',
  't.h':'{n} 小時','t.m':'{n} 分','t.s':'{n} 秒',
  'set.title':'設定','set.lang':'語言','set.account':'帳號','set.name':'登入名稱','set.langnote':'語言設定會隨帳號儲存。'
 };
@@ -208,7 +206,6 @@ D['zh-Hans']={
  'j.account':'账号','j.items':'物品','j.none':'暂无','j.hp':'气血','j.pos':'位置（格）',
  'j.steps':'已行走距离','j.steps.v':'{n} 格','j.kills':'击败水龙','j.time':'游玩时间',
  'j.lastsave':'上次保存到服务器','j.never':'尚未',
- 'j.test':'🧪 添加 1 个测试物品（用来检查存档）',
  't.h':'{n} 小时','t.m':'{n} 分','t.s':'{n} 秒',
  'set.title':'设置','set.lang':'语言','set.account':'账号','set.name':'登录名称','set.langnote':'语言设置会随账号保存。'
 };
@@ -286,7 +283,8 @@ var RES=[ /* kind: tree|herb|ore (quyết định nơi mọc), sc: tỉ lệ v�
  {id:'linh_thach',  el:'kim', tier:3,kind:'ore', sc:.8333},
  {id:'da_linh',     el:'tho', tier:3,kind:'ore', sc:.8333}
 ];
-var HITS={1:3,2:4,3:5}, PTS={1:5,2:15,3:40}, NEED=100;
+var HITS={1:3,2:4,3:5}, PTS={1:5,2:15,3:40}, LS={1:1,2:3,3:8}, NEED=100;
+var MISC={'Thủy Long Châu':{dec:20},'lt':{dec:0}};
 var NAMES={ /* vi, zh-Hant, zh-Hans */
  cay_coi:['Linh Mộc','靈木','灵木'], cay_cao:['Đào Hoa Mộc','桃花木','桃花木'], tre:['Linh Trúc','靈竹','灵竹'],
  thao_duoc:['Linh Sâm','靈參','灵参'], da:['Thanh Ngọc Thạch','青玉石','青玉石'],
@@ -298,7 +296,7 @@ var NAMES={ /* vi, zh-Hant, zh-Hans */
 };
 var LG=['vi','zh-Hant','zh-Hans'];
 var byItem={},byId={},i;
-for(i=0;i<RES.length;i++){var r=RES[i];r.item='nl.'+r.id;r.hits=HITS[r.tier];r.pts=PTS[r.tier];byItem[r.item]=r;byId[r.id]=r;}
+for(i=0;i<RES.length;i++){var r=RES[i];r.item='nl.'+r.id;r.hits=HITS[r.tier];r.pts=PTS[r.tier];r.ls=LS[r.tier];byItem[r.item]=r;byId[r.id]=r;}
 
 var S=[ /* chuỗi giao diện mới: [vi, zh-Hant, zh-Hans] */
  ['bag.tab.root','Linh Căn','靈根','灵根'],
@@ -319,7 +317,13 @@ var S=[ /* chuỗi giao diện mới: [vi, zh-Hant, zh-Hans] */
  ['j.roots','Ngũ hành','五行','五行'],
  ['j.qi','Linh khí','靈氣','灵气'],
  ['j.asleep','chưa thức tỉnh','未覺醒','未觉醒'],
- ['itemdesc.nl','{name}: nguyên liệu hệ {el}. Luyện hóa để tích tụ {el} cho Linh Căn.','{name}：{el}系材料。煉化後可積累{el}行，用於靈根。','{name}：{el}系材料。炼化后可积累{el}行，用于灵根。']
+ ['act.drop','Vứt','丟棄','丢弃'],['act.dec','Rã thành Linh Thạch (+{n})','分解成靈石（+{n}）','分解成灵石（+{n}）'],['act.use','Sử dụng','使用','使用'],
+ ['toast.drop','Đã vứt {name} (biến mất sau 1 phút)','已丟棄{name}（1 分鐘後消失）','已丢弃{name}（1 分钟后消失）'],
+ ['toast.dec','Rã {name} → +{n} Linh Thạch','分解{name} → 靈石 +{n}','分解{name} → 灵石 +{n}'],
+ ['toast.full','Hệ {el} đã đầy','{el}行已滿','{el}行已满'],
+ ['item.lt','Linh Thạch','靈石','灵石'],
+ ['itemdesc.lt','Tinh hoa linh khí kết tinh, tiền tệ của giới tu tiên. Chưa có công dụng khác.','靈氣結晶，修仙界的通用貨幣。暫無其他用途。','灵气结晶，修仙界的通用货币。暂无其他用途。'],
+ ['itemdesc.nl','{name}: nguyên liệu hệ {el}. Sử dụng: luyện hóa +{pts} điểm {el} cho Linh Căn. Rã: nhận {ls} Linh Thạch.','{name}：{el}系材料。使用：煉化 +{pts} 點{el}行。分解：得 {ls} 靈石。','{name}：{el}系材料。使用：炼化 +{pts} 点{el}行。分解：得 {ls} 灵石。']
 ];
 var add={vi:{},'zh-Hant':{},'zh-Hans':{}};
 S.forEach(function(r){if(r[0]==='itemdesc.nl')return;for(var k=0;k<3;k++)add[LG[k]][r[0]]=r[k+1];});
@@ -328,12 +332,12 @@ RES.forEach(function(r){
   var e=EL.filter(function(x){return x.id===r.el;})[0];
   for(var k=0;k<3;k++){
     add[LG[k]]['item.'+r.item]=NAMES[r.id][k];
-    add[LG[k]]['itemdesc.'+r.item]=tpl[k+1].replace(/\{name\}/g,NAMES[r.id][k]).replace(/\{el\}/g,e.n[k]);
+    add[LG[k]]['itemdesc.'+r.item]=tpl[k+1].replace(/\{name\}/g,NAMES[r.id][k]).replace(/\{el\}/g,e.n[k]).replace(/\{pts\}/g,r.pts).replace(/\{ls\}/g,r.ls);
   }
 });
 EL.forEach(function(e){for(var k=0;k<3;k++)add[LG[k]]['el.'+e.id]=e.n[k];});
 for(var k=0;k<3;k++)I18N.add(LG[k],add[LG[k]]);
-window.TTData={EL:EL,RES:RES,byItem:byItem,byId:byId,NEED:NEED,HITS:HITS,PTS:PTS,RESPAWN:90000};
+window.TTData={EL:EL,RES:RES,byItem:byItem,byId:byId,NEED:NEED,HITS:HITS,PTS:PTS,RESPAWN:300000,misc:MISC};
 })();
 </script>
 <script>
@@ -427,7 +431,10 @@ function lootUI(){const e=document.getElementById('loot');const k=Object.keys(lo
 /* ---------- TÀI NGUYÊN · NGŨ HÀNH · LINH CĂN ---------- */
 const TD=window.TTData,RMETA={"cay_coi":[[45,0,46,50,-23.0,-50],[0,0,44,51,-21.7,-51],[32,52,34,37,-15.2,-37],[318,149,26,18,-13.0,-18]],"cay_cao":[[92,0,46,50,-22.7,-50],[210,0,44,48,-21.4,-48],[0,91,31,29,-13.4,-29],[262,149,24,19,-12.0,-19]],"tre":[[139,0,34,50,-16.7,-50],[174,0,35,50,-16.4,-50],[67,52,29,34,-13.6,-34],[242,149,19,20,-9.5,-20]],"go_dac_biet":[[302,0,42,39,-20.1,-39],[255,0,46,42,-23.6,-42],[56,149,29,24,-14.0,-24],[225,121,27,26,-13.5,-26]],"da_linh":[[121,52,37,34,-18.3,-34],[0,52,31,38,-15.9,-38],[253,121,31,26,-16.3,-26],[183,149,27,22,-13.5,-22]],"thuoc_hiem":[[97,52,23,34,-11.2,-34],[317,52,23,30,-11.1,-30],[202,121,22,26,-8.7,-26],[164,149,18,22,-9.0,-22]],"co_linh_chi":[[170,121,31,26,-15.9,-26],[52,121,31,27,-15.3,-27],[159,52,28,32,-13.8,-32],[144,149,19,22,-9.5,-22]],"hoa_linh":[[285,52,31,30,-16.0,-30],[188,52,31,31,-16.8,-31],[116,91,26,29,-12.1,-29],[143,91,18,29,-9.0,-29]],"linh_thach":[[220,52,34,30,-16.8,-30],[84,121,32,26,-15.6,-26],[287,149,30,19,-15.4,-19],[86,149,24,23,-12.0,-23]],"thao_quy":[[314,91,28,27,-13.4,-27],[255,52,29,30,-13.2,-30],[0,121,27,27,-12.2,-27],[28,121,23,27,-11.5,-27]],"thao_duoc":[[32,91,31,29,-14.4,-29],[64,91,28,29,-16.1,-29],[117,121,24,26,-12.6,-26],[93,91,22,29,-11.0,-29]],"da":[[162,91,39,27,-19.4,-27],[202,91,38,27,-19.2,-27],[111,149,32,22,-14.9,-22],[0,149,31,24,-15.5,-24]],"quang_kim":[[241,91,36,27,-18.4,-27],[278,91,35,27,-16.7,-27],[211,149,30,21,-16.1,-21],[0,174,25,18,-12.5,-18]],"nam_linh_chi":[[142,121,27,26,-12.5,-26],[285,121,25,25,-11.7,-25],[32,149,23,24,-11.0,-24],[311,121,17,25,-8.5,-25]]};
 const cult={r:{kim:0,moc:0,thuy:0,hoa:0,tho:0},aw:false,qi:0};
-const nodes=[],nodeCell=new Map();           /* node: {g,x,y,h,dead,shk}; chia ô 4x4 để tìm nhanh */
+const nodes=[],nodeCell=new Map(),respawnQ=[];   /* node: {g,x,y,h,gone,shk}; chia ô 4x4 để tìm nhanh */
+const ckey=n=>(n.x/TILE>>2)+','+(n.y/TILE>>2);
+function cellAdd(n){const k=ckey(n);let a=nodeCell.get(k);if(!a)nodeCell.set(k,a=[]);a.push(n);}
+function cellDel(n){const a=nodeCell.get(ckey(n));if(a){const i=a.indexOf(n);if(i>=0)a.splice(i,1);}}
 (function placeRes(){
   const byKT={};for(const g of TD.RES){(byKT[g.kind+g.tier]=byKT[g.kind+g.tier]||[]).push(g);}
   const okT=(x,y)=>{const r=tiles[y];return r&&(r[x]===G||r[x]===D||r[x]===R);};
@@ -445,19 +452,37 @@ const nodes=[],nodeCell=new Map();           /* node: {g,x,y,h,dead,shk}; chia �
     let pool=byKT[kind+tier];if(!pool)pool=byKT[(kind==='ore'?'herb':kind)+tier];
     if(!pool)continue;
     const g=pool[Math.floor(hash(cx+71,cy+3)*pool.length)%pool.length];
-    const n={g,x:tx*TILE+4+hash(cx,cy+41)*8,y:ty*TILE+13+hash(cx+9,cy)*3,h:0,dead:0,shk:-9999};
-    nodes.push(n);const k=(n.x/TILE>>2)+','+(n.y/TILE>>2);let a=nodeCell.get(k);if(!a)nodeCell.set(k,a=[]);a.push(n);
+    const n={g,x:tx*TILE+4+hash(cx,cy+41)*8,y:ty*TILE+13+hash(cx+9,cy)*3,h:0,gone:false,shk:-9999};
+    nodes.push(n);cellAdd(n);
   }
 })();
 function nodesNear(x,y,rc){const out=[],cx=x/TILE>>2,cy=y/TILE>>2;for(let i=-rc;i<=rc;i++)for(let j=-rc;j<=rc;j++){const a=nodeCell.get((cx+i)+','+(cy+j));if(a)for(const n of a)out.push(n);}return out;}
-function nodeAlive(n,t){if(n.dead&&t-n.dead>TD.RESPAWN){n.dead=0;n.h=0;}return !n.dead;}
+function randomSpot(g){ /* chỗ mới ngẫu nhiên cho nguồn vừa bị khai thác: hợp địa hình, xa người chơi, không đè nguồn khác */
+  const minD=g.tier===3?45:g.tier===2?20:9;
+  for(let i=0;i<500;i++){
+    const tx=2+Math.floor(Math.random()*(MW-4)),ty=2+Math.floor(Math.random()*(MH-4)),t0=tiles[ty][tx];
+    if(t0!==G&&t0!==D&&t0!==R)continue;
+    if(g.kind==='ore'?(t0===G&&Math.random()>.12):(t0===R&&Math.random()>.2))continue;
+    let bad=false;for(let a=-1;a<=1&&!bad;a++)for(let b=-1;b<=1;b++){const q=tiles[ty+b][tx+a];if(q===W||q===S||q===B){bad=true;break;}}
+    if(bad)continue;
+    if(Math.hypot(tx-SPAWN.x,ty-SPAWN.y)<minD)continue;
+    const lx=(tx-LAKE.x)/(LAKE.rx+3),ly=(ty-LAKE.y)/(LAKE.ry+3);if(lx*lx+ly*ly<1)continue;
+    const x=tx*TILE+4+Math.random()*8,y=ty*TILE+13+Math.random()*3;
+    if(Math.hypot(x-P.x,y-P.y)<260)continue;
+    if(nodesNear(x,y,1).some(o=>Math.hypot(o.x-x,o.y-y)<40))continue;
+    return {x,y};
+  }
+  return null;
+}
+function respawnTick(t){for(let i=respawnQ.length-1;i>=0;i--){const r=respawnQ[i];if(t<r.at)continue;const n=r.n,s=randomSpot(n.g);
+  if(!s){r.at=t+5000;continue;}n.x=s.x;n.y=s.y;n.h=0;n.gone=false;n.shk=-9999;cellAdd(n);respawnQ.splice(i,1);}}
 function harvest(t){ /* trả về true nếu trúng một nguồn tài nguyên */
   let best=null,bd=1e9;
-  for(const n of nodesNear(P.x,P.y,1)){if(!nodeAlive(n,t))continue;const dx=(n.x-P.x)*P.f,d=Math.hypot(n.x-P.x,n.y-6-(P.y-6));if(dx>-8&&d<34&&d<bd){best=n;bd=d;}}
+  for(const n of nodesNear(P.x,P.y,1)){if(n.gone)continue;const dx=(n.x-P.x)*P.f,d=Math.hypot(n.x-P.x,n.y-6-(P.y-6));if(dx>-8&&d<34&&d<bd){best=n;bd=d;}}
   if(!best)return false;
   best.h++;best.shk=t;const g=best.g;
   floaters.push({x:best.x,y:best.y-22,t0:t,s:best.h+'/'+g.hits,c:'#ffe58f'});
-  if(best.h>=g.hits){best.dead=t;const c=1+(Math.random()<.35?1:0);
+  if(best.h>=g.hits){best.gone=true;cellDel(best);respawnQ.push({n:best,at:t+TD.RESPAWN});const c=1+(Math.random()<.35?1:0);
     for(let i=0;i<c;i++)drops.push({x:best.x+(i?10:-4)+(Math.random()-.5)*8,y:best.y-6,t0:t,n:g.item,ic:g.id});}
   return true;
 }
@@ -468,6 +493,15 @@ function refineEl(el){ /* nguyên liệu hệ el → điểm hệ el (tối đa 
   if(gain){lootUI();toast(T('toast.refine',{n:gain,el:T('el.'+el)}));}else toast(T('toast.refine0',{el:T('el.'+el)}));
   return gain;
 }
+function lootDec(n){loot[n]--;if(!(loot[n]>0))delete loot[n];}
+function itemInfo(n){const g=TD.byItem[n],m=TD.misc[n];return {use:!!g,dec:g?g.ls:(m?m.dec:0)};}
+function useItem(n){ /* nguyên liệu: luyện hóa 1 cái vào hệ của nó */
+  const g=TD.byItem[n];if(!g||!(loot[n]>0))return false;
+  if(cult.r[g.el]>=TD.NEED){toast(T('toast.full',{el:T('el.'+g.el)}));return false;}
+  const add=Math.min(g.pts,TD.NEED-cult.r[g.el]);cult.r[g.el]+=add;lootDec(n);lootUI();toast(T('toast.refine',{n:add,el:T('el.'+g.el)}));return true;}
+function decompose(n){const v=itemInfo(n).dec;if(!(loot[n]>0)||!(v>0))return false;lootDec(n);loot.lt=(loot.lt|0)+v;lootUI();toast(T('toast.dec',{name:I18N.itemName(n),n:v}));return true;}
+function dropItem(n){if(!(loot[n]>0))return false;lootDec(n);const g=TD.byItem[n],t=now();
+  drops.push({x:P.x+P.f*40,y:P.y-2,t0:t,n,ic:g?g.id:undefined,pa:t+1800,exp:t+60000});lootUI();toast(T('toast.drop',{name:I18N.itemName(n)}));return true;}
 function canAwake(){return !cult.aw&&TD.EL.every(e=>cult.r[e.id]>=TD.NEED);}
 function awaken(){if(!canAwake())return false;cult.aw=true;toast(T('toast.awake'));return true;}
 function iconCanvas(item,scale){const g=TD.byItem[item];if(!g||!IMG.res||!IMG.res.complete)return null;const f=RMETA[g.id][3],c=document.createElement('canvas');
@@ -609,10 +643,10 @@ function update(dt){
   {const tx=P.x-P.f*20,ty=P.y+3,dx=tx-dog.x,dy=ty-dog.y,d=Math.hypot(dx,dy);
     if(d>14){const sp=Math.min(d*3.2,92)*dt;dog.x+=dx/d*sp;dog.y+=dy/d*sp;dog.rt=t;}
     dog.run=t-dog.rt<170;if(Math.abs(dx)>6)dog.f=dx>0?1:-1;if(d>260){dog.x=P.x;dog.y=P.y;}}
-  mUpdate(dt);
+  mUpdate(dt);respawnTick(t);
   if(cult.aw)cult.qi+=dt;   /* linh khí +1/giây, mọi lúc mọi nơi (kể cả khi chết) */
   // nhặt vật phẩm
-  for(let i=drops.length-1;i>=0;i--){const d=drops[i];if(t-d.t0>(d.ic?250:500)&&Math.hypot(P.x-d.x,P.y-d.y)<(d.ic?24:16)){loot[d.n]=(loot[d.n]||0)+1;drops.splice(i,1);lootUI();toast(T('toast.pick',{name:I18N.itemName(d.n)}));}}
+  for(let i=drops.length-1;i>=0;i--){const d=drops[i];if(d.exp&&t>d.exp){drops.splice(i,1);continue;}if(t-d.t0>(d.ic?250:500)&&(!d.pa||t>d.pa)&&Math.hypot(P.x-d.x,P.y-d.y)<(d.ic?24:16)){loot[d.n]=(loot[d.n]||0)+1;drops.splice(i,1);lootUI();toast(T('toast.pick',{name:I18N.itemName(d.n)}));}}
   fxs=fxs.filter(f=>t-f.t0<f.dur);floaters=floaters.filter(f=>t-f.t0<900);
   cam.x+=(P.x-cam.x)*Math.min(1,dt*7);cam.y+=(P.y-18-cam.y)*Math.min(1,dt*7);
 }
@@ -719,10 +753,10 @@ function drawSlash(f,t){ // hiệu ứng chém tay không: vệt cung pixel qué
   ctx.globalAlpha=1-u;ctx.fillStyle='#fff';for(let i=0;i<5;i++){const a=a1+.15+i*.2,r=R+4+i*2;ctx.fillRect(Math.round(cx+Math.cos(a)*r),Math.round(cy+Math.sin(a)*r*.85),1.6,1.6);}
   ctx.restore();ctx.globalAlpha=1;
 }
-function drawNode(n,t){const g=n.g,alive=nodeAlive(n,t);let fi=alive?0:2;
-  if(alive&&t-n.shk<240)fi=(Math.floor((t-n.shk)/60)%2)?1:0;
+function drawNode(n,t){const g=n.g;let fi=0;
+  if(t-n.shk<240)fi=(Math.floor((t-n.shk)/60)%2)?1:0;
   const f=RMETA[g.id][fi],sc=g.sc;ctx.drawImage(IMG.res,f[0],f[1],f[2],f[3],n.x+f[4]*sc,n.y+f[5]*sc,f[2]*sc,f[3]*sc);}
-function drawDrops(t){for(const d of drops){const y=d.y-4+Math.sin(t/260)*2;
+function drawDrops(t){for(const d of drops){const y=d.y-4+Math.sin(t/260)*2;if(d.exp&&d.exp-t<10000&&Math.floor(t/150)%2)continue;
   if(d.ic){const f=RMETA[d.ic][3],sc=.8333,w=f[2]*sc,h=f[3]*sc;ctx.save();ctx.globalAlpha=.35;ctx.fillStyle='#000';ctx.beginPath();ctx.ellipse(d.x,d.y+5,w*.35,2,0,0,7);ctx.fill();ctx.restore();
     ctx.drawImage(IMG.res,f[0],f[1],f[2],f[3],d.x-w/2,y-h+2,w,h);continue;}const g=ctx.createRadialGradient(d.x,y,1,d.x,y,10);g.addColorStop(0,'rgba(160,230,255,.9)');g.addColorStop(1,'rgba(80,160,255,0)');
   ctx.fillStyle=g;ctx.beginPath();ctx.arc(d.x,y,10,0,7);ctx.fill();ctx.fillStyle='#e8fbff';ctx.fillRect(d.x-2,y-2,4,4);ctx.fillStyle='#4aa8ff';ctx.fillRect(d.x-2,y+1,4,1);ctx.fillRect(d.x-2,y-2,1,4);}}
@@ -756,7 +790,7 @@ function draw(){
 let last=performance.now();
 function loop(n){const dt=Math.min(.05,(n-last)/1000);last=n;if(window.__pause){requestAnimationFrame(loop);return;}try{update(dt);draw();}catch(e){window.dispatchEvent(new ErrorEvent('error',{message:e.message,lineno:0}));return;}requestAnimationFrame(loop);}
 requestAnimationFrame(loop);
-window.G={P,M,dog,fx:()=>fxs,drops,update,draw,tiles,cam,now,attack,setSt,mHit,DR,loot,SPAWN,LAKE,HOME,toast,keys,joy,lootUI,stats,cult,nodes,RES:TD.RES,TD,RMETA,harvest,refineEl,awaken,canAwake,iconCanvas,nodesNear};
+window.G={P,M,dog,fx:()=>fxs,drops,update,draw,tiles,cam,now,attack,setSt,mHit,DR,loot,SPAWN,LAKE,HOME,toast,keys,joy,lootUI,stats,cult,nodes,respawnQ,useItem,decompose,dropItem,itemInfo,RES:TD.RES,TD,RMETA,harvest,refineEl,awaken,canAwake,iconCanvas,nodesNear};
 toast(T('toast.welcome'));
 })();
 </script>
@@ -773,7 +807,8 @@ toast(T('toast.welcome'));
 var G=window.G;
 var CAP=30; /* số loại vật phẩm tối đa trong túi (tạm) */
 var ITEMS={
-  'Thủy Long Châu':{col:'#7fd8ff',glow:'#3aa9ff'}
+  'Thủy Long Châu':{col:'#7fd8ff',glow:'#3aa9ff'},
+  'lt':{col:'#e8f6ff',glow:'#6fd3ff'}
 };
 var DEF={col:'#ffe58f',glow:'#ffb347'};
 var T=function(k,p){return I18N.t(k,p);};
@@ -830,7 +865,7 @@ css.textContent=
 '#bag .it .nm{margin-top:4px;font-size:10px;line-height:1.15;color:#e9defc;text-shadow:0 1px 3px #000}'+
 '#bag .it.sel .orb{outline:2px solid #fff8;outline-offset:3px}'+
 '@keyframes bagfloat{0%,100%{transform:translateY(-4px)}50%{transform:translateY(5px)}}'+
-'#bagInfo{margin-top:10px;min-height:62px;padding:9px 11px;border-radius:12px;background:#150f2d;border:1px solid #33265a;font-size:12.5px;line-height:1.5;color:#cbbbee}'+
+'#bagInfo{margin-top:10px;min-height:96px;padding:9px 11px;border-radius:12px;background:#150f2d;border:1px solid #33265a;font-size:12.5px;line-height:1.5;color:#cbbbee}'+
 '#bagInfo b{display:block;font-size:14px;color:#fff;margin-bottom:2px}'+
 '#bagCap{margin-top:8px;font-size:11px;color:#8f7fbd;text-align:right}'+
 '#bagJ .row{display:flex;justify-content:space-between;gap:10px;font-size:13px;padding:7px 0;border-bottom:1px solid #2a1f4d}'+
@@ -851,7 +886,12 @@ css.textContent=
 '#bagR .done{margin-top:12px;text-align:center;padding:12px;border-radius:12px;background:#150f2d;border:1px solid #ffe58f77;color:#ffe58f;font-size:13px}'+
 '#bagR .done b{display:block;font-size:24px;color:#fff;margin:4px 0}'+
 '#qi{position:fixed;left:12px;bottom:calc(env(safe-area-inset-bottom,0px) + 14px);display:none;color:#ffe58f;font-size:13px;font-weight:700;text-shadow:0 1px 3px #000,0 0 8px #ffb34788;pointer-events:none}'+
-'#bagJ .test{margin-top:12px;width:100%;border-style:dashed;color:#b9a6df}';
+'#bagInfo .acts{display:flex;gap:6px;margin-top:9px}'+
+'#bagInfo .acts button{flex:1;padding:8px 4px;font-size:12px;line-height:1.25}'+
+'#bagInfo .acts button.mid{flex:1.5}'+
+'#bagInfo .acts button.dr{border-color:#a85a5a;color:#ffc0b8;background:#2a1a1e}'+
+'#bagInfo .acts button.us{background:#6b3fb4;border-color:#c58bf0}'+
+'#bagInfo .acts button[disabled]{opacity:.35}';
 document.head.appendChild(css);
 
 /* ----- nút túi ----- */
@@ -905,7 +945,15 @@ function renderStage(){
 function showInfo(){
   var l=G.loot,box=$('bagInfo');
   if(!sel||!l[sel]){box.textContent=T('bag.tap');return;}
-  box.innerHTML='<b>'+esc(I18N.itemName(sel))+' ×'+l[sel]+'</b>'+esc(I18N.itemDesc(sel));
+  var inf=G.itemInfo(sel),sg=sel;
+  box.innerHTML='<b>'+esc(I18N.itemName(sel))+' ×'+l[sel]+'</b>'+esc(I18N.itemDesc(sel))+
+    '<div class="acts"><button type="button" class="dr" id="biDr">'+esc(T('act.drop'))+'</button>'+
+    '<button type="button" class="mid" id="biDec"'+(inf.dec>0?'':' disabled')+'>'+esc(T('act.dec',{n:inf.dec}))+'</button>'+
+    '<button type="button" class="us" id="biUse"'+(inf.use?'':' disabled')+'>'+esc(T('act.use'))+'</button></div>';
+  function after(){lastKeys='';refresh();if(window.TT&&TT.push)TT.push(false,false);}
+  $('biDr').onclick=function(){G.dropItem(sg);after();};
+  $('biDec').onclick=function(){G.decompose(sg);after();};
+  $('biUse').onclick=function(){G.useItem(sg);after();};
 }
 function renderJournal(){
   var P=G.P,st=G.stats,l=G.loot,k=Object.keys(l).filter(function(n){return l[n]>0;});
@@ -921,9 +969,7 @@ function renderJournal(){
    row('j.steps',T('j.steps.v',{n:Math.round(st.steps)}))+
    row('j.kills',st.kills)+
    row('j.time',I18N.fmtTime(st.sec))+
-   row('j.lastsave',info.lastOk?hhmm(info.lastOk):T('j.never'))+
-   '<button class="test" id="bagT" type="button">'+T('j.test')+'</button>';
-  $('bagT').onclick=function(){G.loot['Thủy Long Châu']=(G.loot['Thủy Long Châu']||0)+1;if(G.lootUI)G.lootUI();renderJournal();if(window.TT&&TT.push)TT.push(false,false);};
+   row('j.lastsave',info.lastOk?hhmm(info.lastOk):T('j.never'));
 }
 var rootSig='';
 function matCount(el){var n=0;G.TD.RES.forEach(function(g){if(g.el===el)n+=G.loot[g.item]|0;});return n;}
@@ -1037,7 +1083,7 @@ var pn=document.createElement('div');pn.id='set';
 pn.innerHTML=
 '<div class="box"><div class="hd"><span id="setIc"></span><h2 data-i18n="set.title"></h2><button id="setX" type="button" data-i18n="bag.close"></button></div>'+
 '<h3 data-i18n="set.lang"></h3><div class="langs" id="setL"></div><div class="note" data-i18n="set.langnote"></div>'+
-'<h3 data-i18n="set.account"></h3><div id="setA"></div><div class="note" style="text-align:center;margin-top:14px">v1017.1800</div></div>';
+'<h3 data-i18n="set.account"></h3><div id="setA"></div><div class="note" style="text-align:center;margin-top:14px">v1017.2339</div></div>';
 document.body.appendChild(pn);
 $('setIc').appendChild(gear(2));
 
@@ -1234,7 +1280,7 @@ ov.innerHTML=
 '<div class="err" id="aErr"></div>'+
 '<button class="go" id="aGo" type="submit"></button>'+
 '<div class="note" data-i18n-html="auth.note"></div>'+
-'<div class="note" style="opacity:.7">v1017.1800</div>'+
+'<div class="note" style="opacity:.7">v1017.2339</div>'+
 '</form>';
 document.body.appendChild(ov);
 var acc=document.createElement('div');acc.id='acc';acc.innerHTML='<span id="accN"></span> · <span id="accS"></span>';
