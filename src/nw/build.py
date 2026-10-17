@@ -2,7 +2,9 @@ import base64,json
 def b64(p): return base64.b64encode(open(p,'rb').read()).decode()
 s=open('nw/game_tpl.html',encoding='utf-8').read()
 M={'idx':json.load(open('nw/dr2/idx_trim.json'))}
-rep={'{{MNT_JS}}':open('nw/mnt.js',encoding='utf-8').read(),'{{MNTATLAS}}':b64('nw/mnt/atlas.webp'),'{{MNTMETA}}':open('nw/mnt/meta.json').read(),'{{MON_JS}}':open('nw/mon2.js',encoding='utf-8').read(),
+import glob,os
+UIP={os.path.basename(f)[:-5]:b64(f) for f in glob.glob('nw/ui/out/*.webp') if 'av_badge' not in f}
+rep={'{{UIPIECES}}':json.dumps(UIP,separators=(',',':')),'{{MNT_JS}}':open('nw/mnt.js',encoding='utf-8').read(),'{{MNTATLAS}}':b64('nw/mnt/atlas.webp'),'{{MNTMETA}}':open('nw/mnt/meta.json').read(),'{{MON_JS}}':open('nw/mon2.js',encoding='utf-8').read(),
  '{{MON_HOA}}':b64('nw/mon/atlas_hoa.webp'),'{{MON_THO}}':b64('nw/mon/atlas_tho.webp'),'{{MON_KIM}}':b64('nw/mon/atlas_kim.webp'),'{{MON_MOC}}':b64('nw/mon/atlas_moc.webp'),
  '{{MONMETA_HOA}}':open('nw/mon/meta_hoa.json').read(),'{{MONMETA_THO}}':open('nw/mon/meta_tho.json').read(),'{{MONMETA_KIM}}':open('nw/mon/meta_kim.json').read(),'{{MONMETA_MOC}}':open('nw/mon/meta_moc.json').read(),
  '{{PLAYER}}':b64('nw/assets/player.webp'),'{{DRAGON}}':b64('nw/assets/dragon.webp'),'{{BEAMA}}':b64('nw/assets/beamA.webp'),'{{BEAMB}}':b64('nw/assets/beamB.webp'),

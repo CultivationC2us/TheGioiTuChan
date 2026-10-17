@@ -77,7 +77,7 @@ def run4():
         pg.evaluate("G.P.inv=0;G.P.hp=100;G.P.maxHp=118")
         # ---- bảng vật phẩm ----
         pg.evaluate("G.loot['ngoc.kim.1']=12;G.cult.pl.kim[0]=10;G.lootUI()")
-        pg.evaluate("document.getElementById('bagBtn').click()"); pg.click('#tabT'); pg.wait_for_timeout(500)
+        pg.evaluate("document.getElementById('bagBtn').click()"); pg.evaluate("TTBag.openTab('T')"); pg.wait_for_timeout(500)
         pg.click('#bagStage .it[data-n="ngoc.kim.1"]',force=True); pg.wait_for_timeout(250)
         t=pg.inner_text('#bagInfo')
         ok('Bậc 1' in t and '10/10' in t and 'hợp nhất' in t.lower(),'bảng ngọc: bậc, đã nuốt 10/10, gợi ý hợp nhất')
@@ -85,11 +85,11 @@ def run4():
         pg.screenshot(path=S.replace('game.html','mon_info.png'))
         pg.click('#biFuse'); pg.wait_for_timeout(250)
         ok(pg.evaluate("G.loot['ngoc.kim.1']")==2,'bấm Hợp nhất → trừ 10 viên')
-        pg.click('#tabS'); pg.wait_for_timeout(250)
+        pg.evaluate("TTBag.openTab('S')"); pg.wait_for_timeout(250)
         st=pg.inner_text('#bagS')
         ok('Sát thương mỗi đòn' in st and '18 – 23' in st and 'Linh thú' in st and '10/10' in st,'tab Chỉ số hiển thị đầy đủ')
         pg.screenshot(path=S.replace('game.html','mon_stats.png'))
-        pg.click('#bagX')
+        pg.evaluate("TTBag.close()")
         # ---- tốc độ đánh tăng ----
         cd=pg.evaluate("(()=>{G.P.atkT=-9999;G.attack();const a=G.P.atkT;return 470/(1+G.S.spd)})()")
         ok(abs(cd-470/1.10)<0.5,f'chu kỳ đánh rút còn {cd:.0f} ms')

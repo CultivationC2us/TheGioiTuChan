@@ -22,7 +22,7 @@ def run():
         pg.evaluate("G.cult.qi=99.9"); pg.wait_for_timeout(1500)
         ok(pg.evaluate("G.cult.qi")==100,'tu luyện thường dừng ở trần 100')
         # đan phương: dùng không mất, mở lò
-        pg.evaluate("document.getElementById('bagBtn').click()"); pg.click('#tabT'); pg.wait_for_timeout(300)
+        pg.evaluate("document.getElementById('bagBtn').click()"); pg.evaluate("TTBag.openTab('T')"); pg.wait_for_timeout(300)
         pg.click('#bagStage .it[data-n="dp.tukhi"]',force=True); pg.wait_for_timeout(200)
         ok(pg.is_disabled('#biDr') and pg.is_disabled('#biDec'),'đan phương: không vứt, không rã')
         pg.click('#biUse'); pg.wait_for_timeout(200)
@@ -42,7 +42,7 @@ def run():
         # đan khi tu vi đầy → từ chối; đột phá
         pg.click('#bagStage .it[data-n="dan.tukhi"]',force=True); pg.click('#biUse'); pg.wait_for_timeout(150)
         ok(pg.evaluate("G.loot['dan.tukhi']")==2,'tu vi đầy → đan không bị ăn (không phí)')
-        pg.click('#tabR'); pg.wait_for_timeout(300)
+        pg.evaluate("TTBag.openTab('R')"); pg.wait_for_timeout(300)
         pg.screenshot(path=S.replace('game.html','realm_root.png'))
         ok(not pg.is_disabled('#rootBr'),'nút Đột phá sáng khi đủ tu vi')
         d0=pg.evaluate("G.P.maxHp"); pg.click('#rootBr'); pg.wait_for_timeout(200)

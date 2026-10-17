@@ -4,7 +4,7 @@ Mỗi khung: [x,y,w,h, ax,ay, gy] — (ax,ay)= điểm ngồi (giữa yên, mặ
 import json, os, numpy as np
 from PIL import Image
 from scipy import ndimage as ndi
-BLK = 3
+BLK = 2
 im = np.array(Image.open('mnt/src.png').convert('RGB')).astype(np.float32)
 r, g, b = im[..., 0], im[..., 1], im[..., 2]
 near = (r > 170) & (b > 170) & (g < 130)

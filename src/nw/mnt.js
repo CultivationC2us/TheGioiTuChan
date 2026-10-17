@@ -41,18 +41,21 @@ function mtFrame(t){
   return 'idle'+(Math.floor(t/230)%6);
 }
 function mDraw(name,x,y,sc,al){const F=MTM[name];if(!F)return;if(al!==undefined)ctx.globalAlpha=al;ctx.drawImage(IMG.mnt,F[0],F[1],F[2],F[3],x,y,F[2]*PX*sc,F[3]*PX*sc);ctx.globalAlpha=1;}
+const MS=1.25;   /* thú cưỡi to ~2,5–3,5 lần nhân vật */
 const MT_SEAT_DY=1.5, MT_FRONT=6, MT_CHIN=9;   /* hông lún nhẹ vào đệm yên (px) · phần thú đè lên người bắt đầu từ trước tâm yên (px) */
 function drawMounted(t){
   const fm=mtFrame(t),F=MTM[fm];if(!F||!IMG.mnt.complete)return;
   const hv=P.flyH+(P.fly?Math.sin(t/240)*1.2:0),ax=F[4],ay=F[5],gy=F[6];
   ctx.save();ctx.imageSmoothingEnabled=false;
   /* bóng trên đất */
-  ctx.fillStyle='rgba(0,0,0,'+(P.fly?.18:.28)+')';ctx.beginPath();ctx.ellipse(P.x,P.y+1,(P.fly?10:13)-hv*.12,(P.fly?2.2:3),0,0,7);ctx.fill();
+  ctx.fillStyle='rgba(0,0,0,'+(P.fly?.18:.28)+')';ctx.beginPath();ctx.ellipse(P.x,P.y+1,((P.fly?10:13)-hv*.12)*MS,(P.fly?2.2:3)*MS,0,0,7);ctx.fill();
   /* mây theo sau */
   for(const c of MTP){const e=(t-c.t0)/800;mDraw(c.k,c.x-(MTM[c.k][2]*PX*(.6+e*.5))/2,c.y-MTM[c.k][3]*PX*(.6+e*.5)/2,.6+e*.5,Math.max(0,.9*(1-e)));}
-  ctx.translate(P.x,P.y-hv);ctx.scale(P.f,1);
-  const mx=-ax*PX,my=-gy*PX,seatY=-(gy-ay)*PX+MT_SEAT_DY*PX;
-  mDraw(fm,mx,my,1);
+  {const m=ctx.getTransform(),X=m.a*P.x+m.e,Y=m.d*(P.y-hv)+m.f;   /* làm tròn về điểm ảnh màn hình → hết sọc/giật khi di chuyển + chém */
+    ctx.translate(Math.round(X)/m.a-m.e/m.a,Math.round(Y)/m.d-m.f/m.d);}
+  ctx.scale(P.f,1);
+  const mx=-ax*PX*MS,my=-gy*PX*MS,seatY=-(gy-ay)*PX*MS+MT_SEAT_DY*PX;
+  mDraw(fm,mx,my,MS);
   /* người ngồi: tâm ngang ở giữa yên, vạch yên (hàng 43/44 = y65 trong khung) đặt đúng mặt đệm */
   const atking=t-P.atkT<430;let row,fr;
   if(P.dead){row=NC.rows.hit;fr=1;}else if(atking){row=NC.rows.atk;fr=Math.min(7,Math.floor((t-P.atkT)/430*8));}
@@ -64,7 +67,7 @@ function drawMounted(t){
   ctx.drawImage(IMG.player,sx+RX,sy+CUT,sw-RX,sh-CUT,(RX-NC.CX)*PX,(CUT-NC.FEET)*PX,(sw-RX)*PX,(sh-CUT)*PX);
   drawHeld(t,atking,row,fr);ctx.restore();
   /* từ trước yên đến đầu: thú đè lên người */
-  ctx.save();ctx.beginPath();ctx.rect(MT_FRONT*PX,seatY-(MT_CHIN)*PX,800,800);ctx.clip();mDraw(fm,mx,my,1);ctx.restore();   /* mặt người (trên cằm) không bị bờm che */
+  ctx.save();ctx.beginPath();ctx.rect(MT_FRONT*PX,seatY-(MT_CHIN)*PX,800,800);ctx.clip();mDraw(fm,mx,my,MS);ctx.restore();   /* mặt người (trên cằm) không bị bờm che */
   ctx.restore();
   /* hiệu ứng lên/xuống thú, bắt đầu/ngừng bay */
   const e=t-P.mtFx;

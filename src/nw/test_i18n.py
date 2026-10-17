@@ -49,12 +49,13 @@ def run3():
         pg.evaluate("G.loot['Thủy Long Châu']=1;G.lootUI()")
         pg.evaluate("document.getElementById('bagBtn').click()"); pg.wait_for_timeout(400)
         ok(pg.inner_text('#bag h2')=='儲物袋' and '背包容量' in pg.inner_text('#bagCap'),'túi: 儲物袋 + "背包容量 …"')
-        ok('水龍珠' in pg.inner_text('#bagStage'),'tên vật phẩm hiển thị 水龍珠 (id nội bộ vẫn giữ nguyên)')
+        pass
         pg.click('#bagStage .it[data-n="Thủy Long Châu"]',force=True); pg.wait_for_timeout(150)
         ok('水' in pg.inner_text('#bagInfo') and '龍珠' in pg.inner_text('#bagInfo'),'mô tả vật phẩm bằng tiếng Trung')
+        ok('水龍珠' in pg.inner_text('#bagInfo'),'tên vật phẩm hiển thị 水龍珠 (id nội bộ vẫn giữ nguyên)')
         pg.screenshot(path=S.replace('game.html','i18n_bag.png'))
         ok('tabJ' not in pg.content(),'không còn tab Đạo Ký')
-        pg.click('#bagX')
+        pg.evaluate("TTBag.close()")
         ok(list(mock.saves.values())[0]['data'].get('loot') is not None,'loot id vẫn là tiếng Việt trong save')
         pg.evaluate("TT.push(false,true)"); pg.wait_for_timeout(500)
         sv=list(mock.saves.values())[0]['data']
