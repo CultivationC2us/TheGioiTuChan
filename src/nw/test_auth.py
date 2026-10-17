@@ -174,4 +174,5 @@ def run():
     bad = [m for c, m in res if not c]
     print('\nTỔNG:', len(res) - len(bad), '/', len(res), 'đạt')
     sys.exit(1 if bad else 0)
-run()
+if __name__=='__main__':
+    run()

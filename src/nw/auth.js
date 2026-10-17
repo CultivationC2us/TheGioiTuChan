@@ -92,7 +92,7 @@ function ensure(){
 /* ---------- dữ liệu save ---------- */
 function collect(){
   var P=G.P,l={};for(var k in G.loot)l[k]=G.loot[k];
-  return{v:SAVE_V,x:+P.x.toFixed(1),y:+P.y.toFixed(1),f:P.f,hp:Math.round(P.hp),loot:l};
+  var st=G.stats;return{v:SAVE_V,x:+P.x.toFixed(1),y:+P.y.toFixed(1),f:P.f,hp:Math.round(P.hp),loot:l,stats:{kills:st.kills|0,steps:Math.round(st.steps),sec:Math.round(st.sec)}};
 }
 function migrate(d){/* d.v cũ → mới. Hiện mới có v=1 nên chưa cần. */return d;}
 function apply(d){
@@ -101,6 +101,7 @@ function apply(d){
   if(isFinite(d.x)&&isFinite(d.y)){P.x=d.x;P.y=d.y;G.cam.x=P.x;G.cam.y=P.y;G.dog.x=P.x-18;G.dog.y=P.y+4;}
   if(d.f===1||d.f===-1)P.f=d.f;
   P.hp=(isFinite(d.hp)&&d.hp>0)?Math.min(P.maxHp,d.hp):P.maxHp;
+  if(d.stats&&typeof d.stats==='object'){var st=G.stats;st.kills=+d.stats.kills||0;st.steps=+d.stats.steps||0;st.sec=+d.stats.sec||0;}
   if(d.loot&&typeof d.loot==='object'){for(var k in G.loot)delete G.loot[k];for(var n in d.loot){var c=+d.loot[n];if(c>0)G.loot[n]=c;}if(G.lootUI)G.lootUI();}
 }
 function localGet(uid){var t=ls('tt_save_'+uid);try{return t?JSON.parse(t):null;}catch(e){return null;}}
@@ -150,6 +151,20 @@ css.textContent=
 '#auth .err{min-height:18px;margin:2px 0 10px;font-size:13px;color:#ffb0a0;line-height:1.35}'+
 '#auth .note{margin-top:14px;font-size:11px;color:#7f9fb8;text-align:center;line-height:1.5}'+
 '#acc{position:fixed;right:12px;top:calc(env(safe-area-inset-top,0px) + 28px);font-size:11px;color:#bfe6ff;text-shadow:0 1px 2px #000;text-align:right;line-height:1.5;display:none}'+
+'#bagBtn{position:fixed;left:12px;top:calc(env(safe-area-inset-top,0px) + 30px);padding:6px 12px;border-radius:12px;border:1px solid #fff5;background:#0a1a28cc;color:#fff;font-size:13px;font-weight:700;display:none}'+
+'#bag{position:fixed;inset:0;z-index:900;display:none;align-items:center;justify-content:center;background:#000a;padding:16px;box-sizing:border-box}'+
+'#bag .box{width:100%;max-width:360px;max-height:100%;overflow:auto;background:#0e2233;border:1px solid #3d6a8e;border-radius:16px;padding:14px;color:#e8f4ff;-webkit-user-select:none;user-select:none}'+
+'#bag h2{margin:0 0 10px;font-size:17px;display:flex;justify-content:space-between;align-items:center}'+
+'#bag h3{margin:14px 0 6px;font-size:12px;color:#8fb4d0;letter-spacing:.5px;text-transform:uppercase}'+
+'#bag .grid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}'+
+'#bag .slot{aspect-ratio:1;border-radius:10px;background:#0a1a28;border:1px solid #2c4d68;position:relative;display:flex;align-items:center;justify-content:center;font-size:9px;text-align:center;line-height:1.1;padding:2px;box-sizing:border-box;color:#cfeaff}'+
+'#bag .slot.has{border-color:#6fd3ff;background:#12334d}'+
+'#bag .slot .pearl{width:60%;height:60%;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff,#7fd8ff 40%,#2a86d6);box-shadow:0 0 8px #6fd3ff}'+
+'#bag .slot .n{position:absolute;right:3px;bottom:1px;font-size:11px;font-weight:800;color:#fff;text-shadow:0 1px 2px #000}'+
+'#bag .row{display:flex;justify-content:space-between;font-size:13px;padding:5px 0;border-bottom:1px solid #1d3a52}'+
+'#bag .row b{color:#fff}'+
+'#bag button{padding:8px 12px;border-radius:10px;border:1px solid #3d6a8e;background:#12334d;color:#fff;font-size:13px}'+
+'#bag .test{margin-top:12px;width:100%;border-style:dashed;color:#9fc4e0}'+
 '#acc button{margin-left:6px;padding:1px 7px;border-radius:8px;border:1px solid #fff5;background:#0007;color:#fff;font-size:10px}';
 document.head.appendChild(css);
 
@@ -168,6 +183,43 @@ ov.innerHTML=
 document.body.appendChild(ov);
 var acc=document.createElement('div');acc.id='acc';acc.innerHTML='<span id="accN"></span> · <span id="accS"></span><button id="accOut" type="button">Thoát</button>';
 document.body.appendChild(acc);
+var bb=document.createElement('button');bb.id='bagBtn';bb.type='button';bb.textContent='🎒 Túi';document.body.appendChild(bb);
+var bag=document.createElement('div');bag.id='bag';
+bag.innerHTML='<div class="box"><h2><span>Túi đồ</span><button id="bagX" type="button">Đóng</button></h2><div class="grid" id="bagG"></div><h3>Tiến độ đã lưu</h3><div id="bagS"></div><button class="test" id="bagT" type="button">🧪 Thêm 1 vật phẩm thử (để kiểm tra lưu)</button></div>';
+document.body.appendChild(bag);
+function fmtT(s){s=Math.round(s);var h=Math.floor(s/3600),m=Math.floor(s%3600/60);return (h?h+' giờ ':'')+m+' phút '+(s%60)+' giây';}
+function renderBag(){
+  var P=G.P,l=G.loot,k=Object.keys(l),h='',i;
+  for(i=0;i<20;i++){
+    if(i<k.length)h+='<div class="slot has"><div class="pearl"></div><span class="n">'+l[k[i]]+'</span></div>';
+    else h+='<div class="slot"></div>';
+  }
+  $('bagG').innerHTML=h;
+  var names=k.length?'<div class="row"><span>Vật phẩm</span><b>'+k.map(function(n){return n+' ×'+l[n];}).join(', ')+'</b></div>':'<div class="row"><span>Vật phẩm</span><b>Chưa có</b></div>';
+  var st=G.stats;
+  $('bagS').innerHTML=names+
+   '<div class="row"><span>Tài khoản</span><b>'+(S?S.name:'-')+'</b></div>'+
+   '<div class="row"><span>Máu</span><b>'+Math.round(P.hp)+' / '+P.maxHp+'</b></div>'+
+   '<div class="row"><span>Vị trí (ô)</span><b>'+Math.round(P.x/16)+', '+Math.round(P.y/16)+'</b></div>'+
+   '<div class="row"><span>Quãng đường đã đi</span><b>'+Math.round(st.steps)+' ô</b></div>'+
+   '<div class="row"><span>Thủy Long đã hạ</span><b>'+st.kills+'</b></div>'+
+   '<div class="row"><span>Thời gian chơi</span><b>'+fmtT(st.sec)+'</b></div>'+
+   '<div class="row"><span>Lần lưu lên máy chủ</span><b>'+(lastOk?hh():'chưa')+'</b></div>';
+}
+var bagTimer=0;
+bb.onclick=function(){renderBag();bag.style.display='flex';clearInterval(bagTimer);bagTimer=setInterval(renderBag,1000);};
+function closeBag(){bag.style.display='none';clearInterval(bagTimer);}
+$('bagX').onclick=closeBag;
+bag.addEventListener('pointerdown',function(e){if(e.target===bag)closeBag();});
+$('bagT').onclick=function(){G.loot['Thủy Long Châu']=(G.loot['Thủy Long Châu']||0)+1;if(G.lootUI)G.lootUI();renderBag();push(false,false);};
+/* đếm quãng đường + thời gian chơi (chỉ khi đang chơi) */
+var lp=null;
+setInterval(function(){
+  if(!S||window.__pause)return;
+  var P=G.P,st=G.stats;st.sec+=.5;
+  if(lp){var d=Math.hypot(P.x-lp.x,P.y-lp.y);if(d<60)st.steps+=d/16;}
+  lp={x:P.x,y:P.y};
+},500);
 
 function setMode(m){
   mode=m;$('tLogin').className=m==='login'?'on':'';$('tReg').className=m==='reg'?'on':'';
@@ -178,11 +230,11 @@ function setMode(m){
 }
 function showAuth(msg){
   window.__pause=true;S=S&&S.uid?S:null;
-  ov.style.display='flex';acc.style.display='none';setMode('login');
+  ov.style.display='flex';acc.style.display='none';bb.style.display='none';closeBag();setMode('login');
   $('aErr').textContent=msg||'';busy=false;$('aGo').disabled=false;
 }
 function enter(){
-  ov.style.display='none';acc.style.display='block';$('accN').textContent=S.name;status('Đã tải');
+  ov.style.display='none';acc.style.display='block';bb.style.display='block';$('accN').textContent=S.name;status('Đã tải');
   window.__pause=false;
   clearInterval(timer);timer=setInterval(function(){push(false,false);},10000);
 }
@@ -199,8 +251,10 @@ function loadAndEnter(){
       pick=loc; /* offline hoặc lỗi bảng → dùng bản trên máy */
       if(!f.net)setTimeout(function(){status('Lỗi tải save: '+rawErr(f.r).slice(0,36),1);},300);
     }
+    var fromSrv=!!(f.ok&&pick&&f.row&&pick.d===f.row.data);
     if(pick)apply(pick.d);
-    lastJson=pick?JSON.stringify(collect()):'';
+    lastJson=fromSrv?JSON.stringify(collect()):''; /* bản tạm trên máy mới hơn → để lần lưu kế tiếp đẩy lên */
+    if(fromSrv)lastOk=Date.parse(f.row.updated_at)||Date.now();
     enter();
     if(f.ok&&!pick)push(false,true); /* tài khoản mới: tạo dòng save đầu tiên */
     if(G.toast)G.toast('Chào '+S.name+(pick?' · đã tải tiến độ':' · bắt đầu hành trình'));

@@ -104,6 +104,7 @@ const P={x:SPAWN.x*TILE+8,y:SPAWN.y*TILE+10,f:1,hp:100,maxHp:100,atkT:-9999,hitD
 const cam={x:P.x,y:P.y};
 const dog={x:P.x-18,y:P.y+4,run:false,rt:-999,f:1};
 let fxs=[],floaters=[],drops=[],loot={},toastT=0;
+const stats={kills:0,steps:0,sec:0};
 const keys={};let joy={on:false,id:null,ox:0,oy:0,dx:0,dy:0};
 function toast(s){const e=document.getElementById('toast');e.textContent=s;e.style.opacity=1;clearTimeout(toastT);toastT=setTimeout(()=>e.style.opacity=0,2400);}
 function lootUI(){const e=document.getElementById('loot');const k=Object.keys(loot);e.innerHTML=k.length?'Túi: '+k.map(n=>n+' ×'+loot[n]).join(', '):'';}
@@ -198,7 +199,7 @@ function mUpdate(dt){const t=now(),e=t-M.t0,dist=Math.hypot(P.x-M.x,P.y-M.y);
 }
 function mHit(d){if(!mTargetable()||M.st==='die')return;M.hp=Math.max(0,M.hp-d);M.flash=.14;
   floaters.push({x:M.x,y:M.y-44,t0:now(),s:String(d),c:'#fff'});addSplash(M.x,M.y-18,6);
-  if(M.hp<=0){setSt('die');addSplash(M.x,M.y,30);toast('Thủy Long đã bị hạ!');return;}
+  if(M.hp<=0){stats.kills++;setSt('die');addSplash(M.x,M.y,30);toast('Thủy Long đã bị hạ!');return;}
   if(M.st==='idle'||M.st==='swim'||M.st==='recover'||M.st==='rise'){M.prev=M.st==='rise'?'idle':M.st;setSt('hurt');}}
 
 /* ---------- ĐIỀU KHIỂN ---------- */
@@ -379,7 +380,7 @@ function draw(){
 let last=performance.now();
 function loop(n){const dt=Math.min(.05,(n-last)/1000);last=n;if(window.__pause){requestAnimationFrame(loop);return;}try{update(dt);draw();}catch(e){window.dispatchEvent(new ErrorEvent('error',{message:e.message,lineno:0}));return;}requestAnimationFrame(loop);}
 requestAnimationFrame(loop);
-window.G={P,M,dog,fx:()=>fxs,drops,update,draw,tiles,cam,now,attack,setSt,mHit,DR,loot,SPAWN,LAKE,HOME,toast,keys,joy,lootUI};
+window.G={P,M,dog,fx:()=>fxs,drops,update,draw,tiles,cam,now,attack,setSt,mHit,DR,loot,SPAWN,LAKE,HOME,toast,keys,joy,lootUI,stats};
 toast('Thế giới mới · đánh Thủy Long ở hồ phía đông');
 })();
 </script>
