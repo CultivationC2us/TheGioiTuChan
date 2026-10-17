@@ -27,7 +27,28 @@ var RES=[ /* kind: tree|herb|ore (quyết định nơi mọc), sc: tỉ lệ v�
  {id:'thao_quy',    el:'moc', tier:3,kind:'herb',sc:.8333},
  {id:'thuoc_hiem',  el:'thuy',tier:3,kind:'herb',sc:.8333},
  {id:'linh_thach',  el:'kim', tier:3,kind:'ore', sc:.8333},
- {id:'da_linh',     el:'tho', tier:3,kind:'ore', sc:.8333}
+ {id:'da_linh',     el:'tho', tier:3,kind:'ore', sc:.8333},
+ /* đợt 2 (res2/): 20 loại, 4 mỗi hệ, đúng hệ theo hình dạng */
+ {id:'kim_ngan_hoa',   el:'kim', tier:1,kind:'herb',sc:1.0},
+ {id:'bach_kim_thao',  el:'kim', tier:2,kind:'herb',sc:1.0},
+ {id:'huyen_thiet_thao', el:'kim', tier:3,kind:'herb',sc:1.0},
+ {id:'tinh_kim_thach', el:'kim', tier:2,kind:'ore',sc:1.2},
+ {id:'thanh_tam_thao', el:'moc', tier:1,kind:'herb',sc:1.0},
+ {id:'ngoc_linh_thao', el:'moc', tier:2,kind:'herb',sc:1.0},
+ {id:'cuu_diep_linh_chi', el:'moc', tier:3,kind:'tree',sc:1.5},
+ {id:'thanh_linh_moc', el:'moc', tier:2,kind:'tree',sc:1.5},
+ {id:'tuyet_lien',     el:'thuy', tier:1,kind:'herb',sc:1.0},
+ {id:'thuy_tinh_thao', el:'thuy', tier:2,kind:'herb',sc:1.0},
+ {id:'han_bang_thao',  el:'thuy', tier:3,kind:'herb',sc:1.0},
+ {id:'thuy_linh_thach', el:'thuy', tier:2,kind:'ore',sc:1.2},
+ {id:'hoa_lien',       el:'hoa', tier:1,kind:'herb',sc:1.0},
+ {id:'hoa_linh_chi',   el:'hoa', tier:2,kind:'herb',sc:1.0},
+ {id:'huyet_linh_thao', el:'hoa', tier:3,kind:'herb',sc:1.0},
+ {id:'hoa_tinh_thach', el:'hoa', tier:2,kind:'ore',sc:1.2},
+ {id:'hoang_tinh_thao', el:'tho', tier:1,kind:'herb',sc:1.0},
+ {id:'dia_tam_thao',   el:'tho', tier:2,kind:'herb',sc:1.0},
+ {id:'tho_linh_chi',   el:'tho', tier:3,kind:'herb',sc:1.0},
+ {id:'hoang_tho_thach', el:'tho', tier:2,kind:'ore',sc:1.2}
 ];
 var HITS={1:3,2:4,3:5}, PTS={1:5,2:15,3:40}, LS={1:1,2:3,3:8}, NEED=100;
 var MISC={'Thủy Long Châu':{dec:20},'lt':{dec:0},'dp.tukhi':{dec:0,keep:1},'dan.tukhi':{dec:10}};
@@ -36,7 +57,8 @@ var BASE={def:2};                                       /* phòng thủ gốc (c
 /* ---- TU VI (Luyện Khí 1-10) ---- */
 var REALM={max:10,base:100,mul:1.2,rate:.2};  /* tu vi cần để qua tầng n = base*2^(n-1); mỗi tầng nhân ×mul máu & sát thương; tu luyện thường rate/giây */
 var DAN={'dan.tukhi':{qi:100}};                          /* đan -> tu vi cộng thêm */
-var RECIPES={'dp.tukhi':{out:'dan.tukhi',ing:[['nl.thao_duoc',3],['lt',1]]}};  /* đan phương: không mất khi dùng */
+var RECIPES={'dp.tukhi':{out:'dan.tukhi',ing:[['@herb1',3],['lt',1]]}};   /* '@herb1' = thảo dược bậc 1 bất kỳ */
+var AFF=[['moc','thuy'],['hoa','tho','kim'],['kim','tho','hoa']];   /* hệ ưa thích theo địa hình: cỏ(0) · cát(1) · đá(2) */  /* đan phương: không mất khi dùng */
 var NAMES={ /* vi, zh-Hant, zh-Hans */
  cay_coi:['Linh Mộc','靈木','灵木'], cay_cao:['Đào Hoa Mộc','桃花木','桃花木'], tre:['Linh Trúc','靈竹','灵竹'],
  thao_duoc:['Linh Sâm','靈參','灵参'], da:['Thanh Ngọc Thạch','青玉石','青玉石'],
@@ -44,7 +66,27 @@ var NAMES={ /* vi, zh-Hant, zh-Hans */
  hoa_linh:['Hỏa Linh Hoa','火靈花','火灵花'], nam_linh_chi:['Xích Linh Chi','赤靈芝','赤灵芝'],
  quang_kim:['Kim Tinh Quặng','金精礦','金精矿'], thao_quy:['Linh Liên','靈蓮','灵莲'],
  thuoc_hiem:['U Tử Thảo','幽紫草','幽紫草'], linh_thach:['Tử Linh Thạch','紫靈石','紫灵石'],
- da_linh:['Địa Linh Thạch','地靈石','地灵石']
+ da_linh:['Địa Linh Thạch','地靈石','地灵石'],
+ kim_ngan_hoa:['Kim Ngân Hoa','金銀花','金银花'],
+ bach_kim_thao:['Bạch Kim Thảo','白金草','白金草'],
+ huyen_thiet_thao:['Huyền Thiết Thảo','玄鐵草','玄铁草'],
+ tinh_kim_thach:['Tinh Kim Thạch','精金石','精金石'],
+ thanh_tam_thao:['Thanh Tâm Thảo','清心草','清心草'],
+ ngoc_linh_thao:['Ngọc Linh Thảo','玉靈草','玉灵草'],
+ cuu_diep_linh_chi:['Cửu Diệp Linh Chi','九葉靈芝','九叶灵芝'],
+ thanh_linh_moc:['Thanh Linh Mộc','青靈木','青灵木'],
+ tuyet_lien:['Tuyết Liên','雪蓮','雪莲'],
+ thuy_tinh_thao:['Thủy Tinh Thảo','水晶草','水晶草'],
+ han_bang_thao:['Hàn Băng Thảo','寒冰草','寒冰草'],
+ thuy_linh_thach:['Thủy Linh Thạch','水靈石','水灵石'],
+ hoa_lien:['Hỏa Liên','火蓮','火莲'],
+ hoa_linh_chi:['Hỏa Linh Chi','火靈芝','火灵芝'],
+ huyet_linh_thao:['Huyết Linh Thảo','血靈草','血灵草'],
+ hoa_tinh_thach:['Hỏa Tinh Thạch','火精石','火精石'],
+ hoang_tinh_thao:['Hoàng Tinh Thảo','黃精草','黄精草'],
+ dia_tam_thao:['Địa Tâm Thảo','地心草','地心草'],
+ tho_linh_chi:['Thổ Linh Chi','土靈芝','土灵芝'],
+ hoang_tho_thach:['Hoàng Thổ Thạch','黃土石','黄土石']
 };
 var LG=['vi','zh-Hant','zh-Hans'];
 var byItem={},byId={},i;
@@ -103,11 +145,12 @@ var S=[ /* chuỗi giao diện mới: [vi, zh-Hant, zh-Hans] */
  ['toast.dan.full','Tu vi tầng này đã đầy — hãy đột phá trước','此層修為已滿——請先突破','此层修为已满——请先突破'],
  ['toast.dan.max','Luyện Khí đã viên mãn, đan này không còn tác dụng','練氣已圓滿，此丹無效','练气已圆满，此丹无效'],
  ['toast.dan.asleep','Cần thức tỉnh Linh Căn trước','需先覺醒靈根','需先觉醒灵根'],
+ ['alc.herb1','Thảo dược bậc 1 (loại nào cũng được)','一階草藥（任意種類）','一阶草药（任意种类）'],
  ['alc.title','Luyện đan','煉丹','炼丹'],['alc.have','có {n}','擁有 {n}','拥有 {n}'],['alc.make','Luyện đan','煉製','炼制'],['alc.makeall','Luyện tối đa ({n})','盡量煉製（{n}）','尽量炼制（{n}）'],
  ['alc.out','Thành phẩm: {name} ({eff})','成品：{name}（{eff}）','成品：{name}（{eff}）'],['alc.keep','Đan phương không mất sau khi dùng.','丹方不會消耗。','丹方不会消耗。'],
  ['toast.alc','Luyện thành {name} ×{n}','煉成{name} ×{n}','炼成{name} ×{n}'],['toast.alc.no','Thiếu nguyên liệu','材料不足','材料不足'],
  ['item.dp.tukhi','Đan Phương: Tụ Khí Đan','丹方：聚氣丹','丹方：聚气丹'],
- ['itemdesc.dp.tukhi','Công thức luyện Tụ Khí Đan (3 Linh Sâm + 1 Linh Thạch). Bấm Sử dụng để mở lò luyện. Không mất sau khi dùng.','聚氣丹的煉製丹方（3 靈參 + 1 靈石）。按「使用」開啟丹爐。使用後不會消失。','聚气丹的炼制丹方（3 灵参 + 1 灵石）。按「使用」开启丹炉。使用后不会消失。'],
+ ['itemdesc.dp.tukhi','Công thức luyện Tụ Khí Đan (3 thảo dược bậc 1 bất kỳ + 1 Linh Thạch). Bấm Sử dụng để mở lò luyện. Không mất sau khi dùng.','聚氣丹的煉製丹方（任意 3 株一階草藥 + 1 靈石）。按「使用」開啟丹爐。使用後不會消失。','聚气丹的炼制丹方（任意 3 株一阶草药 + 1 灵石）。按「使用」开启丹炉。使用后不会消失。'],
  ['item.dan.tukhi','Tụ Khí Đan','聚氣丹','聚气丹'],
  ['itemdesc.dan.tukhi','Đan dược cơ bản của Luyện Khí kỳ. Sử dụng: +100 tu vi. Rã: 10 Linh Thạch.','練氣期基礎丹藥。使用：修為 +100。分解：靈石 10。','练气期基础丹药。使用：修为 +100。分解：灵石 10。'],
  ['toast.bagfull','Túi đã đầy — vứt, rã hoặc dùng bớt vật phẩm','背包已滿——請丟棄、分解或使用一些物品','背包已满——请丢弃、分解或使用一些物品'],
@@ -175,5 +218,5 @@ EL.forEach(function(e){for(var t=1;t<=PT;t++){var id=pearlId(e.id,t);
   }}});
 MONS.forEach(function(m){for(var k=0;k<3;k++)add[LG[k]]['monster.'+m.id]=m.n[k];});
 for(var k=0;k<3;k++)I18N.add(LG[k],add[LG[k]]);
-window.TTData={EL:EL,RES:RES,byItem:byItem,byId:byId,PEARL:PEARL,PCAP:PCAP,PFUSE:PFUSE,PT:PT,pearlId:pearlId,byPearl:byPearl,MONS:MONS,REALM:REALM,BAG:BAG,BASE:BASE,DAN:DAN,RECIPES:RECIPES,NEED:NEED,HITS:HITS,PTS:PTS,RESPAWN:300000,misc:MISC};
+window.TTData={EL:EL,RES:RES,byItem:byItem,byId:byId,PEARL:PEARL,PCAP:PCAP,PFUSE:PFUSE,PT:PT,pearlId:pearlId,byPearl:byPearl,MONS:MONS,REALM:REALM,BAG:BAG,AFF:AFF,BASE:BASE,DAN:DAN,RECIPES:RECIPES,NEED:NEED,HITS:HITS,PTS:PTS,RESPAWN:300000,misc:MISC};
 })();

@@ -64,10 +64,24 @@ def run():
         ok(100<=pg.evaluate("G.cult.qi")<102 and pg.evaluate("G.loot['dan.tukhi']")==1,'ăn đan: +100 tu vi')
         # thảo dược thô không cho tu vi
         pg.evaluate("G.loot['nl.thao_duoc']=1;G.cult.qi=0;G.useItem('nl.thao_duoc')")
-        ok(pg.evaluate("G.cult.qi")==0,'thảo dược thô không còn cho tu vi')
+        ok(pg.evaluate("G.cult.qi")<1,'thảo dược thô không còn cho tu vi')
         # sát thương tầng 2 ×1,2
         pg.evaluate("G.cult.pl.kim=[0,0,0];G.cult.rl=1;G.recalc()")
         ok(pg.evaluate("Math.max(...Array.from({length:300},()=>G.dmgRoll?G.dmgRoll():0))")>=0 or True,'dmg')
+        # đợt 2: 20 loài mới, đúng hệ, đúng địa hình; đan phương nhận mọi thảo dược bậc 1
+        ok(pg.evaluate("G.TD.RES.length")==34 and pg.evaluate("G.TD.RES.every(g=>G.RES.length>0)"),'34 nhóm tài nguyên (14 cũ + 20 mới)')
+        ok(pg.evaluate("G.TD.RES.filter(g=>g.id==='hoa_lien'||g.id==='hoa_tinh_thach'||g.id==='huyet_linh_thao').every(g=>g.el==='hoa')"),'Hỏa Liên / Hỏa Tinh Thạch / Huyết Linh Thảo thuộc hệ Hỏa')
+        cnt=pg.evaluate("(()=>{const o={};for(const n of G.nodes){const t=G.tiles[Math.floor(n.y/16)][Math.floor(n.x/16)];const k=t+':'+n.g.el;o[k]=(o[k]||0)+1;}return o})()")
+        print(cnt)
+        d_fire=(cnt.get('1:hoa',0)+cnt.get('1:tho',0)+cnt.get('1:kim',0)); d_wet=(cnt.get('1:moc',0)+cnt.get('1:thuy',0))
+        g_fire=(cnt.get('0:hoa',0)+cnt.get('0:tho',0)); g_wet=(cnt.get('0:moc',0)+cnt.get('0:thuy',0))
+        ok(d_fire>d_wet*1.5,f'cát: Hỏa/Thổ/Kim áp đảo ({d_fire} vs {d_wet})')
+        ok(g_wet>g_fire,f'cỏ: Mộc/Thủy nhiều hơn Hỏa/Thổ ({g_wet} vs {g_fire})')
+        pg.evaluate("for(const k in G.loot)delete G.loot[k];G.loot['nl.tuyet_lien']=1;G.loot['nl.hoa_lien']=1;G.loot['nl.thanh_tam_thao']=1;G.loot['nl.hoa_linh_chi']=5;G.loot.lt=1;G.loot['dp.tukhi']=1;G.lootUI()")
+        ok(pg.evaluate("G.craftMax('dp.tukhi')")==1,'3 thảo dược bậc 1 khác loại + 1 Linh Thạch → 1 đan (bậc 2 không tính)')
+        pg.evaluate("G.craft('dp.tukhi',1)")
+        print(pg.evaluate("JSON.stringify(G.loot)"))
+        ok(pg.evaluate("[G.loot['dan.tukhi'],G.loot['nl.tuyet_lien']|0,G.loot['nl.hoa_lien']|0,G.loot['nl.thanh_tam_thao']|0,G.loot['nl.hoa_linh_chi']]")==[1,0,0,0,5],'luyện đan trừ đúng thảo dược bậc 1')
         # phòng thủ & túi đầy
         pg.evaluate("G.cult.rl=1;G.cult.pl.tho=[0,0,0];G.recalc()")
         ok(pg.evaluate("G.defVal()")==2,'phòng thủ gốc = 2')

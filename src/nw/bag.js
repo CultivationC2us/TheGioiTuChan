@@ -64,7 +64,9 @@ css.textContent=
 '#bagStage{position:relative;height:min(46vh,380px);min-height:260px;border-radius:14px;overflow:hidden;background:radial-gradient(ellipse at 50% 45%,#2a1a5c 0%,#120a2e 55%,#05030f 100%);border:1px solid #3c2a66}'+
 '#bagStage canvas{position:absolute;inset:0;width:100%;height:100%}'+
 '#bagStage .empty{position:absolute;left:0;right:0;top:46%;text-align:center;color:#8f7fbd;font-size:13px;line-height:1.6;padding:0 20px}'+
-'#bag .it{position:absolute;width:64px;margin:-32px 0 0 -32px;text-align:center;animation:bagfloat 3.4s ease-in-out infinite;cursor:pointer}'+
+'#bagSc{position:absolute;inset:0;overflow-y:auto;-webkit-overflow-scrolling:touch}'+
+'#bagFl{display:flex;flex-wrap:wrap;justify-content:center;align-content:flex-start;gap:18px 2px;padding:18px 6px 28px;min-height:100%;box-sizing:border-box}'+
+'#bag .it{position:relative;width:78px;text-align:center;animation:bagfloat 3.4s ease-in-out infinite;cursor:pointer}'+
 '#bag .it .orb{width:46px;height:46px;margin:0 auto;border-radius:50%;position:relative}'+
 '#bag .it .orb i{position:absolute;left:24%;top:18%;width:22%;height:22%;border-radius:50%;background:#fff;opacity:.85}'+
 '#bag .it .n{position:absolute;right:2px;top:-3px;min-width:17px;height:17px;border-radius:9px;background:#ffcf5a;color:#2a1530;font-size:10px;font-weight:800;line-height:17px;text-align:center;padding:0 3px;box-sizing:border-box}'+
@@ -114,7 +116,7 @@ var bag=document.createElement('div');bag.id='bag';
 bag.innerHTML=
 '<div class="box"><div class="hd"><span id="bagIc"></span><h2 data-i18n="bag.title"></h2><button id="bagX" type="button" data-i18n="bag.close"></button></div>'+
 '<div class="tabs"><button type="button" id="tabT" class="on" data-i18n="bag.tab.in"></button><button type="button" id="tabR" data-i18n="bag.tab.root"></button><button type="button" id="tabS" data-i18n="bag.tab.stats"></button></div>'+
-'<div id="bagV"><div id="bagStage"><canvas id="bagCv"></canvas><div class="empty" id="bagEmpty" data-i18n-html="bag.empty"></div></div>'+
+'<div id="bagV"><div id="bagStage"><canvas id="bagCv"></canvas><div id="bagSc"><div id="bagFl"></div></div><div class="empty" id="bagEmpty" data-i18n-html="bag.empty"></div></div>'+
 '<div id="bagInfo"></div><div id="bagCap"></div></div>'+
 '<div id="bagR" style="display:none"></div><div id="bagS" style="display:none"></div></div>';
 document.body.appendChild(bag);
@@ -131,7 +133,7 @@ function openAlc(rid){alcR=rid;alc.style.display='flex';renderAlc();}
 function renderAlc(){
   var r=G.TD.RECIPES[alcR];if(!r)return;var l=G.loot,mx=G.craftMax?G.craftMax(alcR):0,h='';
   $('alcT').textContent=I18N.itemName(alcR)+' · '+T('alc.title');
-  r.ing.forEach(function(g){var have=l[g[0]]|0;h+='<div class="row" style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #2a1f4d;font-size:13px"><span>'+esc(I18N.itemName(g[0]))+' ×'+g[1]+'</span><b style="color:'+(have>=g[1]?'#9bf0a8':'#ff9b8a')+'">'+esc(T('alc.have',{n:have}))+'</b></div>';});
+  r.ing.forEach(function(g){var have=G.ingHave(g[0]);h+='<div class="row" style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #2a1f4d;font-size:13px"><span>'+esc(g[0]==='@herb1'?T('alc.herb1'):I18N.itemName(g[0]))+' ×'+g[1]+'</span><b style="color:'+(have>=g[1]?'#9bf0a8':'#ff9b8a')+'">'+esc(T('alc.have',{n:have}))+'</b></div>';});
   h+='<div style="margin:9px 0;font-size:12.5px;color:#cbbbee">'+esc(T('alc.out',{name:I18N.itemName(r.out),eff:'+'+G.TD.DAN[r.out].qi+' '+T('realm.exp')}))+'<br>'+esc(T('alc.keep'))+'</div>'+
    '<div style="display:flex;gap:6px"><button type="button" id="alcX" style="flex:1">'+esc(T('bag.close'))+'</button><button type="button" id="alcM" style="flex:1.2;background:#6b3fb4;border-color:#c58bf0"'+(mx>0?'':' disabled')+'>'+esc(T('alc.make'))+'</button><button type="button" id="alcA" style="flex:1.4"'+(mx>1?'':' disabled')+'>'+esc(T('alc.makeall',{n:mx}))+'</button></div>';
   $('alcB').innerHTML=h;
@@ -157,17 +159,17 @@ function renderStage(){
   $('bagEmpty').style.display=k.length?'none':'block';
   $('bagCap').textContent=T('bag.cap2',{n:G.bagUsed(),cap:G.BAG().cap});
   if(sig===lastKeys)return;lastKeys=sig;
-  var old=st.querySelectorAll('.it');for(i=0;i<old.length;i++)st.removeChild(old[i]);
+  var fl=$('bagFl');fl.innerHTML='';
   k.forEach(function(n,i){
     var it=ITEMS[n]||DEF,rs=G.TD&&G.TD.byItem[n],pb=G.TD&&G.TD.byPearl[n],p=pos(i,k.length),e=document.createElement('div');
     if(pb){var pp=G.TD.PEARL[pb.el];it={col:pp.col,glow:pp.glow,tier:pb.tier};}
     e.className='it'+(sel===n?' sel':'');e.dataset.n=n;
-    e.style.left=p[0]+'%';e.style.top=p[1]+'%';e.style.animationDelay=(-i*0.7)+'s';
+    e.style.animationDelay=(-i*0.7)+'s';
     if(rs){var ec=elOf(rs.el).c;e.innerHTML='<div class="orb ic" style="filter:drop-shadow(0 0 5px '+ec+') drop-shadow(0 0 12px '+ec+'99)">'+(l[n]>1?'<span class="n">'+l[n]+'</span>':'')+'</div><div class="nm">'+esc(I18N.itemName(n))+'</div>';
       var cc=G.iconCanvas(n,2);if(cc){cc.style.cssText='position:static;display:block;margin:0 auto;max-width:56px;height:auto;image-rendering:pixelated';e.firstChild.insertBefore(cc,e.firstChild.firstChild);}}
     else e.innerHTML='<div class="orb" style="background:radial-gradient(circle at 35% 30%,#fff,'+it.col+' 38%,'+it.glow+');box-shadow:0 0 14px '+it.glow+',0 0 30px '+it.glow+'66'+(it.tier===2?',inset 0 0 0 3px #ffe58f':it.tier===3?',inset 0 0 0 2px #fff,inset 0 0 0 5px #ffd25a,0 0 22px #ffd25a':'')+(it.tier===3?';width:54px;height:54px':'')+'"><i></i>'+(l[n]>1?'<span class="n">'+l[n]+'</span>':'')+'</div><div class="nm">'+esc(I18N.itemName(n))+'</div>';
     e.onclick=function(){sel=n;showInfo();var all=st.querySelectorAll('.it');for(var j=0;j<all.length;j++)all[j].className='it'+(all[j].dataset.n===sel?' sel':'');};
-    st.appendChild(e);
+    fl.appendChild(e);
   });
   if(sel&&!l[sel])sel='';
   showInfo();

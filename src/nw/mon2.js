@@ -36,11 +36,14 @@ function eatDan(n){
   if(cult.qi>=realmNeed(cult.rl)){toast(T('toast.dan.full'));return false;}
   lootDec(n);cult.qi+=d.qi;lootUI();toast(T('toast.dan',{name:I18N.itemName(n),n:d.qi}));return true;
 }
-function craftMax(rid){const r=TD.RECIPES[rid];if(!r)return 0;return Math.min(...r.ing.map(([k,q])=>Math.floor((loot[k]|0)/q)));}
+const ingKeys=k=>k==='@herb1'?TD.RES.filter(g=>g.kind==='herb'&&g.tier===1).map(g=>g.item):[k];
+const ingHave=k=>ingKeys(k).reduce((a,x)=>a+(loot[x]|0),0);
+function ingTake(k,q){for(const x of ingKeys(k).sort((a,b)=>(loot[b]|0)-(loot[a]|0))){const t=Math.min(q,loot[x]|0);if(t>0){loot[x]-=t;q-=t;if(loot[x]<=0)delete loot[x];}if(q<=0)break;}}
+function craftMax(rid){const r=TD.RECIPES[rid];if(!r)return 0;return Math.min(...r.ing.map(([k,q])=>Math.floor(ingHave(k)/q)));}
 function craft(rid,n){
   const r=TD.RECIPES[rid];if(!r||!(loot[rid]>0))return 0;n=Math.min(n||1,craftMax(rid));
   if(n<1){toast(T('toast.alc.no'));return 0;}
-  r.ing.forEach(([k,q])=>{loot[k]-=q*n;if(loot[k]<=0)delete loot[k];});
+  r.ing.forEach(([k,q])=>ingTake(k,q*n));
   loot[r.out]=(loot[r.out]|0)+n;lootUI();toast(T('toast.alc',{name:I18N.itemName(r.out),n}));return n;
 }
 

@@ -136,6 +136,7 @@ function cellDel(n){const a=nodeCell.get(ckey(n));if(a){const i=a.indexOf(n);if(
     const t0=tiles[ty][tx],ro=hash(cx+51,cy+23),kind=(t0===R?ro<.9:t0===D?ro<.45:ro<.12)?'ore':(ro<.5?'tree':'herb');
     let pool=byKT[kind+tier];if(!pool)pool=byKT[(kind==='ore'?'herb':kind)+tier];
     if(!pool)continue;
+    {const af=TD.AFF[t0],pf=af&&pool.filter(x=>af.includes(x.el));if(pf&&pf.length&&hash(cx+13,cy+61)<.85)pool=pf;}   /* Hỏa/Thổ/Kim ưa cát & đá; Mộc/Thủy ưa cỏ */
     const g=pool[Math.floor(hash(cx+71,cy+3)*pool.length)%pool.length];
     const n={g,x:tx*TILE+4+hash(cx,cy+41)*8,y:ty*TILE+13+hash(cx+9,cy)*3,h:0,gone:false,shk:-9999};
     nodes.push(n);cellAdd(n);
@@ -148,6 +149,7 @@ function randomSpot(g){ /* chỗ mới ngẫu nhiên cho nguồn vừa bị khai
     const tx=2+Math.floor(Math.random()*(MW-4)),ty=2+Math.floor(Math.random()*(MH-4)),t0=tiles[ty][tx];
     if(t0!==G&&t0!==D&&t0!==R)continue;
     if(g.kind==='ore'?(t0===G&&Math.random()>.12):(t0===R&&Math.random()>.2))continue;
+    {const af=TD.AFF[t0];if(af&&!af.includes(g.el)&&Math.random()>.15)continue;}
     let bad=false;for(let a=-1;a<=1&&!bad;a++)for(let b=-1;b<=1;b++){const q=tiles[ty+b][tx+a];if(q===W||q===S||q===B){bad=true;break;}}
     if(bad)continue;
     if(Math.hypot(tx-SPAWN.x,ty-SPAWN.y)<minD)continue;
@@ -484,7 +486,7 @@ function draw(){
 let last=performance.now();
 function loop(n){const dt=Math.min(.05,(n-last)/1000);last=n;if(window.__pause){requestAnimationFrame(loop);return;}try{update(dt);draw();}catch(e){window.dispatchEvent(new ErrorEvent('error',{message:e.message,lineno:0}));return;}requestAnimationFrame(loop);}
 requestAnimationFrame(loop);
-window.G={P,M,dog,fx:()=>fxs,drops,update,draw,tiles,cam,now,attack,setSt,mHit,DR,loot,SPAWN,LAKE,HOME,toast,keys,joy,lootUI,stats,cult,nodes,breakthrough,craft,bagUsed,bagFree,itemSize,defVal,BAG:()=>TD.BAG,craftMax,realmNeed,realmMul,qiRate,respawnQ,S:STT,recalc,pearlInfo,swallow,fuse,mons2,MD,petObjs,PETS,addPet,setPets,tameRoll,AUTO,setAuto,monHit,fx2,projs,setTameP:v=>{TAME_P=v;},useItem,decompose,dropItem,itemInfo,RES:TD.RES,TD,RMETA,harvest,refineEl,awaken,canAwake,iconCanvas,nodesNear};
+window.G={P,M,dog,fx:()=>fxs,drops,update,draw,tiles,cam,now,attack,setSt,mHit,DR,loot,SPAWN,LAKE,HOME,toast,keys,joy,lootUI,stats,cult,nodes,breakthrough,craft,ingHave,bagUsed,bagFree,itemSize,defVal,BAG:()=>TD.BAG,craftMax,realmNeed,realmMul,qiRate,respawnQ,S:STT,recalc,pearlInfo,swallow,fuse,mons2,MD,petObjs,PETS,addPet,setPets,tameRoll,AUTO,setAuto,monHit,fx2,projs,setTameP:v=>{TAME_P=v;},useItem,decompose,dropItem,itemInfo,RES:TD.RES,TD,RMETA,harvest,refineEl,awaken,canAwake,iconCanvas,nodesNear};
 toast(T('toast.welcome'));
 })();
 </script>
