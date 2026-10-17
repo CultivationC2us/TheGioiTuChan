@@ -222,7 +222,7 @@ function fmtTime(s){
   s=Math.round(s);var h=Math.floor(s/3600),m=Math.floor(s%3600/60),r=s%60,sp=cur==='vi'?' ':'';
   return (h?t('t.h',{n:h})+sp:'')+t('t.m',{n:m})+sp+t('t.s',{n:r});
 }
-window.I18N={LANGS:LANGS,t:t,has:has,apply:apply,set:set,fmtTime:fmtTime,on:function(f){subs.push(f);},get lang(){return cur;},
+window.I18N={add:function(c,o){for(var k in o)D[c][k]=o[k];},LANGS:LANGS,t:t,has:has,apply:apply,set:set,fmtTime:fmtTime,on:function(f){subs.push(f);},get lang(){return cur;},
   itemName:function(id){var k='item.'+id;return has(k)?t(k):id;},
   itemDesc:function(id){var k='itemdesc.'+id;return has(k)?t(k):t('itemdesc.default');}};
 cur=guess();

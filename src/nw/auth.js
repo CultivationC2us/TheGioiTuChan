@@ -92,7 +92,7 @@ function ensure(){
 /* ---------- dữ liệu save ---------- */
 function collect(){
   var P=G.P,l={};for(var k in G.loot)l[k]=G.loot[k];
-  var st=G.stats;return{v:SAVE_V,x:+P.x.toFixed(1),y:+P.y.toFixed(1),f:P.f,hp:Math.round(P.hp),loot:l,stats:{kills:st.kills|0,steps:Math.round(st.steps),sec:Math.round(st.sec)},set:{lang:I18N.lang}};
+  var st=G.stats;return{v:SAVE_V,x:+P.x.toFixed(1),y:+P.y.toFixed(1),f:P.f,hp:Math.round(P.hp),loot:l,stats:{kills:st.kills|0,steps:Math.round(st.steps),sec:Math.round(st.sec)},set:{lang:I18N.lang},cul:{r:{kim:G.cult.r.kim|0,moc:G.cult.r.moc|0,thuy:G.cult.r.thuy|0,hoa:G.cult.r.hoa|0,tho:G.cult.r.tho|0},aw:G.cult.aw?1:0,qi:+G.cult.qi.toFixed(1)}};
 }
 function migrate(d){/* d.v cũ → mới. Hiện mới có v=1 nên chưa cần. */return d;}
 function apply(d){
@@ -103,6 +103,7 @@ function apply(d){
   P.hp=(isFinite(d.hp)&&d.hp>0)?Math.min(P.maxHp,d.hp):P.maxHp;
   if(d.set&&d.set.lang)I18N.set(d.set.lang,true),markLang();
   if(d.stats&&typeof d.stats==='object'){var st=G.stats;st.kills=+d.stats.kills||0;st.steps=+d.stats.steps||0;st.sec=+d.stats.sec||0;}
+  {var c=G.cult,u=(d.cul&&typeof d.cul==='object')?d.cul:{},ur=u.r||{};['kim','moc','thuy','hoa','tho'].forEach(function(e){c.r[e]=Math.max(0,Math.min(100,+ur[e]||0));});c.aw=u.aw===1||u.aw===true;c.qi=Math.max(0,+u.qi||0);}
   if(d.loot&&typeof d.loot==='object'){for(var k in G.loot)delete G.loot[k];for(var n in d.loot){var c=+d.loot[n];if(c>0)G.loot[n]=c;}if(G.lootUI)G.lootUI();}
 }
 function localGet(uid){var t=ls('tt_save_'+uid);try{return t?JSON.parse(t):null;}catch(e){return null;}}

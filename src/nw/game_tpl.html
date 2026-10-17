@@ -24,6 +24,7 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block;image-renderi
 <div id="loot"></div><div id="toast"></div><div id="hint" data-i18n="hint">Kéo màn hình để đi · nút ĐÁNH</div>
 <div id="joy"><b></b></div><div id="atk" data-i18n="atk">ĐÁNH</div>
 <script>{{I18N_JS}}</script>
+<script>{{RES_JS}}</script>
 <script>
 /* ============================================================
    TU TIÊN · THẾ GIỚI MỚI — bản dựng sạch
@@ -34,13 +35,14 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block;image-renderi
 I18N.apply();const T=(k,p)=>I18N.t(k,p);
 window.addEventListener('error',function(e){try{var p=document.createElement('pre');p.style.cssText='position:fixed;left:0;top:0;right:0;z-index:99999;background:#400;color:#fff;font:11px monospace;padding:6px;margin:0;white-space:pre-wrap';p.textContent='LỖI: '+e.message+' @'+e.lineno;document.body.appendChild(p);}catch(_){}});
 const PX=0.5,DPX=0.8333,TILE=16,MW=200,MH=200,ZOOM=1.0;
-const IMG={};let ready=0;const NEED=6;
+const IMG={};let ready=0;const NEED=7;
 function load(k,src){const i=new Image();i.onload=()=>{ready++;};i.src=src;IMG[k]=i;}
 load('player','data:image/webp;base64,{{PLAYER}}');
 load('dragon','data:image/webp;base64,{{DRAGON}}');
 load('beamA','data:image/webp;base64,{{BEAMA}}');
 load('beamB','data:image/webp;base64,{{BEAMB}}');
 load('dog','data:image/webp;base64,{{DOG}}');
+load('res','data:image/webp;base64,{{RESATLAS}}');
 const TILEIMG={grass:'{{T_GRASS}}',t4:'{{T_T4}}',t3:'{{T_T3}}',t2:'{{T_T2}}',t16:'{{T_T16}}',t5:'{{T_T5}}'};
 let tilesLoaded=0;for(const k in TILEIMG){const i=new Image();i.onload=()=>{tilesLoaded++;};i.src='data:image/webp;base64,'+TILEIMG[k];IMG['tile_'+k]=i;}
 ready++; // tile counter dùng riêng
@@ -110,6 +112,55 @@ const stats={kills:0,steps:0,sec:0};
 const keys={};let joy={on:false,id:null,ox:0,oy:0,dx:0,dy:0};
 function toast(s){const e=document.getElementById('toast');e.textContent=s;e.style.opacity=1;clearTimeout(toastT);toastT=setTimeout(()=>e.style.opacity=0,2400);}
 function lootUI(){const e=document.getElementById('loot');const k=Object.keys(loot);e.innerHTML=k.length?'Túi: '+k.map(n=>n+' ×'+loot[n]).join(', '):'';}
+
+/* ---------- TÀI NGUYÊN · NGŨ HÀNH · LINH CĂN ---------- */
+const TD=window.TTData,RMETA={{RESMETA}};
+const cult={r:{kim:0,moc:0,thuy:0,hoa:0,tho:0},aw:false,qi:0};
+const nodes=[],nodeCell=new Map();           /* node: {g,x,y,h,dead,shk}; chia ô 4x4 để tìm nhanh */
+(function placeRes(){
+  const byKT={};for(const g of TD.RES){(byKT[g.kind+g.tier]=byKT[g.kind+g.tier]||[]).push(g);}
+  const okT=(x,y)=>{const r=tiles[y];return r&&(r[x]===G||r[x]===D||r[x]===R);};
+  for(let cy=0;cy<MH/4;cy++)for(let cx=0;cx<MW/4;cx++){
+    if(hash(cx*7+1,cy*13+5)>.34)continue;
+    const tx=cx*4+Math.floor(hash(cx+3,cy+91)*4),ty=cy*4+Math.floor(hash(cx+17,cy+5)*4);
+    if(tx<2||ty<2||tx>=MW-2||ty>=MH-2||!okT(tx,ty))continue;
+    let bad=false;for(let a=-1;a<=1&&!bad;a++)for(let b=-1;b<=1;b++){const q=tiles[ty+b][tx+a];if(q===W||q===S||q===B){bad=true;break;}}
+    if(bad)continue;
+    const d=Math.hypot(tx-SPAWN.x,ty-SPAWN.y);if(d<9)continue;
+    const lx=(tx-LAKE.x)/(LAKE.rx+3),ly=(ty-LAKE.y)/(LAKE.ry+3);if(lx*lx+ly*ly<1)continue;
+    const rt=hash(cx+31,cy+7),w=d<35?[.88,.12]:d<70?[.45,.45]:[.2,.5];
+    const tier=rt<w[0]?1:(rt<w[0]+w[1]?2:3);
+    const t0=tiles[ty][tx],ro=hash(cx+51,cy+23),kind=(t0===R?ro<.9:t0===D?ro<.45:ro<.12)?'ore':(ro<.5?'tree':'herb');
+    let pool=byKT[kind+tier];if(!pool)pool=byKT[(kind==='ore'?'herb':kind)+tier];
+    if(!pool)continue;
+    const g=pool[Math.floor(hash(cx+71,cy+3)*pool.length)%pool.length];
+    const n={g,x:tx*TILE+4+hash(cx,cy+41)*8,y:ty*TILE+13+hash(cx+9,cy)*3,h:0,dead:0,shk:-9999};
+    nodes.push(n);const k=(n.x/TILE>>2)+','+(n.y/TILE>>2);let a=nodeCell.get(k);if(!a)nodeCell.set(k,a=[]);a.push(n);
+  }
+})();
+function nodesNear(x,y,rc){const out=[],cx=x/TILE>>2,cy=y/TILE>>2;for(let i=-rc;i<=rc;i++)for(let j=-rc;j<=rc;j++){const a=nodeCell.get((cx+i)+','+(cy+j));if(a)for(const n of a)out.push(n);}return out;}
+function nodeAlive(n,t){if(n.dead&&t-n.dead>TD.RESPAWN){n.dead=0;n.h=0;}return !n.dead;}
+function harvest(t){ /* trả về true nếu trúng một nguồn tài nguyên */
+  let best=null,bd=1e9;
+  for(const n of nodesNear(P.x,P.y,1)){if(!nodeAlive(n,t))continue;const dx=(n.x-P.x)*P.f,d=Math.hypot(n.x-P.x,n.y-6-(P.y-6));if(dx>-8&&d<34&&d<bd){best=n;bd=d;}}
+  if(!best)return false;
+  best.h++;best.shk=t;const g=best.g;
+  floaters.push({x:best.x,y:best.y-22,t0:t,s:best.h+'/'+g.hits,c:'#ffe58f'});
+  if(best.h>=g.hits){best.dead=t;const c=1+(Math.random()<.35?1:0);
+    for(let i=0;i<c;i++)drops.push({x:best.x+(i?10:-4)+(Math.random()-.5)*8,y:best.y-6,t0:t,n:g.item,ic:g.id});}
+  return true;
+}
+function refineEl(el){ /* nguyên liệu hệ el → điểm hệ el (tối đa NEED); trả về số điểm cộng */
+  let gain=0;
+  const list=TD.RES.filter(g=>g.el===el).sort((a,b)=>b.pts-a.pts);   /* dùng loại quý trước */
+  for(const g of list){while((loot[g.item]|0)>0&&cult.r[el]<TD.NEED){loot[g.item]--;if(!loot[g.item])delete loot[g.item];const add=Math.min(g.pts,TD.NEED-cult.r[el]);cult.r[el]+=add;gain+=add;}}
+  if(gain){lootUI();toast(T('toast.refine',{n:gain,el:T('el.'+el)}));}else toast(T('toast.refine0',{el:T('el.'+el)}));
+  return gain;
+}
+function canAwake(){return !cult.aw&&TD.EL.every(e=>cult.r[e.id]>=TD.NEED);}
+function awaken(){if(!canAwake())return false;cult.aw=true;toast(T('toast.awake'));return true;}
+function iconCanvas(item,scale){const g=TD.byItem[item];if(!g||!IMG.res||!IMG.res.complete)return null;const f=RMETA[g.id][3],c=document.createElement('canvas');
+  c.width=f[2]*scale;c.height=f[3]*scale;const x=c.getContext('2d');x.imageSmoothingEnabled=false;x.drawImage(IMG.res,f[0],f[1],f[2],f[3],0,0,c.width,c.height);c.style.imageRendering='pixelated';return c;}
 
 /* ---------- THỦY LONG ---------- */
 const DR={W:90,H:77,ax:49,ay:72,mouth:[79,45],idx:{{DRIDX}}};  /* quái vẽ theo lưới pixel gốc (1px = DPX đơn vị) */
@@ -236,8 +287,10 @@ function update(dt){
     P.inv=Math.max(0,P.inv-dt);
     // đòn đánh: chém tay không, trúng ở khung 5/8
     if(!P.hitDone&&t-P.atkT>=270){P.hitDone=true;
+      let hitM=false;
       if(mTargetable()&&M.st!=='die'){const cx=M.x,cy=M.y-18,dx=(cx-P.x)*P.f,dy=cy-(P.y-6);
-        if(dx>-10&&Math.hypot(cx-P.x,cy-(P.y-6))<54){mHit(7+Math.floor(Math.random()*6));}}
+        if(dx>-10&&Math.hypot(cx-P.x,cy-(P.y-6))<54){mHit(7+Math.floor(Math.random()*6));hitM=true;}}
+      if(!hitM)harvest(t);
 }
     if(!P.fxDone&&t-P.atkT>=140){P.fxDone=true;fxs.push({k:'slash',x:P.x,y:P.y,f:P.f,t0:t,dur:270});}
   }
@@ -246,8 +299,9 @@ function update(dt){
     if(d>14){const sp=Math.min(d*3.2,92)*dt;dog.x+=dx/d*sp;dog.y+=dy/d*sp;dog.rt=t;}
     dog.run=t-dog.rt<170;if(Math.abs(dx)>6)dog.f=dx>0?1:-1;if(d>260){dog.x=P.x;dog.y=P.y;}}
   mUpdate(dt);
+  if(cult.aw)cult.qi+=dt;   /* linh khí +1/giây, mọi lúc mọi nơi (kể cả khi chết) */
   // nhặt vật phẩm
-  for(let i=drops.length-1;i>=0;i--){const d=drops[i];if(t-d.t0>500&&Math.hypot(P.x-d.x,P.y-d.y)<16){loot[d.n]=(loot[d.n]||0)+1;drops.splice(i,1);lootUI();toast(T('toast.pick',{name:I18N.itemName(d.n)}));}}
+  for(let i=drops.length-1;i>=0;i--){const d=drops[i];if(t-d.t0>(d.ic?250:500)&&Math.hypot(P.x-d.x,P.y-d.y)<(d.ic?24:16)){loot[d.n]=(loot[d.n]||0)+1;drops.splice(i,1);lootUI();toast(T('toast.pick',{name:I18N.itemName(d.n)}));}}
   fxs=fxs.filter(f=>t-f.t0<f.dur);floaters=floaters.filter(f=>t-f.t0<900);
   cam.x+=(P.x-cam.x)*Math.min(1,dt*7);cam.y+=(P.y-18-cam.y)*Math.min(1,dt*7);
 }
@@ -354,7 +408,12 @@ function drawSlash(f,t){ // hiệu ứng chém tay không: vệt cung pixel qué
   ctx.globalAlpha=1-u;ctx.fillStyle='#fff';for(let i=0;i<5;i++){const a=a1+.15+i*.2,r=R+4+i*2;ctx.fillRect(Math.round(cx+Math.cos(a)*r),Math.round(cy+Math.sin(a)*r*.85),1.6,1.6);}
   ctx.restore();ctx.globalAlpha=1;
 }
-function drawDrops(t){for(const d of drops){const y=d.y-4+Math.sin(t/260)*2;const g=ctx.createRadialGradient(d.x,y,1,d.x,y,10);g.addColorStop(0,'rgba(160,230,255,.9)');g.addColorStop(1,'rgba(80,160,255,0)');
+function drawNode(n,t){const g=n.g,alive=nodeAlive(n,t);let fi=alive?0:2;
+  if(alive&&t-n.shk<240)fi=(Math.floor((t-n.shk)/60)%2)?1:0;
+  const f=RMETA[g.id][fi],sc=g.sc;ctx.drawImage(IMG.res,f[0],f[1],f[2],f[3],n.x+f[4]*sc,n.y+f[5]*sc,f[2]*sc,f[3]*sc);}
+function drawDrops(t){for(const d of drops){const y=d.y-4+Math.sin(t/260)*2;
+  if(d.ic){const f=RMETA[d.ic][3],sc=.8333,w=f[2]*sc,h=f[3]*sc;ctx.save();ctx.globalAlpha=.35;ctx.fillStyle='#000';ctx.beginPath();ctx.ellipse(d.x,d.y+5,w*.35,2,0,0,7);ctx.fill();ctx.restore();
+    ctx.drawImage(IMG.res,f[0],f[1],f[2],f[3],d.x-w/2,y-h+2,w,h);continue;}const g=ctx.createRadialGradient(d.x,y,1,d.x,y,10);g.addColorStop(0,'rgba(160,230,255,.9)');g.addColorStop(1,'rgba(80,160,255,0)');
   ctx.fillStyle=g;ctx.beginPath();ctx.arc(d.x,y,10,0,7);ctx.fill();ctx.fillStyle='#e8fbff';ctx.fillRect(d.x-2,y-2,4,4);ctx.fillStyle='#4aa8ff';ctx.fillRect(d.x-2,y+1,4,1);ctx.fillRect(d.x-2,y-2,1,4);}}
 function draw(){
   const t=now();ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle='#0b1620';ctx.fillRect(0,0,cv.width,cv.height);
@@ -366,7 +425,11 @@ function draw(){
   for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++)tileDeco(tiles[y][x],x,y,tm);
   drawWorldFx(t);drawDrops(t);
   // xếp theo y: quái, người, chó
-  const L=[{y:M.y,f:()=>drawMonster(t)},{y:P.y,f:()=>drawPlayer(t)},{y:dog.y,f:()=>drawDog(t)}].sort((a,b)=>a.y-b.y);
+  const L=[{y:M.y,f:()=>drawMonster(t)},{y:P.y,f:()=>drawPlayer(t)},{y:dog.y,f:()=>drawDog(t)}];
+  {const rcx=Math.ceil(hw/TILE/4)+1,rcy=Math.ceil(hh/TILE/4)+1,ccx=cam.x/TILE>>2,ccy=cam.y/TILE>>2;
+   for(let i=-rcx;i<=rcx;i++)for(let j=-rcy;j<=rcy;j++){const a=nodeCell.get((ccx+i)+','+(ccy+j));if(!a)continue;
+    for(const n of a)if(Math.abs(n.x-cam.x)<hw+30&&Math.abs(n.y-cam.y)<hh+30)L.push({y:n.y,f:()=>drawNode(n,t)});}}
+  L.sort((a,b)=>a.y-b.y);
   for(const o of L)o.f();
   for(const f of fxs)if(f.k==='slash')drawSlash(f,t);
   // sát thương bay
@@ -382,7 +445,7 @@ function draw(){
 let last=performance.now();
 function loop(n){const dt=Math.min(.05,(n-last)/1000);last=n;if(window.__pause){requestAnimationFrame(loop);return;}try{update(dt);draw();}catch(e){window.dispatchEvent(new ErrorEvent('error',{message:e.message,lineno:0}));return;}requestAnimationFrame(loop);}
 requestAnimationFrame(loop);
-window.G={P,M,dog,fx:()=>fxs,drops,update,draw,tiles,cam,now,attack,setSt,mHit,DR,loot,SPAWN,LAKE,HOME,toast,keys,joy,lootUI,stats};
+window.G={P,M,dog,fx:()=>fxs,drops,update,draw,tiles,cam,now,attack,setSt,mHit,DR,loot,SPAWN,LAKE,HOME,toast,keys,joy,lootUI,stats,cult,nodes,RES:TD.RES,TD,RMETA,harvest,refineEl,awaken,canAwake,iconCanvas,nodesNear};
 toast(T('toast.welcome'));
 })();
 </script>
