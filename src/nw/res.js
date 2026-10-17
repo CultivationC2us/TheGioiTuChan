@@ -80,6 +80,8 @@ var byWeapon={},ICO={'dp.tukhi':'s7','cg.vukhi':'s2','dan.tukhi':'o4'};
 WEAPONS.forEach(function(w){byWeapon[w.id]=w;ICO[w.id]=w.ico;MISC[w.id]={dec:WLS[w.tier]};BAG.sz[w.id]=3;});
 /* thú cưỡi: spd = nhân tốc độ khi chạy, fspd = khi bay (linh thú bay được, phàm thú chỉ chạy) */
 var MOUNTS=[{id:'mt.tuyet_van',el:'thuy',fly:true,spd:1.7,fspd:2.6,n:['Tuyết Vân Kỳ Lân','雪雲麒麟','雪云麒麟']}];
+var OUTFITS=[{id:'tb.tu_dien',el:'kim',def:12,n:['Tử Điện Chiến Giáp','紫電戰甲','紫电战甲']}];   /* bộ trang phục GPT #1 (outfit/) */
+var byOutfit={};OUTFITS.forEach(function(o){byOutfit[o.id]=o;MISC[o.id]={dec:30};BAG.sz[o.id]=3;});
 var byMount={};MOUNTS.forEach(function(m){byMount[m.id]=m;MISC[m.id]={dec:0,keep:1};BAG.sz[m.id]=4;});
 /* công thức chế vũ khí: 6/8/12 vật liệu cùng hệ (quặng hoặc gỗ) + Linh Thạch. '@mat:hệ:bậc tối thiểu' = vật liệu bất kỳ của hệ đó */
 var FORGE=WEAPONS.map(function(w){var t=w.tier;return {out:w.id,ing:[['@mat:'+w.el+':'+(t===1?1:2),t===1?6:t===2?8:12],['lt',t===1?2:t===2?5:15]]};});
@@ -119,7 +121,7 @@ for(i=0;i<RES.length;i++){var r=RES[i];r.item='nl.'+r.id;r.hits=HITS[r.tier];r.p
 RECIPES['cg.vukhi']={verb:'forge',list:FORGE};
 
 /* danh mục túi */
-function catOf(id){if(byItem[id])return byItem[id].kind==='herb'?'duoc':'vl';if(byPearl[id]||DAN[id])return 'dan';if(RECIPES[id])return 'pp';if(byWeapon[id])return 'vk';if(byMount[id])return 'mount';return 'vl';}
+function catOf(id){if(byItem[id])return byItem[id].kind==='herb'?'duoc':'vl';if(byPearl[id]||DAN[id])return 'dan';if(RECIPES[id])return 'pp';if(byWeapon[id])return 'vk';if(byOutfit[id])return 'tb';if(byMount[id])return 'mount';return 'vl';}
 
 /* ---- NGỌC (linh châu) rơi từ 5 quái ngũ hành: nuốt để tăng chỉ số vĩnh viễn ---- */
 var PCAP=10, PFUSE=10, PT=3;                 /* mỗi bậc nuốt tối đa 10; 10 viên bậc t -> 1 viên bậc t+1; 3 bậc */
@@ -178,6 +180,7 @@ var S=[ /* chuỗi giao diện mới: [vi, zh-Hant, zh-Hans] */
  ['ui.h1','Hạ yêu thú ngũ hành để thu nguyên liệu, rồi luyện hóa vào Linh Căn.','擊敗五行妖獸取得材料，再煉化入靈根。','击败五行妖兽取得材料，再炼化入灵根。'],
  ['ui.h2','Linh Căn đủ đầy mới thức tỉnh được; tu vi tăng dần theo thời gian.','靈根圓滿方可覺醒；修為隨時間增長。','灵根圆满方可觉醒；修为随时间增长。'],
  ['ui.h3','Đủ tu vi thì đột phá để lên tầng cảnh giới mới.','修為足夠即可突破，晉升新境界。','修为足够即可突破，晋升新境界。'],
+ ['toast.equip.o','Đã mặc {name}: +{def} phòng thủ','已穿上{name}：防禦 +{def}','已穿上{name}：防御 +{def}'],['of.stat','Trang phục trọn bộ · +{def} phòng thủ · hệ {el}','整套服裝 · 防禦 +{def} · {el}系','整套服装 · 防御 +{def} · {el}系'],
  ['cat.all','Tất cả','全部','全部'],
  ['cat.duoc','Linh dược','靈藥','灵药'],
  ['cat.vl','Vật liệu','材料','材料'],
@@ -316,6 +319,10 @@ WEAPONS.forEach(function(w){
       '{name}：{tier}，{el}系武器。裝備：每次攻擊傷害 +{atk}。以卷簡鍛造；分解：靈石 {ls}。','{name}：{tier}，{el}系武器。装备：每次攻击伤害 +{atk}。以卷简锻造；分解：灵石 {ls}。'][k]
       .replace(/\{name\}/g,w.n[k]).replace(/\{tier\}/g,WTIER[w.tier-1][k]).replace(/\{el\}/g,e.n[k]).replace(/\{atk\}/g,w.atk).replace(/\{ls\}/g,WLS[w.tier]);
   }});
+OUTFITS.forEach(function(o){var e=EL.filter(function(x){return x.id===o.el;})[0];
+  for(var k=0;k<3;k++){add[LG[k]]['item.'+o.id]=o.n[k];
+    add[LG[k]]['itemdesc.'+o.id]=['{name}: trang phục trọn bộ (mũ, giáp, giày), hệ {el}. Trang bị: +{def} phòng thủ. Gỡ ra là lộ lại nhân vật gốc; rã: 30 Linh Thạch.','{name}：整套服裝（盔、甲、靴），{el}系。裝備：防禦 +{def}。卸下即恢復原本角色；分解：靈石 30。','{name}：整套服装（盔、甲、靴），{el}系。装备：防御 +{def}。卸下即恢复原本角色；分解：灵石 30。'][k]
+      .replace(/\{name\}/g,o.n[k]).replace(/\{el\}/g,e.n[k]).replace(/\{def\}/g,o.def);}});
 MONS.forEach(function(m){for(var k=0;k<3;k++)add[LG[k]]['monster.'+m.id]=m.n[k];});
 MOUNTS.forEach(function(m){var e=EL.filter(function(x){return x.id===m.el;})[0];
   for(var k=0;k<3;k++){add[LG[k]]['item.'+m.id]=m.n[k];
@@ -324,5 +331,5 @@ MOUNTS.forEach(function(m){var e=EL.filter(function(x){return x.id===m.el;})[0];
       .replace(/\{name\}/g,m.n[k]).replace(/\{el\}/g,e.n[k]).replace(/\{run\}/g,String(m.spd).replace('.',k?'.':',')).replace(/\{fly\}/g,String(m.fspd).replace('.',k?'.':','));}});
 WTIER.forEach(function(t,i){for(var k=0;k<3;k++)add[LG[k]]['wtier.'+(i+1)]=t[k];});
 for(var k=0;k<3;k++)I18N.add(LG[k],add[LG[k]]);
-window.TTData={EL:EL,RES:RES,byItem:byItem,byId:byId,PEARL:PEARL,PCAP:PCAP,PFUSE:PFUSE,PT:PT,pearlId:pearlId,byPearl:byPearl,MONS:MONS,MOUNTS:MOUNTS,byMount:byMount,REALM:REALM,WEAPONS:WEAPONS,byWeapon:byWeapon,ICO:ICO,WTIER:WTIER,catOf:catOf,BAG:BAG,AFF:AFF,BASE:BASE,DAN:DAN,RECIPES:RECIPES,NEED:NEED,HITS:HITS,PTS:PTS,RESPAWN:300000,misc:MISC};
+window.TTData={EL:EL,RES:RES,byItem:byItem,byId:byId,PEARL:PEARL,PCAP:PCAP,PFUSE:PFUSE,PT:PT,pearlId:pearlId,byPearl:byPearl,MONS:MONS,MOUNTS:MOUNTS,byMount:byMount,OUTFITS:OUTFITS,byOutfit:byOutfit,REALM:REALM,WEAPONS:WEAPONS,byWeapon:byWeapon,ICO:ICO,WTIER:WTIER,catOf:catOf,BAG:BAG,AFF:AFF,BASE:BASE,DAN:DAN,RECIPES:RECIPES,NEED:NEED,HITS:HITS,PTS:PTS,RESPAWN:300000,misc:MISC};
 })();

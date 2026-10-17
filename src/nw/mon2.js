@@ -59,7 +59,7 @@ function recalc(){
   const mx=Math.round((100+STT.hp)*realmMul()),old=P.maxHp;P.maxHp=mx;P.hp=mx>old?Math.min(mx,P.hp+(mx-old)):Math.min(P.hp,mx);
 }
 /* ---------- DEF · TÚI CÓ DUNG TÍCH ---------- */
-const defVal=()=>Math.round(TD.BASE.def*realmMul());
+const defVal=()=>Math.round(TD.BASE.def*realmMul())+((cult.eq.o&&loot[cult.eq.o]>0&&TD.byOutfit[cult.eq.o])?TD.byOutfit[cult.eq.o].def:0);
 function itemSize(n){
   if(n==='lt')return 0;if(TD.BAG.sz[n]!=null)return TD.BAG.sz[n];
   const g=TD.byItem[n];if(g)return g.tier;const p=TD.byPearl[n];if(p)return [2,4,8][p.tier-1];
@@ -80,6 +80,7 @@ const GIFT_CODES={tuchan:()=>{
   loot['dp.tukhi']=Math.max(1,loot['dp.tukhi']|0);loot['cg.vukhi']=Math.max(1,loot['cg.vukhi']|0);
   TD.WEAPONS.forEach(w=>{loot[w.id]=Math.max(1,loot[w.id]|0);});
   TD.MOUNTS.forEach(w=>{loot[w.id]=Math.max(1,loot[w.id]|0);});
+  TD.OUTFITS.forEach(w=>{loot[w.id]=Math.max(1,loot[w.id]|0);});
   cult.bc=Math.min(5000,Math.max(cult.bc|0,bagUsed()-TD.BAG.cap+400));
 }};
 function redeem(code){
@@ -90,6 +91,8 @@ function redeem(code){
 /* ---------- VŨ KHÍ: trang bị / tháo, vẽ trên tay ---------- */
 const wAtk=()=>{const w=cult.eq.w&&TD.byWeapon[cult.eq.w];return w&&(loot[cult.eq.w]>0)?w.atk:0;};
 function equipToggle(id){
+  const o=TD.byOutfit[id];
+  if(o&&loot[id]>0){if(cult.eq.o===id){cult.eq.o=null;recalc();toast(T('toast.unequip',{name:I18N.itemName(id)}));return true;}cult.eq.o=id;recalc();toast(T('toast.equip.o',{name:I18N.itemName(id),def:o.def}));return true;}
   const w=TD.byWeapon[id];if(!w||!(loot[id]>0))return false;
   if(cult.eq.w===id){cult.eq.w=null;recalc();toast(T('toast.unequip',{name:I18N.itemName(id)}));return true;}
   cult.eq.w=id;recalc();toast(T('toast.equip',{name:I18N.itemName(id),atk:Math.round(w.atk*realmMul())}));return true;

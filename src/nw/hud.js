@@ -84,13 +84,14 @@ function act(k){
 }
 
 /* ----- chân dung: cắt đầu nhân vật từ sprite (khung 76x90, chân y=71, tâm x=34) ----- */
-var avDone=false;
+var avDone=false,avKey=null;
 function setImg(id,n){$(id).src='data:image/webp;base64,'+window.UIP[n];}
 setImg('hRg','av_ring');setImg('hFh','bar_hp');setImg('hFq','bar_qi');setImg('hPl','pill');setImg('hUpI','btn_up');
 function drawAv(){   /* từ vạch yên (hàng 43) trở lên, canh giữa một chút */
   var im=G.IMG&&G.IMG.player;if(!im||!im.complete||!im.naturalWidth){setTimeout(drawAv,200);return;}
   var c=$('hAv'),x=c.getContext('2d');x.imageSmoothingEnabled=false;x.clearRect(0,0,112,112);
-  x.drawImage(im,14,22,40,43,4,6,104,112);avDone=true;
+  if(G.OF&&G.OF.on()&&G.IMG.outfit.complete){var tmp=document.createElement('canvas');G.OF.portrait(tmp,6,8,19,58,67);x.imageSmoothingEnabled=true;x.drawImage(tmp,0,0,tmp.width,tmp.height,2,2,108,108);avDone=true;avKey=G.cult.eq.o;return;}
+  avKey=null;x.drawImage(im,14,22,40,43,4,6,104,112);avDone=true;
 }
 drawAv();
 $('hAvB').onclick=function(){window.TTBag&&TTBag.openTab('S');};
@@ -158,7 +159,7 @@ function tick(){
   else{var nd=G.realmNeed(C.rl);qb.style.width=Math.min(100,C.qi/nd*100)+'%';qt.textContent=T('hud.qi',{a:Math.floor(C.qi),b:nd});}
   $('hRl').textContent=C.aw?T('realm.n',{n:C.rl}):T('j.asleep');$('hLv').textContent=C.aw?C.rl:'–';
   $('hZn').textContent=zoneName();$('hCo').textContent='('+Math.floor(P.x/16)+', '+Math.floor(P.y/16)+')';
-  if(!avDone)drawAv();
+  if(!avDone||avKey!==(G.cult.eq.o||null)&&(avKey!==null||G.cult.eq.o))drawAv();
 }
 setInterval(tick,120);
 setInterval(function(){if(hud.style.display==='block')drawMini();},250);

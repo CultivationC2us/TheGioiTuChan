@@ -62,9 +62,11 @@ function drawMounted(t){
   else if(t-P.hurtT<260){row=NC.rows.hit;fr=(t-P.hurtT)<130?0:1;}else{row=NC.rows.idle;fr=ncIdle(t);}
   ctx.save();ctx.translate(0,seatY+(NC.FEET-65)*PX);
   const sw=NC.W,sh=NC.H,sx=fr*sw,sy=row*sh,CUT=65,LX=34,RX=39;   /* bỏ chân phải ảnh (cột 21-25 = x34..38) */
-  ctx.drawImage(IMG.player,sx,sy,sw,CUT,-NC.CX*PX,-NC.FEET*PX,sw*PX,CUT*PX);
+  const ofx=OF.on()&&IMG.outfit.complete;
+  if(ofx){OF.draw(row,fr,{cut:CUT});}else ctx.drawImage(IMG.player,sx,sy,sw,CUT,-NC.CX*PX,-NC.FEET*PX,sw*PX,CUT*PX);
   ctx.drawImage(IMG.player,sx,sy+CUT,LX,sh-CUT,-NC.CX*PX,(CUT-NC.FEET)*PX,LX*PX,(sh-CUT)*PX);
   ctx.drawImage(IMG.player,sx+RX,sy+CUT,sw-RX,sh-CUT,(RX-NC.CX)*PX,(CUT-NC.FEET)*PX,(sw-RX)*PX,(sh-CUT)*PX);
+  if(ofx)OF.boots({boots:'left'});
   drawHeld(t,atking,row,fr);ctx.restore();
   /* từ trước yên đến đầu: thú đè lên người */
   ctx.save();ctx.beginPath();ctx.rect(MT_FRONT*PX,seatY-(MT_CHIN)*PX,800,800);ctx.clip();mDraw(fm,mx,my,MS);ctx.restore();   /* mặt người (trên cằm) không bị bờm che */
