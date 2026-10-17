@@ -14,6 +14,9 @@ const MON_RESPAWN=45000;         /* quái hồi sinh sau 45 giây */
 
 /* ---------- CHỈ SỐ NHÂN VẬT ---------- */
 const STT={dmg:0,hp:0,red:0,spd:0,qi:0};
+/* ---------- THẾ GIỚI TRÒN: qua mép bản đồ thì dịch cả người, camera, chó, linh thú, tâm tự động ---------- */
+function onWrap(sx,sy){P.x+=sx;P.y+=sy;cam.x+=sx;cam.y+=sy;dog.x+=sx;dog.y+=sy;for(const o of petObjs){o.x+=sx;o.y+=sy;}AUTO.ax+=sx;AUTO.ay+=sy;}
+
 /* ---------- TU VI · CẢNH GIỚI (Luyện Khí 1-10) ----------
    Tu vi cần để qua tầng n = base·2^(n-1) (gấp đôi mỗi tầng). Mỗi lần đột phá, máu & sát thương nhân thêm ×1,2 (cộng dồn).
    Tu luyện thường chậm (REALM.rate + Thủy châu); thảo dược thô không cho tu vi — phải luyện thành đan (đan phương). */
@@ -36,12 +39,14 @@ function eatDan(n){
   if(cult.qi>=realmNeed(cult.rl)){toast(T('toast.dan.full'));return false;}
   lootDec(n);cult.qi+=d.qi;lootUI();toast(T('toast.dan',{name:I18N.itemName(n),n:d.qi}));return true;
 }
-const ingKeys=k=>k==='@herb1'?TD.RES.filter(g=>g.kind==='herb'&&g.tier===1).map(g=>g.item):[k];
+const matKeys=(el,t)=>TD.RES.filter(g=>g.el===el&&(g.kind==='ore'||g.kind==='tree')&&g.tier>=t).map(g=>g.item);
+const ingKeys=k=>k==='@herb1'?TD.RES.filter(g=>g.kind==='herb'&&g.tier===1).map(g=>g.item):k.indexOf('@mat:')===0?matKeys(k.split(':')[1],+k.split(':')[2]):[k];
 const ingHave=k=>ingKeys(k).reduce((a,x)=>a+(loot[x]|0),0);
 function ingTake(k,q){for(const x of ingKeys(k).sort((a,b)=>(loot[b]|0)-(loot[a]|0))){const t=Math.min(q,loot[x]|0);if(t>0){loot[x]-=t;q-=t;if(loot[x]<=0)delete loot[x];}if(q<=0)break;}}
-function craftMax(rid){const r=TD.RECIPES[rid];if(!r)return 0;return Math.min(...r.ing.map(([k,q])=>Math.floor(ingHave(k)/q)));}
-function craft(rid,n){
-  const r=TD.RECIPES[rid];if(!r||!(loot[rid]>0))return 0;n=Math.min(n||1,craftMax(rid));
+const recipeOf=(rid,idx)=>{const R=TD.RECIPES[rid];return R&&R.list[idx||0];};
+function craftMax(rid,idx){const r=recipeOf(rid,idx);if(!r)return 0;return Math.min(...r.ing.map(([k,q])=>Math.floor(ingHave(k)/q)));}
+function craft(rid,n,idx){
+  const r=recipeOf(rid,idx);if(!r||!(loot[rid]>0))return 0;n=Math.min(n||1,craftMax(rid,idx));
   if(n<1){toast(T('toast.alc.no'));return 0;}
   r.ing.forEach(([k,q])=>ingTake(k,q*n));
   loot[r.out]=(loot[r.out]|0)+n;lootUI();toast(T('toast.alc',{name:I18N.itemName(r.out),n}));return n;
@@ -50,22 +55,51 @@ function craft(rid,n){
 function recalc(){
   const sum=el=>cult.pl[el].reduce((a,b)=>a+b,0),pe=TD.PEARL,rd=x=>Math.round(x*1000)/1000;
   STT.dmg=rd(sum('kim')*pe.kim.per);STT.hp=rd(sum('moc')*pe.moc.per);STT.red=Math.min(.6,rd(sum('tho')*pe.tho.per));STT.spd=rd(sum('hoa')*pe.hoa.per);STT.qi=rd(sum('thuy')*pe.thuy.per);
-  if(cult.qi>realmNeed(cult.rl)+TD.DAN['dan.tukhi'].qi)cult.qi=realmNeed(cult.rl);   /* save cũ: tu vi vượt trần → về trần */
+  if(cult.qi>realmNeed(cult.rl)+TD.DAN['dan.tukhi'].qi)cult.qi=realmNeed(cult.rl);
   const mx=Math.round((100+STT.hp)*realmMul()),old=P.maxHp;P.maxHp=mx;P.hp=mx>old?Math.min(mx,P.hp+(mx-old)):Math.min(P.hp,mx);
 }
 /* ---------- DEF · TÚI CÓ DUNG TÍCH ---------- */
 const defVal=()=>Math.round(TD.BASE.def*realmMul());
-/* kích thước (ô) mỗi vật phẩm: nguyên liệu theo bậc 1/2/3, châu 2/4/8, đan 1, đan phương 2, Linh Thạch tiền tệ 0 */
 function itemSize(n){
   if(n==='lt')return 0;if(TD.BAG.sz[n]!=null)return TD.BAG.sz[n];
   const g=TD.byItem[n];if(g)return g.tier;const p=TD.byPearl[n];if(p)return [2,4,8][p.tier-1];
   return 1;
 }
 function bagUsed(){let s=0;for(const k in loot)if(loot[k]>0)s+=itemSize(k)*loot[k];return s;}
-const bagFree=()=>TD.BAG.cap-bagUsed();
+const bagCap=()=>TD.BAG.cap+(cult.bc|0);
+const bagFree=()=>bagCap()-bagUsed();
 let bagFullT=0;
-const dmgRoll=()=>Math.round((7+Math.floor(Math.random()*6)+STT.dmg)*realmMul());
+const dmgRoll=()=>Math.round((7+Math.floor(Math.random()*6)+STT.dmg+wAtk())*realmMul());
 const atkCd=()=>470/(1+STT.spd);
+
+/* ---------- MÃ QUÀ TẶNG (CHỈ ĐỂ TEST — xoá/đổi trước khi phát hành) ---------- */
+const GIFT_CODES={tuchan:()=>{
+  TD.RES.forEach(g=>{loot[g.item]=(loot[g.item]|0)+40;});
+  TD.EL.forEach(e=>{for(let t=1;t<=TD.PT;t++){const id=TD.pearlId(e.id,t);loot[id]=(loot[id]|0)+10;}});
+  loot['dan.tukhi']=(loot['dan.tukhi']|0)+30;loot['lt']=(loot['lt']|0)+5000;
+  loot['dp.tukhi']=Math.max(1,loot['dp.tukhi']|0);loot['cg.vukhi']=Math.max(1,loot['cg.vukhi']|0);
+  TD.WEAPONS.forEach(w=>{loot[w.id]=Math.max(1,loot[w.id]|0);});
+  cult.bc=Math.min(5000,Math.max(cult.bc|0,bagUsed()-TD.BAG.cap+400));
+}};
+function redeem(code){
+  const f=GIFT_CODES[String(code||'').trim().toLowerCase()];if(!f)return false;
+  f();cult.codes=(cult.codes|0)+1;lootUI();return true;
+}
+
+/* ---------- VŨ KHÍ: trang bị / tháo, vẽ trên tay ---------- */
+const wAtk=()=>{const w=cult.eq.w&&TD.byWeapon[cult.eq.w];return w&&(loot[cult.eq.w]>0)?w.atk:0;};
+function equipToggle(id){
+  const w=TD.byWeapon[id];if(!w||!(loot[id]>0))return false;
+  if(cult.eq.w===id){cult.eq.w=null;recalc();toast(T('toast.unequip',{name:I18N.itemName(id)}));return true;}
+  cult.eq.w=id;recalc();toast(T('toast.equip',{name:I18N.itemName(id),atk:Math.round(w.atk*realmMul())}));return true;
+}
+function drawHeld(t,atking,row,fr){
+  const w=cult.eq.w&&TD.byWeapon[cult.eq.w];if(!w||P.dead)return;const f=ITM[w.ico];if(!f||!IMG.it.complete)return;
+  const sc=.52,pvx=f[2]*.12,pvy=f[3]*.9;let th=-.785+.32;
+  if(atking){const u=Math.min(1,(t-P.atkT)/430),e=u<.35?-.5+u/.35*-.0:0;th=u<.3?-.785-.55*(u/.3):-.785-.55+(u-.3)/.7*2.6;}
+  else if(P.mv)th+=Math.sin(t/95)*.08;
+  ctx.save();ctx.translate(8,-13);ctx.rotate(th);ctx.imageSmoothingEnabled=false;ctx.drawImage(IMG.it,f[0],f[1],f[2],f[3],-pvx*sc,-pvy*sc,f[2]*sc,f[3]*sc);ctx.restore();
+}
 
 /* ---------- NGỌC: nuốt (trần 10/bậc) · hợp nhất 10 → 1 ---------- */
 function pearlInfo(item){

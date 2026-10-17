@@ -51,14 +51,35 @@ var RES=[ /* kind: tree|herb|ore (quyết định nơi mọc), sc: tỉ lệ v�
  {id:'hoang_tho_thach', el:'tho', tier:2,kind:'ore',sc:1.2}
 ];
 var HITS={1:3,2:4,3:5}, PTS={1:5,2:15,3:40}, LS={1:1,2:3,3:8}, NEED=100;
-var MISC={'Thủy Long Châu':{dec:20},'lt':{dec:0},'dp.tukhi':{dec:0,keep:1},'dan.tukhi':{dec:10}};
-var BAG={cap:120,sz:{'dp.tukhi':2,'dan.tukhi':1}};   /* dung tích túi (ô); sz: kích thước riêng từng vật phẩm */
+var MISC={'Thủy Long Châu':{dec:20},'lt':{dec:0},'dp.tukhi':{dec:0,keep:1},'cg.vukhi':{dec:0,keep:1},'dan.tukhi':{dec:10}};
+var BAG={cap:120,sz:{'dp.tukhi':2,'cg.vukhi':2,'dan.tukhi':1}};   /* dung tích túi (ô); sz: kích thước riêng từng vật phẩm */
 var BASE={def:2};                                       /* phòng thủ gốc (cố định trừ thẳng vào sát thương nhận, nhân theo cảnh giới) */
 /* ---- TU VI (Luyện Khí 1-10) ---- */
 var REALM={max:10,base:100,mul:1.2,rate:.2};  /* tu vi cần để qua tầng n = base*2^(n-1); mỗi tầng nhân ×mul máu & sát thương; tu luyện thường rate/giây */
 var DAN={'dan.tukhi':{qi:100}};                          /* đan -> tu vi cộng thêm */
-var RECIPES={'dp.tukhi':{out:'dan.tukhi',ing:[['@herb1',3],['lt',1]]}};   /* '@herb1' = thảo dược bậc 1 bất kỳ */
+var RECIPES={'dp.tukhi':{verb:'alc',list:[{out:'dan.tukhi',ing:[['@herb1',3],['lt',1]]}]}};   /* '@herb1' = thảo dược bậc 1 bất kỳ */
+/* RECIPES.cg.vukhi gán sau khi có FORGE */
 var AFF=[['moc','thuy'],['hoa','tho','kim'],['kim','tho','hoa']];   /* hệ ưa thích theo địa hình: cỏ(0) · cát(1) · đá(2) */  /* đan phương: không mất khi dùng */
+var WATK={1:4,2:9,3:16}, WLS={1:8,2:25,3:60};   /* sát thương cộng thêm và Linh Thạch khi rã, theo phẩm */
+var WTIER=[['Phàm Khí','凡器','凡器'],['Linh Khí','靈器','灵器'],['Bảo Khí','寶器','宝器']];
+var WEAPONS=[ /* vũ khí: id, ô ảnh trong it/atlas, hệ, phẩm (1-3), tên */
+ {id:'w.tuyet_van',ico:'w1',el:'thuy',tier:1,atk:WATK[1],n:['Tuyết Vân Kiếm','雪雲劍','雪云剑']},
+ {id:'w.hac_huyet',ico:'w2',el:'hoa',tier:2,atk:WATK[2],n:['Hắc Huyết Kiếm','黑血劍','黑血剑']},
+ {id:'w.han_bang',ico:'w3',el:'thuy',tier:2,atk:WATK[2],n:['Hàn Băng Kiếm','寒冰劍','寒冰剑']},
+ {id:'w.u_minh',ico:'w4',el:'tho',tier:3,atk:WATK[3],n:['U Minh Kiếm','幽冥劍','幽冥剑']},
+ {id:'w.xich_diem',ico:'w5',el:'hoa',tier:3,atk:WATK[3],n:['Xích Diễm Kiếm','赤焰劍','赤焰剑']},
+ {id:'w.thanh_dang',ico:'w6',el:'moc',tier:1,atk:WATK[1],n:['Thanh Đằng Kiếm','青藤劍','青藤剑']},
+ {id:'w.kim_quang',ico:'w7',el:'kim',tier:2,atk:WATK[2],n:['Kim Quang Kiếm','金光劍','金光剑']},
+ {id:'w.anh_hoa',ico:'w8',el:'moc',tier:2,atk:WATK[2],n:['Anh Hoa Kiếm','櫻花劍','樱花剑']},
+ {id:'w.huyen_thuy',ico:'w9',el:'thuy',tier:3,atk:WATK[3],n:['Huyền Thủy Kiếm','玄水劍','玄水剑']},
+ {id:'w.kim_linh',ico:'w10',el:'kim',tier:3,atk:WATK[3],n:['Kim Linh Trượng','金靈杖','金灵杖']},
+ {id:'w.tu_lam',ico:'w11',el:'thuy',tier:2,atk:WATK[2],n:['Tử Lam Trượng','紫藍杖','紫蓝杖']},
+ {id:'w.thuy_ngoc',ico:'w12',el:'moc',tier:3,atk:WATK[3],n:['Thúy Ngọc Trượng','翠玉杖','翠玉杖']}
+];
+var byWeapon={},ICO={'dp.tukhi':'s7','cg.vukhi':'s2','dan.tukhi':'o4'};
+WEAPONS.forEach(function(w){byWeapon[w.id]=w;ICO[w.id]=w.ico;MISC[w.id]={dec:WLS[w.tier]};BAG.sz[w.id]=3;});
+/* công thức chế vũ khí: 6/8/12 vật liệu cùng hệ (quặng hoặc gỗ) + Linh Thạch. '@mat:hệ:bậc tối thiểu' = vật liệu bất kỳ của hệ đó */
+var FORGE=WEAPONS.map(function(w){var t=w.tier;return {out:w.id,ing:[['@mat:'+w.el+':'+(t===1?1:2),t===1?6:t===2?8:12],['lt',t===1?2:t===2?5:15]]};});
 var NAMES={ /* vi, zh-Hant, zh-Hans */
  cay_coi:['Linh Mộc','靈木','灵木'], cay_cao:['Đào Hoa Mộc','桃花木','桃花木'], tre:['Linh Trúc','靈竹','灵竹'],
  thao_duoc:['Linh Sâm','靈參','灵参'], da:['Thanh Ngọc Thạch','青玉石','青玉石'],
@@ -91,6 +112,11 @@ var NAMES={ /* vi, zh-Hant, zh-Hans */
 var LG=['vi','zh-Hant','zh-Hans'];
 var byItem={},byId={},i;
 for(i=0;i<RES.length;i++){var r=RES[i];r.item='nl.'+r.id;r.hits=HITS[r.tier];r.pts=PTS[r.tier];r.ls=LS[r.tier];byItem[r.item]=r;byId[r.id]=r;}
+
+RECIPES['cg.vukhi']={verb:'forge',list:FORGE};
+
+/* danh mục túi */
+function catOf(id){if(byItem[id])return byItem[id].kind==='herb'?'duoc':'vl';if(byPearl[id]||DAN[id])return 'dan';if(RECIPES[id])return 'pp';if(byWeapon[id])return 'vk';return 'vl';}
 
 /* ---- NGỌC (linh châu) rơi từ 5 quái ngũ hành: nuốt để tăng chỉ số vĩnh viễn ---- */
 var PCAP=10, PFUSE=10, PT=3;                 /* mỗi bậc nuốt tối đa 10; 10 viên bậc t -> 1 viên bậc t+1; 3 bậc */
@@ -145,6 +171,61 @@ var S=[ /* chuỗi giao diện mới: [vi, zh-Hant, zh-Hans] */
  ['toast.dan.full','Tu vi tầng này đã đầy — hãy đột phá trước','此層修為已滿——請先突破','此层修为已满——请先突破'],
  ['toast.dan.max','Luyện Khí đã viên mãn, đan này không còn tác dụng','練氣已圓滿，此丹無效','练气已圆满，此丹无效'],
  ['toast.dan.asleep','Cần thức tỉnh Linh Căn trước','需先覺醒靈根','需先觉醒灵根'],
+ ['cat.all','Tất cả','全部','全部'],
+ ['cat.duoc','Linh dược','靈藥','灵药'],
+ ['cat.vl','Vật liệu','材料','材料'],
+ ['cat.dan','Linh đan','靈丹','灵丹'],
+ ['cat.pp','Đan phương','丹方','丹方'],
+ ['cat.vk','Vũ khí','武器','武器'],
+ ['cat.tb','Trang bị','裝備','装备'],
+ ['cat.mount','Thú cưỡi','坐騎','坐骑'],
+ ['cat.pet','Pet','靈寵','灵宠'],
+ ['cat.empty','Chưa có vật phẩm loại này.','尚無此類物品。','尚无此类物品。'],
+ ['cat.empty.tb','Chưa có trang bị. Áo, mũ, giày sẽ sớm ra mắt.','尚無裝備。衣、帽、鞋即將推出。','尚无装备。衣、帽、鞋即将推出。'],
+ ['cat.empty.mount','Chưa có thú cưỡi.','尚無坐騎。','尚无坐骑。'],
+ ['cat.empty.pet','Chưa có pet. Hạ quái ngũ hành, mỗi con có 1% được thuần hóa.','尚無靈寵。擊敗五行妖獸，各有 1% 機率馴服。','尚无灵宠。击败五行妖兽，各有 1% 几率驯服。'],
+ ['act.equip','Trang bị','裝備','装备'],
+ ['act.unequip','Tháo ra','卸下','卸下'],
+ ['act.open','Mở lò','開爐','开炉'],
+ ['toast.equip','Đã trang bị {name}: +{atk} sát thương','已裝備{name}：傷害 +{atk}','已装备{name}：伤害 +{atk}'],
+ ['toast.unequip','Đã tháo {name}','已卸下{name}','已卸下{name}'],
+ ['wp.stat','Phẩm {t} · +{atk} sát thương mỗi đòn · hệ {el}','{t} · 每次攻擊傷害 +{atk} · {el}系','{t} · 每次攻击伤害 +{atk} · {el}系'],
+ ['wp.on','Đang trang bị','裝備中','装备中'],
+ ['alc.forge','Chế tạo','鍛造','锻造'],
+ ['alc.forgeall','Chế tối đa ({n})','盡量鍛造（{n}）','尽量锻造（{n}）'],
+ ['alc.pick','Chọn vật phẩm cần chế','選擇要製作的物品','选择要制作的物品'],
+ ['alc.mat','Vật liệu hệ {el} (quặng/gỗ, bậc ≥{t})','{el}系材料（礦石／木，階 ≥{t}）','{el}系材料（矿石／木，阶 ≥{t}）'],
+ ['alc.outw','Thành phẩm: {name} (+{atk} sát thương)','成品：{name}（傷害 +{atk}）','成品：{name}（伤害 +{atk}）'],
+ ['item.cg.vukhi','Cuộn Giản: Chế Tạo Vũ Khí','卷簡：鍛造武器','卷简：锻造武器'],
+ ['itemdesc.cg.vukhi','Ghi phương pháp chế tạo 12 loại vũ khí từ quặng, gỗ cùng hệ và Linh Thạch. Bấm Mở lò để chế. Không mất sau khi dùng.','記載以同系礦石、木材與靈石鍛造 12 種武器之法。按「開爐」製作。使用後不會消失。','记载以同系矿石、木材与灵石锻造 12 种武器之法。按「开炉」制作。使用后不会消失。'],
+ ['sx.weapon','Vũ khí','武器','武器'],
+ ['sx.noweapon','Tay không','空手','空手'],
+ ['hud.bag','Túi','背包','背包'],
+ ['hud.map','Bản đồ','地圖','地图'],
+ ['hud.quest','Nhiệm vụ','任務','任务'],
+ ['hud.sect','Tông Môn','宗門','宗门'],
+ ['hud.char','Nhân vật','角色','角色'],
+ ['hud.set','Cài đặt','設定','设置'],
+ ['hud.soon','Sắp ra mắt','即將推出','即将推出'],
+ ['hud.asleep','Chưa thức tỉnh Linh Căn','尚未覺醒靈根','尚未觉醒灵根'],
+ ['hud.qi','Tu vi {a} / {b}','修為 {a} / {b}','修为 {a} / {b}'],
+ ['hud.qi.max','Tu vi {n} · viên mãn','修為 {n} · 圓滿','修为 {n} · 圆满'],
+ ['hud.mapt','Bản đồ thế giới','世界地圖','世界地图'],
+ ['hud.maph','Thế giới hình tròn: đi mãi một hướng sẽ quay lại. Chạm để đóng.','世界是圓的：一直走會回到原點。點擊關閉。','世界是圆的：一直走会回到原点。点击关闭。'],
+ ['zone.c','Thanh Vân Thôn','青雲村','青云村'],
+ ['zone.n','Bắc Nguyên','北原','北原'],
+ ['zone.ne','Thổ Dực Sơn','土翼山','土翼山'],
+ ['zone.e','Đông Vực','東域','东域'],
+ ['zone.se','Hỏa Diễm Cốc','火焰谷','火焰谷'],
+ ['zone.s','Nam Hoang','南荒','南荒'],
+ ['zone.sw','Mộc Linh Lâm','木靈林','木灵林'],
+ ['zone.w','Tây Vực','西域','西域'],
+ ['zone.nw','Kim Giáp Lĩnh','金甲嶺','金甲岭'],
+ ['set.code','Mã quà tặng','禮包碼','礼包码'],
+ ['set.code.ph','Nhập mã','輸入代碼','输入代码'],
+ ['set.code.go','Nhận','領取','领取'],
+ ['toast.code.ok','Nhận quà thành công! Đã thêm tài nguyên, đan, vũ khí và cuộn giản để thử nghiệm.','領取成功！已加入資源、丹藥、武器與卷簡供測試。','领取成功！已加入资源、丹药、武器与卷简供测试。'],
+ ['toast.code.bad','Mã không đúng','代碼錯誤','代码错误'],
  ['alc.herb1','Thảo dược bậc 1 (loại nào cũng được)','一階草藥（任意種類）','一阶草药（任意种类）'],
  ['alc.title','Luyện đan','煉丹','炼丹'],['alc.have','có {n}','擁有 {n}','拥有 {n}'],['alc.make','Luyện đan','煉製','炼制'],['alc.makeall','Luyện tối đa ({n})','盡量煉製（{n}）','尽量炼制（{n}）'],
  ['alc.out','Thành phẩm: {name} ({eff})','成品：{name}（{eff}）','成品：{name}（{eff}）'],['alc.keep','Đan phương không mất sau khi dùng.','丹方不會消耗。','丹方不会消耗。'],
@@ -163,7 +244,6 @@ var S=[ /* chuỗi giao diện mới: [vi, zh-Hant, zh-Hans] */
  ['toast.refine0','Không còn nguyên liệu hệ {el}','沒有{el}系材料了','没有{el}系材料了'],
  ['toast.awake','Linh Căn thức tỉnh! Linh khí bắt đầu tụ về mỗi giây.','靈根覺醒！靈氣開始每秒匯聚。','灵根觉醒！灵气开始每秒汇聚。'],
  ['toast.hit','{name} {n}/{m}','{name} {n}/{m}','{name} {n}/{m}'],
- ['hud.qi','Linh khí {n}','靈氣 {n}','灵气 {n}'],
  ['j.roots','Ngũ hành','五行','五行'],
  ['j.qi','Linh khí','靈氣','灵气'],
  ['j.asleep','chưa thức tỉnh','未覺醒','未觉醒'],
@@ -216,7 +296,16 @@ EL.forEach(function(e){for(var t=1;t<=PT;t++){var id=pearlId(e.id,t);
     add[LG[k]]['itemdesc.'+id]=PDESC[k].replace(/\{name\}/g,nm).replace(/\{el\}/g,e.n[k]).replace(/\{eff\}/g,EFF[e.id][k]).replace(/\{cap\}/g,PCAP).replace(/\{ls\}/g,PDEC[t-1]);
     add[LG[k]]['eff.'+e.id]=EFF[e.id][k];
   }}});
+WEAPONS.forEach(function(w){
+  var e=EL.filter(function(x){return x.id===w.el;})[0];
+  for(var k=0;k<3;k++){
+    add[LG[k]]['item.'+w.id]=w.n[k];
+    add[LG[k]]['itemdesc.'+w.id]=[ '{name}: vũ khí {tier} hệ {el}. Trang bị: +{atk} sát thương mỗi đòn. Chế tạo bằng Cuộn Giản; rã: {ls} Linh Thạch.',
+      '{name}：{tier}，{el}系武器。裝備：每次攻擊傷害 +{atk}。以卷簡鍛造；分解：靈石 {ls}。','{name}：{tier}，{el}系武器。装备：每次攻击伤害 +{atk}。以卷简锻造；分解：灵石 {ls}。'][k]
+      .replace(/\{name\}/g,w.n[k]).replace(/\{tier\}/g,WTIER[w.tier-1][k]).replace(/\{el\}/g,e.n[k]).replace(/\{atk\}/g,w.atk).replace(/\{ls\}/g,WLS[w.tier]);
+  }});
 MONS.forEach(function(m){for(var k=0;k<3;k++)add[LG[k]]['monster.'+m.id]=m.n[k];});
+WTIER.forEach(function(t,i){for(var k=0;k<3;k++)add[LG[k]]['wtier.'+(i+1)]=t[k];});
 for(var k=0;k<3;k++)I18N.add(LG[k],add[LG[k]]);
-window.TTData={EL:EL,RES:RES,byItem:byItem,byId:byId,PEARL:PEARL,PCAP:PCAP,PFUSE:PFUSE,PT:PT,pearlId:pearlId,byPearl:byPearl,MONS:MONS,REALM:REALM,BAG:BAG,AFF:AFF,BASE:BASE,DAN:DAN,RECIPES:RECIPES,NEED:NEED,HITS:HITS,PTS:PTS,RESPAWN:300000,misc:MISC};
+window.TTData={EL:EL,RES:RES,byItem:byItem,byId:byId,PEARL:PEARL,PCAP:PCAP,PFUSE:PFUSE,PT:PT,pearlId:pearlId,byPearl:byPearl,MONS:MONS,REALM:REALM,WEAPONS:WEAPONS,byWeapon:byWeapon,ICO:ICO,WTIER:WTIER,catOf:catOf,BAG:BAG,AFF:AFF,BASE:BASE,DAN:DAN,RECIPES:RECIPES,NEED:NEED,HITS:HITS,PTS:PTS,RESPAWN:300000,misc:MISC};
 })();

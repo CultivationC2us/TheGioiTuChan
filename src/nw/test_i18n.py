@@ -36,9 +36,9 @@ def run3():
         pg.fill('#aPw2','abcdef'); pg.click('#aGo'); pg.wait_for_timeout(900)
         # 3) trong game
         ok(pg.inner_text('#atk')=='攻击' and '拖动屏幕' in pg.inner_text('#hint') and pg.inner_text('#monN')=='水龙','HUD trong game: 攻击 / hướng dẫn / 水龙')
-        ok(pg.is_visible('#setBtn') and pg.is_visible('#bagBtn'),'nút Cài đặt (bánh răng) và Túi cùng hiện')
+        ok(pg.is_visible('#hMenu .mb:nth-child(6)') and pg.is_visible('#hMenu .mb:nth-child(1)'),'nút Cài đặt và Túi (HUD) cùng hiện')
         ok('已保存' in pg.inner_text('#accS') or '已加载' in pg.inner_text('#accS'),'trạng thái lưu bằng tiếng Trung: '+pg.inner_text('#accS'))
-        pg.click('#setBtn'); pg.wait_for_timeout(200)
+        pg.evaluate("document.getElementById('setBtn').click()"); pg.wait_for_timeout(200)
         ok(pg.is_visible('#set') and pg.inner_text('#set h2')=='设置','mở Cài đặt (设置)')
         ok(pg.inner_text('#setL button.on')=='简体中文' and pg.locator('#setL button').count()==3,'danh sách ngôn ngữ đánh dấu đúng ngôn ngữ hiện tại')
         pg.screenshot(path=S.replace('game.html','i18n_settings.png'))
@@ -47,7 +47,7 @@ def run3():
         pg.click('#setX')
         # túi đồ theo ngôn ngữ
         pg.evaluate("G.loot['Thủy Long Châu']=1;G.lootUI()")
-        pg.click('#bagBtn'); pg.wait_for_timeout(400)
+        pg.evaluate("document.getElementById('bagBtn').click()"); pg.wait_for_timeout(400)
         ok(pg.inner_text('#bag h2')=='儲物袋' and '背包容量' in pg.inner_text('#bagCap'),'túi: 儲物袋 + "背包容量 …"')
         ok('水龍珠' in pg.inner_text('#bagStage'),'tên vật phẩm hiển thị 水龍珠 (id nội bộ vẫn giữ nguyên)')
         pg.click('#bagStage .it[data-n="Thủy Long Châu"]',force=True); pg.wait_for_timeout(150)
@@ -66,7 +66,7 @@ def run3():
         ok(p2.evaluate('I18N.lang')=='zh-Hant' and p2.inner_text('#atk')=='攻擊','đăng nhập máy khác → tự chuyển sang 繁體 theo tài khoản')
         # 5) đăng xuất qua Cài đặt
         p2.on('dialog',lambda d:d.accept())
-        p2.click('#setBtn'); p2.wait_for_timeout(150); p2.click('#setOut'); p2.wait_for_timeout(1200)
+        p2.evaluate("document.getElementById('setBtn').click()"); p2.wait_for_timeout(150); p2.click('#setOut'); p2.wait_for_timeout(1200)
         ok(p2.is_visible('#auth') and not p2.is_visible('#setBtn'),'đăng xuất từ Cài đặt → về màn đăng nhập, nút ẩn')
         ok(p2.inner_text('#aGo')=='登入','màn đăng nhập giữ ngôn ngữ đã chọn (繁體)')
         # 6) chuyển về tiếng Việt

@@ -22,7 +22,7 @@ def run():
         pg.evaluate("G.cult.qi=99.9"); pg.wait_for_timeout(1500)
         ok(pg.evaluate("G.cult.qi")==100,'tu luyện thường dừng ở trần 100')
         # đan phương: dùng không mất, mở lò
-        pg.click('#bagBtn'); pg.click('#tabT'); pg.wait_for_timeout(300)
+        pg.evaluate("document.getElementById('bagBtn').click()"); pg.click('#tabT'); pg.wait_for_timeout(300)
         pg.click('#bagStage .it[data-n="dp.tukhi"]',force=True); pg.wait_for_timeout(200)
         ok(pg.is_disabled('#biDr') and pg.is_disabled('#biDec'),'đan phương: không vứt, không rã')
         pg.click('#biUse'); pg.wait_for_timeout(200)

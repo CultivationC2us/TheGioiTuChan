@@ -47,6 +47,7 @@ css.textContent=
 '#set .note{margin-top:7px;font-size:11px;color:#7f9fb8}'+
 '#set .row{display:flex;justify-content:space-between;gap:10px;font-size:13px;padding:7px 0;border-bottom:1px solid #223a50}'+
 '#set .row b{color:#fff}'+
+'#set .codeRow{display:flex;gap:7px}#set .codeRow input{flex:1;min-width:0;padding:10px 12px;border-radius:10px;border:1px solid #4d7494;background:#0a1a28;color:#fff;font-size:16px;outline:none;text-transform:uppercase;-webkit-user-select:text;user-select:text}'+
 '#set .out{margin-top:10px;width:100%;border-color:#a85a5a;color:#ffc0b8;background:#2a1a1e}';
 document.head.appendChild(css);
 
@@ -55,6 +56,7 @@ var pn=document.createElement('div');pn.id='set';
 pn.innerHTML=
 '<div class="box"><div class="hd"><span id="setIc"></span><h2 data-i18n="set.title"></h2><button id="setX" type="button" data-i18n="bag.close"></button></div>'+
 '<h3 data-i18n="set.lang"></h3><div class="langs" id="setL"></div><div class="note" data-i18n="set.langnote"></div>'+
+'<h3 data-i18n="set.code"></h3><div class="codeRow"><input id="setCode" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false"><button id="setCodeGo" type="button" data-i18n="set.code.go"></button></div><div class="note" id="setCodeMsg"></div>'+
 '<h3 data-i18n="set.account"></h3><div id="setA"></div><div class="note" style="text-align:center;margin-top:14px">v{{BUILD}}</div></div>';
 document.body.appendChild(pn);
 $('setIc').appendChild(gear(2));
@@ -72,8 +74,11 @@ function render(){
 function open(){render();pn.style.display='flex';}
 function close(){pn.style.display='none';}
 btn.onclick=open;$('setX').onclick=close;
+$('setCode').placeholder=T('set.code.ph');
+function goCode(){var ok=window.G&&G.redeem($('setCode').value);$('setCodeMsg').textContent=T(ok?'toast.code.ok':'toast.code.bad');$('setCodeMsg').style.color=ok?'#9bf0a8':'#ffb0a0';if(ok){$('setCode').value='';if(window.TT&&TT.push)TT.push(false,true);}}
+$('setCodeGo').onclick=goCode;$('setCode').addEventListener('keydown',function(e){if(e.key==='Enter')goCode();});
 pn.addEventListener('pointerdown',function(e){if(e.target===pn)close();});
 I18N.apply(pn);
-I18N.on(function(){I18N.apply(pn);render();});
+I18N.on(function(){I18N.apply(pn);$('setCode').placeholder=T('set.code.ph');render();});
 window.TTSet={show:function(v){btn.style.display=v?'flex':'none';if(!v)close();},open:open,close:close};
 })();

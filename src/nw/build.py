@@ -7,11 +7,11 @@ rep={'{{MON_JS}}':open('nw/mon2.js',encoding='utf-8').read(),
  '{{MONMETA_HOA}}':open('nw/mon/meta_hoa.json').read(),'{{MONMETA_THO}}':open('nw/mon/meta_tho.json').read(),'{{MONMETA_KIM}}':open('nw/mon/meta_kim.json').read(),'{{MONMETA_MOC}}':open('nw/mon/meta_moc.json').read(),
  '{{PLAYER}}':b64('nw/assets/player.webp'),'{{DRAGON}}':b64('nw/assets/dragon.webp'),'{{BEAMA}}':b64('nw/assets/beamA.webp'),'{{BEAMB}}':b64('nw/assets/beamB.webp'),
  '{{DOG}}':open('nw/assets/dog.b64').read(),'{{DRIDX}}':json.dumps(M['idx'],separators=(',',':')),
- '{{RES_JS}}':open('nw/res.js',encoding='utf-8').read(),'{{RESATLAS}}':b64('nw/assets/res.webp'),'{{RESMETA}}':open('nw/assets/res_meta.json').read(),
+ '{{RES_JS}}':open('nw/res.js',encoding='utf-8').read(),'{{RESATLAS}}':b64('nw/assets/res.webp'),'{{RESMETA}}':open('nw/assets/res_meta.json').read(),'{{ITATLAS}}':b64('nw/it/atlas.webp'),'{{ITMETA}}':open('nw/it/meta.json').read(),
  '{{I18N_JS}}':open('nw/i18n.js',encoding='utf-8').read(),
  '{{SET_JS}}':open('nw/settings.js',encoding='utf-8').read(),
  '{{BAG_JS}}':open('nw/bag.js',encoding='utf-8').read(),
- '{{AUTH_JS}}':open('nw/auth.js',encoding='utf-8').read(),
+ '{{AUTH_JS}}':open('nw/auth.js',encoding='utf-8').read(),'{{HUD_JS}}':open('nw/hud.js',encoding='utf-8').read(),'{{UIBTN}}':b64('nw/it/ui_btn.webp'),
  '{{T_GRASS}}':b64('nw/assets/tile_grass.webp'),'{{T_T4}}':b64('nw/assets/tile_t4.webp'),'{{T_T3}}':b64('nw/assets/tile_t3.webp'),'{{T_T2}}':b64('nw/assets/tile_t2.webp'),'{{T_T16}}':b64('nw/assets/tile_t16.webp'),'{{T_T5}}':b64('nw/assets/tile_t5.webp')}
 for k,v in rep.items():
     assert k in s,k

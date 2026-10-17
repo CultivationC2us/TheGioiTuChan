@@ -1,0 +1,22 @@
+import sys
+sys.path.insert(0,'.')
+from test_auth import *
+with sync_playwright() as p:
+    b=p.chromium.launch(); ctx=b.new_context(viewport={'width':390,'height':844},device_scale_factor=2)
+    mock=Mock(); ctx.route(f'https://{HOST}/**',mock.handle)
+    pg=ctx.new_page(); errs=[]; pg.on('pageerror',lambda e:errs.append(str(e)))
+    pg.goto('file://'+S); pg.wait_for_timeout(300)
+    pg.click('#tReg'); pg.fill('#aName','hud_t'); pg.fill('#aPw','abcdef'); pg.fill('#aPw2','abcdef'); pg.click('#aGo'); pg.wait_for_timeout(1200)
+    pg.screenshot(path=S.replace('game.html','hud_1.png'))
+    pg.click('#hMenu .mb:nth-child(6)'); pg.fill('#setCode','tuchan'); pg.click('#setCodeGo'); pg.wait_for_timeout(300)
+    pg.screenshot(path=S.replace('game.html','hud_set.png')); pg.click('#setX')
+    pg.evaluate("G.cult.aw=true;G.cult.rl=3;G.cult.qi=250;G.recalc()"); pg.wait_for_timeout(500)
+    pg.screenshot(path=S.replace('game.html','hud_2.png'))
+    pg.click('#hMenu .mb:nth-child(1)'); pg.wait_for_timeout(500); pg.screenshot(path=S.replace('game.html','hud_bag.png'))
+    pg.click('#bagCats button[data-c="vk"]'); pg.wait_for_timeout(500)
+    pg.click('#bagStage .it',force=True); pg.wait_for_timeout(200); pg.screenshot(path=S.replace('game.html','hud_vk.png'))
+    pg.click('#biUse'); pg.wait_for_timeout(200)
+    pg.click('#bagX'); pg.wait_for_timeout(300)
+    pg.evaluate("G.P.atkT=G.now()-150"); pg.wait_for_timeout(60); pg.screenshot(path=S.replace('game.html','hud_atk.png'))
+    pg.click('#hMenu .mb:nth-child(2)'); pg.wait_for_timeout(300); pg.screenshot(path=S.replace('game.html','hud_map.png'))
+    print(errs)
