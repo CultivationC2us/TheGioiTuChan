@@ -12,4 +12,6 @@ rep={'{{PLAYER}}':b64('nw/assets/player.webp'),'{{DRAGON}}':b64('nw/assets/drago
 for k,v in rep.items():
     assert k in s,k
     s=s.replace(k,v)
+import time
+s=s.replace('{{BUILD}}',time.strftime('%m%d.%H%M',time.gmtime(time.time()+8*3600)))
 open('nw/game.html','w',encoding='utf-8').write(s);print(len(s))

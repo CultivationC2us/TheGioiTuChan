@@ -171,6 +171,7 @@ ov.innerHTML=
 '<div class="err" id="aErr"></div>'+
 '<button class="go" id="aGo" type="submit"></button>'+
 '<div class="note" data-i18n-html="auth.note"></div>'+
+'<div class="note" style="opacity:.7">v{{BUILD}}</div>'+
 '</form>';
 document.body.appendChild(ov);
 var acc=document.createElement('div');acc.id='acc';acc.innerHTML='<span id="accN"></span> · <span id="accS"></span>';
