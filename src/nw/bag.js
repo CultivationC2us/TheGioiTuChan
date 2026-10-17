@@ -58,7 +58,7 @@ css.textContent=
 '#bagFl{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:4px}'+
 '#bag .it{position:relative;aspect-ratio:1/1;cursor:pointer;display:flex;align-items:center;justify-content:center;border:8px solid transparent;'+BI('cell','4',8)+'-webkit-tap-highlight-color:transparent}'+
 '#bag .it.sel{'+BI('cell_sel','4',8)+'}'+
-'#bag .it .orb{position:relative;width:70%;aspect-ratio:1/1;border-radius:50%}'+
+'#bag .it .orb{position:relative;width:70%;aspect-ratio:1/1;border-radius:50%;transform:scale(.5)}'+
 '#bag .it .orb i{position:absolute;left:24%;top:18%;width:22%;height:22%;border-radius:50%;background:#fff;opacity:.85}'+
 '#bag .it .orb.ic{width:auto;aspect-ratio:auto;border-radius:0;display:flex;align-items:center;justify-content:center}'+
 '#bag .it .orb.ic{max-width:100%;max-height:100%}#bag .it .orb.ic canvas{max-width:32px;max-height:32px}'+
@@ -101,7 +101,7 @@ css.textContent=
 '.slot{position:absolute;width:40px;height:40px;border:8px solid transparent;'+BI('slot','4',8)+'display:flex;align-items:center;justify-content:center;cursor:default}'+
 '.slot img,.slot canvas{max-width:22px;max-height:22px;image-rendering:pixelated;display:block}'+
 '.slot.ph img{opacity:.9}'+
-'.slot.wp{cursor:pointer}.slot.has{filter:drop-shadow(0 0 3px #e8bb48)}'+
+'.slot.wp,.slot.has{cursor:pointer}.slot.has{filter:drop-shadow(0 0 3px #e8bb48)}'+
 '#chPort{position:absolute;left:52px;right:52px;top:6px;height:170px}'+
 '#chPort .ped{position:absolute;left:50%;bottom:0;width:104px;height:20px;margin-left:-52px;background:'+'repeating-linear-gradient(#5c7595 0 4px,#41567a 4px 8px)'+';box-shadow:0 0 0 2px #070b16,0 0 0 4px #a8782a;border-radius:50%}'+
 '#chName{position:absolute;left:0;right:0;top:178px;text-align:center;font-size:13px;font-weight:900;color:#2c2418}'+
@@ -186,11 +186,12 @@ function renderCats(){
   var h='';CATS.forEach(function(c){h+='<button type="button" data-c="'+c+'" class="'+(c===cat?'on':'')+'">'+esc(T('cat.'+c))+'</button>';});
   var el=$('bagCats');if(el.dataset.l!==h){var sx=el.scrollLeft;el.innerHTML=h;el.dataset.l=h;el.scrollLeft=sx;var bs=el.querySelectorAll('button');for(var i=0;i<bs.length;i++)bs[i].onclick=function(){cat=this.getAttribute('data-c');lastKeys='';sel='';renderStage();};}
 }
+function isEq(n){var e=G.cult.eq;return e.w===n||e.o===n||e.h===n||e.g===n;}
 function renderStage(){
   renderCats();
   var l=G.loot,k=Object.keys(l).filter(function(n){return l[n]>0&&(cat==='all'||G.TD.catOf(n)===cat);}),st=$('bagStage');
   if(cat==='pet'){k=[];}
-  var sig=cat+'#'+k.map(function(n){return n+':'+l[n]+(G.cult.eq.w===n||G.cult.eq.o===n?'E':'')+(G.P.mt===n?'M':'');}).join('|')+(cat==='pet'?G.PETS.join(','):'');
+  var sig=cat+'#'+k.map(function(n){return n+':'+l[n]+(isEq(n)?'E':'')+(G.P.mt===n?'M':'');}).join('|')+(cat==='pet'?G.PETS.join(','):'');
   var none=cat==='pet'?!G.PETS.length:!k.length;
   var em=$('bagEmpty');em.style.display=none?'block':'none';
   if(none){if(cat==='all')em.setAttribute('data-i18n-html','bag.empty'),I18N.apply(em);else{em.removeAttribute('data-i18n-html');em.textContent=T(cat==='tb'||cat==='mount'||cat==='pet'?'cat.empty.'+cat:'cat.empty');}}
@@ -205,7 +206,7 @@ function renderStage(){
     e.className='it'+(sel===n?' sel':'');e.dataset.n=n;
     var wp=G.TD.byWeapon[n],icn=(!pb)&&G.iconCanvas(n,3);
     var badge=l[n]>1?'<span class="n">'+l[n]+'</span>':'';
-    var mark=(G.cult.eq.w===n||G.cult.eq.o===n||G.P.mt===n)?'<span class="eq">✓</span>':'';
+    var mark=(isEq(n)||G.P.mt===n)?'<span class="eq">✓</span>':'';
     if(icn){var ec=rs?elOf(rs.el).c:wp?elOf(wp.el).c:(it.glow||'#ffe58f');
       e.innerHTML='<div class="orb ic" style="filter:drop-shadow(0 0 5px '+ec+'aa)"></div>'+badge+mark+'<div class="nm">'+esc(I18N.itemName(n))+'</div>';
       icn.style.cssText='display:block;max-width:100%;max-height:100%;width:auto;height:auto;image-rendering:pixelated';e.firstChild.appendChild(icn);}
@@ -279,6 +280,7 @@ function buildChTop(){
   var nm=document.createElement('div');nm.id='chName';top.appendChild(nm);
   var br=document.createElement('div');br.id='chBar';br.innerHTML='<i></i><span></span>';top.appendChild(br);
   top.querySelector('.slot[data-k="sl_wp"]').onclick=function(){if(G.cult.eq.w){G.equipToggle(G.cult.eq.w);chSig='';refresh();if(window.TT&&TT.push)TT.push(false,false);}};
+  [['sl_head','h'],['sl_body','o'],['sl_boot','g']].forEach(function(a){top.querySelector('.slot[data-k="'+a[0]+'"]').onclick=function(){var id=G.cult.eq[a[1]];if(id){G.equipToggle(id);chSig='';refresh();if(window.TT&&TT.push)TT.push(false,false);}};});
   portrait(cv,51,3);cv.style.width=(cv.width)+'px';
 }
 function updChTop(){
@@ -287,8 +289,8 @@ function updChTop(){
   if(w.dataset.w!==String(eqw)){w.dataset.w=String(eqw);w.innerHTML='';
     if(eqw){var c=G.iconCanvas(eqw,3);if(c){c.style.cssText='max-width:22px;max-height:22px;image-rendering:pixelated;display:block';w.appendChild(c);}w.className='slot wp has';}
     else{w.appendChild(uimg('sl_wp'));w.className='slot wp ph';}}
-  var oSig=String(C.eq.o);if(top.dataset.o!==oSig){top.dataset.o=oSig;var cvp=$('chPort').querySelector('canvas');portrait(cvp,51,3);cvp.style.width=cvp.width+'px';
-    ['sl_head','sl_body','sl_boot'].forEach(function(k){var sd=top.querySelector('.slot[data-k="'+k+'"]');sd.innerHTML='';if(C.eq.o){var c=G.OF.icon(3,k==='sl_head'?'head':k==='sl_body'?'torso':'boot');if(c){c.style.cssText='max-width:22px;max-height:22px;display:block';sd.appendChild(c);}sd.className='slot';}else{sd.appendChild(uimg(k));sd.className='slot ph';}});}
+  var oSig=G.OF.sig();if(top.dataset.o!==oSig){top.dataset.o=oSig;var cvp=$('chPort').querySelector('canvas');portrait(cvp,51,3);cvp.style.width=cvp.width+'px';
+    [['sl_head','h','head'],['sl_body','o','torso'],['sl_boot','g','boot']].forEach(function(a){var sd=top.querySelector('.slot[data-k="'+a[0]+'"]');sd.innerHTML='';if(C.eq[a[1]]){var c=G.OF.icon(3,a[2]);if(c){c.style.cssText='max-width:22px;max-height:22px;display:block';sd.appendChild(c);}sd.className='slot has';}else{sd.appendChild(uimg(a[0]));sd.className='slot ph';}});}
   $('chName').textContent=C.aw?T('realm.n',{n:C.rl}):T('j.asleep');
   var b=$('chBar'),nd=G.realmNeed(C.rl),mx=C.rl>=G.TD.REALM.max;
   b.firstChild.style.width=(C.aw?(mx?100:Math.min(100,C.qi/nd*100)):0)+'%';

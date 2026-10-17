@@ -121,7 +121,7 @@ function lootUI(){const e=document.getElementById('loot');const k=Object.keys(lo
 
 /* ---------- TÀI NGUYÊN · NGŨ HÀNH · LINH CĂN ---------- */
 const TD=window.TTData,RMETA={{RESMETA}};
-const cult={r:{kim:0,moc:0,thuy:0,hoa:0,tho:0},pl:{kim:[0,0,0],moc:[0,0,0],thuy:[0,0,0],hoa:[0,0,0],tho:[0,0,0]},aw:false,qi:0,rl:1,dpg:false,eq:{w:null,o:null},bc:0,codes:0};
+const cult={r:{kim:0,moc:0,thuy:0,hoa:0,tho:0},pl:{kim:[0,0,0],moc:[0,0,0],thuy:[0,0,0],hoa:[0,0,0],tho:[0,0,0]},aw:false,qi:0,rl:1,dpg:false,eq:{w:null,o:null,h:null,g:null},bc:0,codes:0};
 const nodes=[],nodeCell=new Map(),respawnQ=[];   /* node: {g,x,y,h,gone,shk}; chia ô 4x4 để tìm nhanh */
 const ckey=n=>(n.x/TILE>>2)+','+(n.y/TILE>>2);
 function cellAdd(n){const k=ckey(n);let a=nodeCell.get(k);if(!a)nodeCell.set(k,a=[]);a.push(n);}
@@ -186,8 +186,8 @@ function refineEl(el){ /* nguyên liệu hệ el → điểm hệ el (tối đa 
   if(gain){lootUI();toast(T('toast.refine',{n:gain,el:T('el.'+el)}));}else toast(T('toast.refine0',{el:T('el.'+el)}));
   return gain;
 }
-function lootDec(n){loot[n]--;if(!(loot[n]>0)){delete loot[n];if(cult.eq.w===n){cult.eq.w=null;recalc();}if(cult.eq.o===n){cult.eq.o=null;recalc();}}}
-function itemInfo(n){const g=TD.byItem[n],m=TD.misc[n],p=pearlInfo(n);return {use:!!g||!!(p&&p.can)||!!TD.RECIPES[n]||!!TD.DAN[n]||!!TD.byWeapon[n]||!!TD.byOutfit[n]||!!TD.byMount[n],dec:g?g.ls:(m?m.dec:0),pearl:p,fuse:!!(p&&p.next),keep:!!(m&&m.keep),recipe:!!TD.RECIPES[n],weapon:!!TD.byWeapon[n]||!!TD.byOutfit[n],outfit:!!TD.byOutfit[n],equipped:cult.eq.w===n||cult.eq.o===n,mount:!!TD.byMount[n],mounted:P.mt===n};}
+function lootDec(n){loot[n]--;if(!(loot[n]>0)){delete loot[n];if(cult.eq.w===n){cult.eq.w=null;recalc();}['o','h','g'].forEach(k=>{if(cult.eq[k]===n){cult.eq[k]=null;recalc();}});}}
+function itemInfo(n){const g=TD.byItem[n],m=TD.misc[n],p=pearlInfo(n);return {use:!!g||!!(p&&p.can)||!!TD.RECIPES[n]||!!TD.DAN[n]||!!TD.byWeapon[n]||!!TD.byOutfit[n]||!!TD.byMount[n],dec:g?g.ls:(m?m.dec:0),pearl:p,fuse:!!(p&&p.next),keep:!!(m&&m.keep),recipe:!!TD.RECIPES[n],weapon:!!TD.byWeapon[n]||!!TD.byOutfit[n],outfit:!!TD.byOutfit[n],equipped:cult.eq.w===n||cult.eq.o===n||cult.eq.h===n||cult.eq.g===n,mount:!!TD.byMount[n],mounted:P.mt===n};}
 function useItem(n){ /* nguyên liệu: luyện hóa 1 cái vào hệ của nó */
   const g=TD.byItem[n];if(!g)return TD.byPearl[n]?swallow(n):TD.DAN[n]?eatDan(n):(TD.byWeapon[n]||TD.byOutfit[n])?equipToggle(n):TD.byMount[n]?rideToggle(n):TD.RECIPES[n]?true:false;if(!(loot[n]>0))return false;
   if(cult.r[g.el]>=TD.NEED){toast(T('toast.full',{el:T('el.'+g.el)}));return false;}
@@ -198,7 +198,7 @@ function dropItem(n){if(!(loot[n]>0)||(TD.misc[n]&&TD.misc[n].keep))return false
 function canAwake(){return !cult.aw&&TD.EL.every(e=>cult.r[e.id]>=TD.NEED);}
 function awaken(){if(!canAwake())return false;cult.aw=true;toast(T('toast.awake'));return true;}
 function iconCanvas(item,scale){const g=TD.byItem[item];let img,f;
-  if(TD.byOutfit[item]){return IMG.outfit.complete?OF.icon(scale):null;}
+  if(TD.byOutfit[item]){return IMG.outfit.complete?OF.icon(scale,TD.byOutfit[item].part):null;}
   if(TD.byMount[item]){img=IMG.mnt;f=MTM['idle0'];}else if(g){img=IMG.res;f=RMETA[g.id][3];}else if(TD.ICO[item]&&ITM[TD.ICO[item]]){img=IMG.it;f=ITM[TD.ICO[item]];}else return null;
   if(!img||!img.complete)return null;const c=document.createElement('canvas');
   c.width=f[2]*scale;c.height=f[3]*scale;const x=c.getContext('2d');x.imageSmoothingEnabled=false;x.drawImage(img,f[0],f[1],f[2],f[3],0,0,c.width,c.height);c.style.imageRendering='pixelated';return c;}

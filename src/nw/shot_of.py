@@ -7,7 +7,7 @@ with sync_playwright() as p:
     pg=ctx.new_page(); errs=[]; pg.on('pageerror',lambda e:errs.append(str(e))); pg.on('console',lambda m: errs.append(m.text) if m.type=='error' else 0)
     pg.goto('file://'+S); pg.wait_for_timeout(300)
     pg.click('#tReg'); pg.fill('#aName','of_t'); pg.fill('#aPw','abcdef'); pg.fill('#aPw2','abcdef'); pg.click('#aGo'); pg.wait_for_timeout(1000)
-    pg.evaluate("G.redeem('tuchan');G.equipToggle('tb.tu_dien');G.equipToggle('w.han_bang')"); pg.wait_for_timeout(400)
+    pg.evaluate("G.redeem('tuchan');['h','o','g'].forEach(k=>G.equipToggle('tb.tu_dien.'+k));G.equipToggle('w.han_bang')"); pg.wait_for_timeout(400)
     o=lambda n: S.replace('game.html',n+'.png')
     clip={'x':100,'y':310,'width':190,'height':200}
     pg.screenshot(path=o('of_idle'),clip=clip)

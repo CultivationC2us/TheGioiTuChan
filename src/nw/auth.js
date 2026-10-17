@@ -93,7 +93,7 @@ function ensure(){
 /* ---------- dữ liệu save ---------- */
 function collect(){
   var P=G.P,l={};for(var k in G.loot)l[k]=G.loot[k];
-  var st=G.stats;return{v:SAVE_V,x:+P.x.toFixed(1),y:+P.y.toFixed(1),f:P.f,hp:Math.round(P.hp),loot:l,stats:{kills:st.kills|0,steps:Math.round(st.steps),sec:Math.round(st.sec)},set:{lang:I18N.lang},cul:{r:{kim:G.cult.r.kim|0,moc:G.cult.r.moc|0,thuy:G.cult.r.thuy|0,hoa:G.cult.r.hoa|0,tho:G.cult.r.tho|0},pl:plCopy(),aw:G.cult.aw?1:0,qi:+G.cult.qi.toFixed(1),rl:G.cult.rl|0,dpg:G.cult.dpg?1:0,eq:G.cult.eq.w||'',eo:G.cult.eq.o||'',bc:G.cult.bc|0,codes:G.cult.codes|0},pets:G.PETS.slice()};
+  var st=G.stats;return{v:SAVE_V,x:+P.x.toFixed(1),y:+P.y.toFixed(1),f:P.f,hp:Math.round(P.hp),loot:l,stats:{kills:st.kills|0,steps:Math.round(st.steps),sec:Math.round(st.sec)},set:{lang:I18N.lang},cul:{r:{kim:G.cult.r.kim|0,moc:G.cult.r.moc|0,thuy:G.cult.r.thuy|0,hoa:G.cult.r.hoa|0,tho:G.cult.r.tho|0},pl:plCopy(),aw:G.cult.aw?1:0,qi:+G.cult.qi.toFixed(1),rl:G.cult.rl|0,dpg:G.cult.dpg?1:0,eq:G.cult.eq.w||'',eo:G.cult.eq.o||'',eh:G.cult.eq.h||'',eg:G.cult.eq.g||'',bc:G.cult.bc|0,codes:G.cult.codes|0},pets:G.PETS.slice()};
 }
 function plCopy(){var o={};['kim','moc','thuy','hoa','tho'].forEach(function(e){o[e]=G.cult.pl[e].map(function(x){return x|0;});});return o;}
 function migrate(d){/* d.v cũ → mới. Hiện mới có v=1 nên chưa cần. */return d;}
@@ -104,11 +104,12 @@ function apply(d){
   if(d.f===1||d.f===-1)P.f=d.f;
   {var cc=G.cult,u=(d.cul&&typeof d.cul==='object')?d.cul:{},ur=u.r||{},up=u.pl||{};
    ['kim','moc','thuy','hoa','tho'].forEach(function(e){cc.r[e]=Math.max(0,Math.min(100,+ur[e]||0));var a=Array.isArray(up[e])?up[e]:[];cc.pl[e]=[0,1,2].map(function(i){return Math.max(0,Math.min(10,a[i]|0));});});
-   cc.aw=u.aw===1||u.aw===true;cc.qi=Math.max(0,+u.qi||0);cc.rl=Math.max(1,Math.min(10,u.rl|0||1));cc.dpg=u.dpg===1||u.dpg===true;cc.eq.w=(typeof u.eq==='string'&&G.TD.byWeapon[u.eq])?u.eq:null;cc.eq.o=(typeof u.eo==='string'&&G.TD.byOutfit[u.eo])?u.eo:null;cc.bc=Math.max(0,Math.min(5000,+u.bc||0));cc.codes=Math.max(0,+u.codes||0);G.setPets(d.pets);P.maxHp=100;G.recalc();}
+   cc.aw=u.aw===1||u.aw===true;cc.qi=Math.max(0,+u.qi||0);cc.rl=Math.max(1,Math.min(10,u.rl|0||1));cc.dpg=u.dpg===1||u.dpg===true;cc.eq.w=(typeof u.eq==='string'&&G.TD.byWeapon[u.eq])?u.eq:null;cc.eq.o=(typeof u.eo==='string'&&G.TD.byOutfit[u.eo]&&G.TD.byOutfit[u.eo].part==='torso')?u.eo:null;cc.eq.h=(typeof u.eh==='string'&&G.TD.byOutfit[u.eh]&&G.TD.byOutfit[u.eh].part==='head')?u.eh:null;cc.eq.g=(typeof u.eg==='string'&&G.TD.byOutfit[u.eg]&&G.TD.byOutfit[u.eg].part==='boot')?u.eg:null;
   P.hp=(isFinite(d.hp)&&d.hp>0)?Math.min(P.maxHp,d.hp):P.maxHp;
   if(d.set&&d.set.lang)I18N.set(d.set.lang,true),markLang();
   if(d.stats&&typeof d.stats==='object'){var st=G.stats;st.kills=+d.stats.kills||0;st.steps=+d.stats.steps||0;st.sec=+d.stats.sec||0;}
   if(d.loot&&typeof d.loot==='object'){for(var k in G.loot)delete G.loot[k];for(var n in d.loot){var q=+d.loot[n];if(q>0)G.loot[n]=q;}if(G.lootUI)G.lootUI();}
+   if(G.loot['tb.tu_dien']>0){delete G.loot['tb.tu_dien'];['h','o','g'].forEach(function(k){G.loot['tb.tu_dien.'+k]=Math.max(1,G.loot['tb.tu_dien.'+k]|0);});if(u.eo==='tb.tu_dien'){cc.eq.h='tb.tu_dien.h';cc.eq.o='tb.tu_dien.o';cc.eq.g='tb.tu_dien.g';}}cc.bc=Math.max(0,Math.min(5000,+u.bc||0));cc.codes=Math.max(0,+u.codes||0);G.setPets(d.pets);P.maxHp=100;G.recalc();}
 }
 function localGet(uid){var t=ls('tt_save_'+uid);try{return t?JSON.parse(t):null;}catch(e){return null;}}
 function localSet(uid,o){ls('tt_save_'+uid,JSON.stringify(o));}
