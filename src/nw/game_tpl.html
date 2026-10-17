@@ -203,7 +203,7 @@ function mHit(d){if(!mTargetable()||M.st==='die')return;M.hp=Math.max(0,M.hp-d);
 
 /* ---------- ĐIỀU KHIỂN ---------- */
 function attack(){if(P.dead)return;const t=now();if(t-P.atkT<470)return;P.atkT=t;P.hitDone=false;P.fxDone=false;}
-addEventListener('keydown',e=>{keys[e.key.toLowerCase()]=1;if(e.key===' '||e.key.toLowerCase()==='j'){attack();e.preventDefault();}});
+addEventListener('keydown',e=>{if(e.target&&e.target.tagName==='INPUT')return;keys[e.key.toLowerCase()]=1;if(e.key===' '||e.key.toLowerCase()==='j'){attack();e.preventDefault();}});
 addEventListener('keyup',e=>{keys[e.key.toLowerCase()]=0;});
 const atkBtn=document.getElementById('atk');
 atkBtn.addEventListener('pointerdown',e=>{atkBtn.classList.add('on');attack();e.preventDefault();e.stopPropagation();});
@@ -379,7 +379,8 @@ function draw(){
 let last=performance.now();
 function loop(n){const dt=Math.min(.05,(n-last)/1000);last=n;if(window.__pause){requestAnimationFrame(loop);return;}try{update(dt);draw();}catch(e){window.dispatchEvent(new ErrorEvent('error',{message:e.message,lineno:0}));return;}requestAnimationFrame(loop);}
 requestAnimationFrame(loop);
-window.G={P,M,dog,fx:()=>fxs,drops,update,draw,tiles,cam,now,attack,setSt,mHit,DR,loot,SPAWN,LAKE,HOME,toast,keys,joy};
+window.G={P,M,dog,fx:()=>fxs,drops,update,draw,tiles,cam,now,attack,setSt,mHit,DR,loot,SPAWN,LAKE,HOME,toast,keys,joy,lootUI};
 toast('Thế giới mới · đánh Thủy Long ở hồ phía đông');
 })();
-</script></body></html>
+</script>
+<script>{{AUTH_JS}}</script></body></html>
