@@ -967,7 +967,7 @@ function drawHeld(t,atking,row,fr){
     const sc=.52,pvx=f[2]*.12,pvy=f[3]*.9;let th=-.785+.32;
     if(atking){const u=Math.min(1,(t-P.atkT)/430);th=u<.3?-.785-.55*(u/.3):-.785-.55+(u-.3)/.7*2.6;}
     else if(P.mv)th+=Math.sin(t/95)*.08;
-    ctx.save();ctx.translate(8,-13);ctx.rotate(th);ctx.imageSmoothingEnabled=false;ctx.drawImage(IMG.it,f[0],f[1],f[2],f[3],-pvx*sc,-pvy*sc,f[2]*sc,f[3]*sc);ctx.restore();if(cult.eq.o&&IMG.outfit.complete)OF.hand(8,-13,0);return;
+    ctx.save();ctx.translate(8,-13);ctx.rotate(th);ctx.imageSmoothingEnabled=false;ctx.drawImage(IMG.it,f[0],f[1],f[2],f[3],-pvx*sc,-pvy*sc,f[2]*sc,f[3]*sc);ctx.restore();return;
   }
   /* kiếm: cán nắm ở góc phải-trên của ảnh, mũi hướng LÊN, lơ lửng cách thân một chút (linh khí giữ thăng bằng); khi đánh thì CHỌC thẳng về phía trước */
   const sc=.56,pvx=f[2]*.84,pvy=f[3]*.16,UP=2.356;
@@ -982,7 +982,6 @@ function drawHeld(t,atking,row,fr){
   }
   ctx.save();ctx.translate(ox,oy);ctx.rotate(th);ctx.imageSmoothingEnabled=false;
   ctx.drawImage(IMG.it,f[0],f[1],f[2],f[3],-pvx*sc,-pvy*sc,f[2]*sc,f[3]*sc);ctx.restore();
-  if(cult.eq.o&&IMG.outfit.complete)OF.hand(ox,oy,0);
 }
 
 /* ---------- NGỌC: nuốt (trần 10/bậc) · hợp nhất 10 → 1 ---------- */
@@ -1322,7 +1321,7 @@ const OFM={
   5.428499999999999
  ]
 },OFHD=[[[0, 0], [0, 1], [0, 1], [0, 1], [0, 0], [0, 0]], [[0, 0], [-1, 0], [-1, 0], [0, 1], [0, 0], [1, 0], [1, 0], [0, 1]], [[0, 0], [0, 0], [0, 0], [-1, 0], [0, 0], [1, 0], [1, 1], [0, 1]], [[-2, 1], [-1, 0]]];
-OFM.head[1]+=5.5;   /* ảnh gốc GPT vẽ đầu & thân rời nhau ~7 pixel → hạ đầu xuống cho khít */
+OFM.head[1]+=3;   /* ảnh gốc GPT vẽ đầu & thân rời nhau ~7 pixel → hạ đầu xuống cho khít */
 const OF={SLEEVE:false,
   eq(k){return !!cult.eq[k];},                 /* k: h = mũ, o = giáp, g = giày */
   on(){return !!(cult.eq.h||cult.eq.o||cult.eq.g);},
@@ -1334,12 +1333,20 @@ const OF={SLEEVE:false,
     const H=NC.H,top=cult.eq.h?56:0,mid=cult.eq.o?64:56;
     c.imageSmoothingEnabled=false;
     if(top<56&&cut>0)c.drawImage(IMG.player,fr*NC.W,row*H,NC.W,Math.min(cut,56),0,0,NC.W,Math.min(cut,56));
-    if(cut>mid)c.drawImage(IMG.player,fr*NC.W,row*H+mid,NC.W,cut-mid,0,mid,NC.W,cut-mid);},
-  /* tay vung kiếm: dùng ống tay áo (slR) của bộ giáp, đặt đúng chỗ cầm kiếm (gx,gy theo đơn vị game, gốc = chân) */
-  hand(gx,gy,th){
-    const d=OFM.slR,p=OFM.pos.slR,w=d[2]*PX,h=d[3]*PX;
-    ctx.save();ctx.translate(gx,gy);ctx.rotate(th);ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';
-    ctx.drawImage(IMG.outfit,p[0],p[1],p[2],p[3],-w*.5,-h*.38,w,h);ctx.restore();},
+    if(cut>mid)c.drawImage(IMG.player,fr*NC.W,row*H+mid,NC.W,cut-mid,0,mid,NC.W,cut-mid);
+    if(cult.eq.o)OF.fist(c,row,fr,cut);},
+  /* nắm đấm / cánh tay trần ngoài thân (x<28 hoặc x>39, hàng 56-69) đổi sang màu áo giáp: đen tím theo độ sáng gốc */
+  fist(c,row,fr,cut){
+    const key=row+'_'+fr;OF._f=OF._f||{};let t=OF._f[key];
+    if(!t){const W=NC.W,Y0=56,Y1=70,cv=document.createElement('canvas');cv.width=W;cv.height=Y1-Y0;const x=cv.getContext('2d');
+      x.drawImage(IMG.player,fr*W,row*NC.H+Y0,W,Y1-Y0,0,0,W,Y1-Y0);
+      const im=x.getImageData(0,0,W,Y1-Y0),d=im.data,P=[[26,18,44],[52,36,86],[104,78,160]];
+      for(let yy=0;yy<Y1-Y0;yy++)for(let xx=0;xx<W;xx++){const i=(yy*W+xx)*4;
+        if(!d[i+3]||(xx>=28&&xx<=39)){d[i+3]=0;continue;}
+        const L=Math.min(1,(d[i]*.3+d[i+1]*.59+d[i+2]*.11)/255),u=L<.5?L/.5:(L-.5)/.5,a=L<.5?P[0]:P[1],b=L<.5?P[1]:P[2];
+        d[i]=a[0]+(b[0]-a[0])*u;d[i+1]=a[1]+(b[1]-a[1])*u;d[i+2]=a[2]+(b[2]-a[2])*u;}
+      x.putImageData(im,0,0);t=OF._f[key]=cv;}
+    c.imageSmoothingEnabled=false;const h=Math.min(14,Math.max(0,cut-56));if(h>0)c.drawImage(t,0,0,NC.W,h,0,56,NC.W,h);},
   /* vẽ trong toạ độ khung: gốc (0,0) = góc trên-trái khung 76×90; opts.cut = chỉ vẽ phần y<cut (đang cưỡi) */
   draw(row,fr,opts){
     opts=opts||{};const cut=opts.cut||NC.H;
@@ -1974,7 +1981,7 @@ function portrait(cv,rows,sc){ /* sprite nhân vật đứng, cắt hàng 1..row
 }
 function slotHtml(cls,style){return '<div class="slot '+cls+'" style="'+style+'"></div>';}
 function buildChTop(){
-  var top=$('chTop');top.innerHTML='';
+  var top=$('chTop');top.innerHTML='';delete top.dataset.o;
   var L=[['sl_wp',0,0],['sl_ring',0,0],['sl_boot',0,0]],R=[['sl_head',1,0],['sl_body',1,0],['sl_belt',1,0]];
   L.concat(R).forEach(function(s,i){var d=document.createElement('div');d.className='slot ph';d.style[s[1]?'right':'left']='4px';d.style.top=(6+(i%3)*58)+'px';d.dataset.k=s[0];d.appendChild(uimg(s[0]));top.appendChild(d);});
   var pt=document.createElement('div');pt.id='chPort';pt.innerHTML='<div class="ped"></div>';var cv=document.createElement('canvas');pt.appendChild(cv);top.appendChild(pt);
@@ -2101,7 +2108,7 @@ pn.innerHTML=
 '<div class="box"><div class="hd"><span id="setIc"></span><h2 data-i18n="set.title"></h2><button id="setX" type="button" data-i18n="bag.close"></button></div>'+
 '<h3 data-i18n="set.lang"></h3><div class="langs" id="setL"></div><div class="note" data-i18n="set.langnote"></div>'+
 '<h3 data-i18n="set.code"></h3><div class="codeRow"><input id="setCode" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false"><button id="setCodeGo" type="button" data-i18n="set.code.go"></button></div><div class="note" id="setCodeMsg"></div>'+
-'<h3 data-i18n="set.account"></h3><div id="setA"></div><div class="note" style="text-align:center;margin-top:14px">v1018.0240</div></div>';
+'<h3 data-i18n="set.account"></h3><div id="setA"></div><div class="note" style="text-align:center;margin-top:14px">v1018.0308</div></div>';
 document.body.appendChild(pn);
 $('setIc').appendChild(gear(2));
 
@@ -2150,7 +2157,7 @@ css.textContent=
 '#hud *{box-sizing:border-box}#hud canvas,#bigmap canvas{position:static!important;inset:auto!important;display:block}'+
 '#hud .pf{position:absolute;left:4px;top:calc(env(safe-area-inset-top,0px) + 4px);width:236px;height:78px;pointer-events:auto}'+
 '#hud .av{position:absolute;left:2px;top:2px;width:70px;height:71px;cursor:pointer;-webkit-tap-highlight-color:transparent}'+
-'#hud .av canvas{position:absolute;left:7px;top:7px;width:56px;height:56px;border-radius:50%;background:radial-gradient(circle at 50% 35%,#35608e,#0e1c30);image-rendering:pixelated}'+
+'#hud .av canvas{position:absolute!important;left:13px!important;top:12px!important;width:52px!important;height:52px!important;border-radius:50%;background:radial-gradient(circle at 50% 35%,#35608e,#0e1c30);image-rendering:pixelated}'+
 '#hud .av img.rg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;filter:drop-shadow(0 2px 3px #000a)}'+
 '#hud .av .lv{position:absolute;left:49px;top:46px;width:20px;height:20px;border-radius:50%;background:#06101c;color:#ffe8a8;font-size:11px;font-weight:900;line-height:20px;text-align:center;text-shadow:0 1px 2px #000}'+
 '#hud .bars{position:absolute;left:74px;top:0;width:164px}'+
@@ -2477,7 +2484,7 @@ ov.innerHTML=
 '<div class="err" id="aErr"></div>'+
 '<button class="go" id="aGo" type="submit"></button>'+
 '<div class="note" data-i18n-html="auth.note"></div>'+
-'<div class="note" style="opacity:.7">v1018.0240</div>'+
+'<div class="note" style="opacity:.7">v1018.0308</div>'+
 '</form>';
 document.body.appendChild(ov);
 var acc=document.createElement('div');acc.id='acc';acc.innerHTML='<span id="accN"></span> · <span id="accS"></span>';

@@ -3,7 +3,7 @@
    Mặc đồ: đầu thật + chân thật bị che hẳn (gỡ ra là lộ lại nhân vật gốc); thân thật chỉ giữ phần tay. Đầu theo nhịp lắc đầu từng khung, mắt chớp theo khung chớp của nhân vật.
    Tay áo rời (slL/slR) KHÔNG dùng (OF.SLEEVE=false): to bằng cả thân, vung kiếm sẽ lệch — áo đã có tay áo ngắn liền thân. */
 const OFM={{OFMETA}},OFHD={{OFHD}};
-OFM.head[1]+=5.5;   /* ảnh gốc GPT vẽ đầu & thân rời nhau ~7 pixel → hạ đầu xuống cho khít */
+OFM.head[1]+=3;   /* ảnh gốc GPT vẽ đầu & thân rời nhau ~7 pixel → hạ đầu xuống cho khít */
 const OF={SLEEVE:false,
   eq(k){return !!cult.eq[k];},                 /* k: h = mũ, o = giáp, g = giày */
   on(){return !!(cult.eq.h||cult.eq.o||cult.eq.g);},
@@ -15,12 +15,20 @@ const OF={SLEEVE:false,
     const H=NC.H,top=cult.eq.h?56:0,mid=cult.eq.o?64:56;
     c.imageSmoothingEnabled=false;
     if(top<56&&cut>0)c.drawImage(IMG.player,fr*NC.W,row*H,NC.W,Math.min(cut,56),0,0,NC.W,Math.min(cut,56));
-    if(cut>mid)c.drawImage(IMG.player,fr*NC.W,row*H+mid,NC.W,cut-mid,0,mid,NC.W,cut-mid);},
-  /* tay vung kiếm: dùng ống tay áo (slR) của bộ giáp, đặt đúng chỗ cầm kiếm (gx,gy theo đơn vị game, gốc = chân) */
-  hand(gx,gy,th){
-    const d=OFM.slR,p=OFM.pos.slR,w=d[2]*PX,h=d[3]*PX;
-    ctx.save();ctx.translate(gx,gy);ctx.rotate(th);ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';
-    ctx.drawImage(IMG.outfit,p[0],p[1],p[2],p[3],-w*.5,-h*.38,w,h);ctx.restore();},
+    if(cut>mid)c.drawImage(IMG.player,fr*NC.W,row*H+mid,NC.W,cut-mid,0,mid,NC.W,cut-mid);
+    if(cult.eq.o)OF.fist(c,row,fr,cut);},
+  /* nắm đấm / cánh tay trần ngoài thân (x<28 hoặc x>39, hàng 56-69) đổi sang màu áo giáp: đen tím theo độ sáng gốc */
+  fist(c,row,fr,cut){
+    const key=row+'_'+fr;OF._f=OF._f||{};let t=OF._f[key];
+    if(!t){const W=NC.W,Y0=56,Y1=70,cv=document.createElement('canvas');cv.width=W;cv.height=Y1-Y0;const x=cv.getContext('2d');
+      x.drawImage(IMG.player,fr*W,row*NC.H+Y0,W,Y1-Y0,0,0,W,Y1-Y0);
+      const im=x.getImageData(0,0,W,Y1-Y0),d=im.data,P=[[26,18,44],[52,36,86],[104,78,160]];
+      for(let yy=0;yy<Y1-Y0;yy++)for(let xx=0;xx<W;xx++){const i=(yy*W+xx)*4;
+        if(!d[i+3]||(xx>=28&&xx<=39)){d[i+3]=0;continue;}
+        const L=Math.min(1,(d[i]*.3+d[i+1]*.59+d[i+2]*.11)/255),u=L<.5?L/.5:(L-.5)/.5,a=L<.5?P[0]:P[1],b=L<.5?P[1]:P[2];
+        d[i]=a[0]+(b[0]-a[0])*u;d[i+1]=a[1]+(b[1]-a[1])*u;d[i+2]=a[2]+(b[2]-a[2])*u;}
+      x.putImageData(im,0,0);t=OF._f[key]=cv;}
+    c.imageSmoothingEnabled=false;const h=Math.min(14,Math.max(0,cut-56));if(h>0)c.drawImage(t,0,0,NC.W,h,0,56,NC.W,h);},
   /* vẽ trong toạ độ khung: gốc (0,0) = góc trên-trái khung 76×90; opts.cut = chỉ vẽ phần y<cut (đang cưỡi) */
   draw(row,fr,opts){
     opts=opts||{};const cut=opts.cut||NC.H;

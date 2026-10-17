@@ -104,7 +104,7 @@ function drawHeld(t,atking,row,fr){
     const sc=.52,pvx=f[2]*.12,pvy=f[3]*.9;let th=-.785+.32;
     if(atking){const u=Math.min(1,(t-P.atkT)/430);th=u<.3?-.785-.55*(u/.3):-.785-.55+(u-.3)/.7*2.6;}
     else if(P.mv)th+=Math.sin(t/95)*.08;
-    ctx.save();ctx.translate(8,-13);ctx.rotate(th);ctx.imageSmoothingEnabled=false;ctx.drawImage(IMG.it,f[0],f[1],f[2],f[3],-pvx*sc,-pvy*sc,f[2]*sc,f[3]*sc);ctx.restore();if(cult.eq.o&&IMG.outfit.complete)OF.hand(8,-13,0);return;
+    ctx.save();ctx.translate(8,-13);ctx.rotate(th);ctx.imageSmoothingEnabled=false;ctx.drawImage(IMG.it,f[0],f[1],f[2],f[3],-pvx*sc,-pvy*sc,f[2]*sc,f[3]*sc);ctx.restore();return;
   }
   /* kiếm: cán nắm ở góc phải-trên của ảnh, mũi hướng LÊN, lơ lửng cách thân một chút (linh khí giữ thăng bằng); khi đánh thì CHỌC thẳng về phía trước */
   const sc=.56,pvx=f[2]*.84,pvy=f[3]*.16,UP=2.356;
@@ -119,7 +119,6 @@ function drawHeld(t,atking,row,fr){
   }
   ctx.save();ctx.translate(ox,oy);ctx.rotate(th);ctx.imageSmoothingEnabled=false;
   ctx.drawImage(IMG.it,f[0],f[1],f[2],f[3],-pvx*sc,-pvy*sc,f[2]*sc,f[3]*sc);ctx.restore();
-  if(cult.eq.o&&IMG.outfit.complete)OF.hand(ox,oy,0);
 }
 
 /* ---------- NGỌC: nuốt (trần 10/bậc) · hợp nhất 10 → 1 ---------- */

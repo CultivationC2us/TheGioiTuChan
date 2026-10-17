@@ -273,7 +273,7 @@ function portrait(cv,rows,sc){ /* sprite nhân vật đứng, cắt hàng 1..row
 }
 function slotHtml(cls,style){return '<div class="slot '+cls+'" style="'+style+'"></div>';}
 function buildChTop(){
-  var top=$('chTop');top.innerHTML='';
+  var top=$('chTop');top.innerHTML='';delete top.dataset.o;
   var L=[['sl_wp',0,0],['sl_ring',0,0],['sl_boot',0,0]],R=[['sl_head',1,0],['sl_body',1,0],['sl_belt',1,0]];
   L.concat(R).forEach(function(s,i){var d=document.createElement('div');d.className='slot ph';d.style[s[1]?'right':'left']='4px';d.style.top=(6+(i%3)*58)+'px';d.dataset.k=s[0];d.appendChild(uimg(s[0]));top.appendChild(d);});
   var pt=document.createElement('div');pt.id='chPort';pt.innerHTML='<div class="ped"></div>';var cv=document.createElement('canvas');pt.appendChild(cv);top.appendChild(pt);
