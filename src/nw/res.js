@@ -89,8 +89,8 @@ var OUTFITS=[
 var SLOT={head:'h',torso:'o',boot:'g',ring:'r',aura:'l'};
 var PARTN={head:['mũ','盔','盔'],torso:['giáp','甲','甲'],boot:['hài','靴','靴'],ring:['nhẫn','戒指','戒指'],aura:['linh quang','靈光','灵光']};
 /* ---- chỉ số ngẫu nhiên (thức tỉnh): mỗi dòng = (chỉ số, giá trị 1-50). Hệ số quy đổi + màu theo giá trị ---- */
-var STATS=['atk','def','hp','spd','aspd','bag'];
-var STU={atk:1,def:1,hp:3,spd:.5,aspd:.5,bag:2};          /* hệ số: atk/def/hp cộng thẳng; spd/aspd = % ; bag = ô */
+var STATS=['atk','def','hp','spd','aspd','bag','crit','cdmg'];
+var STU={atk:1,def:1,hp:3,spd:.5,aspd:.5,bag:2,crit:.5,cdmg:1};          /* hệ số: atk/def/hp cộng thẳng; spd/aspd = % ; bag = ô */
 var RAR=[{max:3,c:'#58d66a'},{max:6,c:'#4aa3ff'},{max:9,c:'#b36bff'},{max:12,c:'#ff9a2e'},{max:15,c:'#ffd93a'},{max:19,c:'#ff4a4a'},{max:50,c:'#16121c',edge:'#ff2a2a'}];
 var RARW=[40,26,16,9,5.5,3,.5];                              /* xác suất mỗi bậc — càng cao càng hiếm */
 function rarOf(v){for(var i=0;i<RAR.length;i++)if(v<=RAR[i].max)return i;return RAR.length-1;}
@@ -186,7 +186,25 @@ var ARMAT={kim:0,moc:1,thuy:2,hoa:3,tho:4},ARMATS=[];
 EL.forEach(function(e){var c=ARMAT[e.id];
   [['gp','Giáp Phiến','甲片','甲片','s2'],['uo','Ủng Liệu','靴料','靴料','s3']].forEach(function(p){var id=p[0]+'.'+e.id;
     ARMATS.push({id:id,el:e.id,kind:p[0],n:[p[1]+' '+e.n[0],p[2]+'·'+e.n[1],p[3]+'·'+e.n[2]]});MISC[id]={dec:6};ICO[id]='L:'+p[4]+c;});});
-ICO['lt']='L:s00';   /* ảnh Linh Thạch = viên đầu tiên của thư viện đá */
+ICO['lt']='L:s00';
+/* ---- 5 CÔNG PHÁP (sách kỹ năng): học xong dùng được, tốn linh lực mỗi lần thi triển ---- */
+var SKILLS=[
+ {id:'hoa',el:'hoa',mp:28,cd:5000,mult:2.6,n:['Liệt Hỏa Thiên Tinh','烈火天星','烈火天星']},
+ {id:'thuy',el:'thuy',mp:26,cd:5500,mult:2.4,n:['Băng Tinh Phá','冰晶破','冰晶破']},
+ {id:'tho',el:'tho',mp:22,cd:4000,mult:2.2,n:['Huyền Thạch Trảm','玄石斬','玄石斩']},
+ {id:'moc',el:'moc',mp:24,cd:4500,mult:2.3,n:['Thanh Phong Toàn','青風旋','青风旋']},
+ {id:'kim',el:'kim',mp:34,cd:7000,mult:2.8,n:['Vạn Kiếm Quyết','萬劍訣','万剑诀']}];
+var bySkill={},bookOf={};SKILLS.forEach(function(k){bySkill[k.id]=k;var b='sk.'+k.id;bookOf[b]=k;MISC[b]={dec:0};BAG.sz[b]=2;ICO[b]='L:bk_'+k.id;});
+var SKBD=[
+ ['Sách {n}','《{n}》秘籍','《{n}》秘籍'],
+ ['Học để dùng công pháp {n}: tốn {mp} linh lực mỗi lần, hồi chiêu {cd}s, sát thương gấp ×{m} công kích cơ bản (có thể chí mạng). Học xong sách biến mất. Rơi từ quái cùng hệ.','學會後可施展{n}：每次耗 {mp} 靈力，冷卻 {cd} 秒，傷害為基礎攻擊的 ×{m}（可暴擊）。學會後秘籍消失。由同系妖獸掉落。','学会后可施展{n}：每次耗 {mp} 灵力，冷却 {cd} 秒，伤害为基础攻击的 ×{m}（可暴击）。学会后秘籍消失。由同系妖兽掉落。']];
+var SKT=[['hud.mp','Linh lực {a} / {b}','靈力 {a} / {b}','灵力 {a} / {b}'],['skill.nomp','Không đủ linh lực','靈力不足','灵力不足'],['skill.learn','Đã học công pháp: {name}','已學會功法：{name}','已学会功法：{name}'],['skill.known','Đã học công pháp này rồi','已學會此功法','已学会此功法'],['skill.crit','Chí mạng!','暴擊！','暴击！'],
+ ['st.mp','Linh lực','靈力','灵力'],['st.crit.b','Chí mạng','暴擊','暴击']];
+for(var k3=0;k3<3;k3++){var ad={};SKT.forEach(function(r){ad[r[0]]=r[k3+1];});
+  SKILLS.forEach(function(k){var nm=k.n[k3];ad['skill.'+k.id]=nm;ad['item.sk.'+k.id]=SKBD[0][k3].replace('{n}',nm);
+    ad['itemdesc.sk.'+k.id]=SKBD[1][k3].replace('{n}',nm).replace('{mp}',k.mp).replace('{cd}',k.cd/1000).replace('{m}',String(k.mult).replace('.',k3?'.':','));});
+  I18N.add(LG[k3],ad);}
+   /* ảnh Linh Thạch = viên đầu tiên của thư viện đá */
 MONS.forEach(function(m){});
 
 var S=[ /* chuỗi giao diện mới: [vi, zh-Hant, zh-Hans] */
@@ -217,7 +235,7 @@ var S=[ /* chuỗi giao diện mới: [vi, zh-Hant, zh-Hans] */
  ['ui.h2','Linh Căn đủ đầy mới thức tỉnh được; tu vi tăng dần theo thời gian.','靈根圓滿方可覺醒；修為隨時間增長。','灵根圆满方可觉醒；修为随时间增长。'],
  ['ui.h3','Đủ tu vi thì đột phá để lên tầng cảnh giới mới.','修為足夠即可突破，晉升新境界。','修为足够即可突破，晋升新境界。'],
  ['toast.equip.g','Đã trang bị {name}','已裝備{name}','已装备{name}'],['toast.awk','Thức tỉnh: {line}','覺醒：{line}','觉醒：{line}'],['toast.awk.no','Chưa đủ nguyên liệu thức tỉnh','覺醒材料不足','觉醒材料不足'],['toast.awk.max','Đã mở hết dòng chỉ số','屬性已全部開啟','属性已全部开启'],
- ['st.atk','Tấn công','攻擊','攻击'],['st.def','Phòng thủ','防禦','防御'],['st.hp','Khí huyết','氣血','气血'],['st.spd','Tốc chạy','移速','移速'],['st.aspd','Tốc đánh','攻速','攻速'],['st.bag','Sức chứa kho','倉庫容量','仓库容量'],
+ ['st.atk','Tấn công','攻擊','攻击'],['st.def','Phòng thủ','防禦','防御'],['st.hp','Khí huyết','氣血','气血'],['st.spd','Tốc chạy','移速','移速'],['st.aspd','Tốc đánh','攻速','攻速'],['st.crit','Tỉ lệ chí mạng','暴擊率','暴击率'],['st.cdmg','Sát thương chí mạng','暴擊傷害','暴击伤害'],['st.bag','Sức chứa kho','倉庫容量','仓库容量'],
  ['rar.0','Lục','綠','绿'],['rar.1','Lam','藍','蓝'],['rar.2','Tím','紫','紫'],['rar.3','Cam','橙','橙'],['rar.4','Vàng','金','金'],['rar.5','Đỏ','紅','红'],['rar.6','Huyền Bí','玄秘','玄秘'],
  ['eq.title','Trang bị','裝備','装备'],['eq.base','Cơ bản','基礎','基础'],['eq.lines','Thức tỉnh {n}/{cap}','覺醒 {n}/{cap}','觉醒 {n}/{cap}'],['eq.empty','Chưa mở dòng nào','尚未開啟','尚未开启'],['eq.locked','（chưa mở）','（未開）','（未开）'],
  ['eq.unequip','Tháo','卸下','卸下'],['eq.replace','Thay thế','更換','更换'],['eq.awake','Thức tỉnh','覺醒','觉醒'],['eq.awake.cost','Cần {lt} Linh Thạch + {n} nguyên liệu hệ {el} ({have} có)','需 {lt} 靈石 + {n} 個{el}系材料（現有 {have}）','需 {lt} 灵石 + {n} 个{el}系材料（现有 {have}）'],['eq.awake.full','Đã mở hết','已全開','已全开'],
@@ -387,5 +405,5 @@ MOUNTS.forEach(function(m){var e=EL.filter(function(x){return x.id===m.el;})[0];
       .replace(/\{name\}/g,m.n[k]).replace(/\{el\}/g,e.n[k]).replace(/\{run\}/g,String(m.spd).replace('.',k?'.':',')).replace(/\{fly\}/g,String(m.fspd).replace('.',k?'.':','));}});
 WTIER.forEach(function(t,i){for(var k=0;k<3;k++)add[LG[k]]['wtier.'+(i+1)]=t[k];});
 for(var k=0;k<3;k++)I18N.add(LG[k],add[LG[k]]);
-window.TTData={ARMATS:ARMATS,EL:EL,RES:RES,byItem:byItem,byId:byId,PEARL:PEARL,PCAP:PCAP,PFUSE:PFUSE,PT:PT,pearlId:pearlId,byPearl:byPearl,MONS:MONS,SCROLLS:SCROLLS,scrollOf:scrollOf,MOUNTS:MOUNTS,byMount:byMount,OUTFITS:OUTFITS,SLOT:SLOT,STATS:STATS,STU:STU,RAR:RAR,rarOf:rarOf,rollVal:rollVal,PARTN:PARTN,byOutfit:byOutfit,REALM:REALM,WEAPONS:WEAPONS,byWeapon:byWeapon,ICO:ICO,WTIER:WTIER,catOf:catOf,BAG:BAG,AFF:AFF,BASE:BASE,DAN:DAN,RECIPES:RECIPES,NEED:NEED,HITS:HITS,PTS:PTS,RESPAWN:300000,misc:MISC};
+window.TTData={SKILLS:SKILLS,bySkill:bySkill,bookOf:bookOf,ARMATS:ARMATS,EL:EL,RES:RES,byItem:byItem,byId:byId,PEARL:PEARL,PCAP:PCAP,PFUSE:PFUSE,PT:PT,pearlId:pearlId,byPearl:byPearl,MONS:MONS,SCROLLS:SCROLLS,scrollOf:scrollOf,MOUNTS:MOUNTS,byMount:byMount,OUTFITS:OUTFITS,SLOT:SLOT,STATS:STATS,STU:STU,RAR:RAR,rarOf:rarOf,rollVal:rollVal,PARTN:PARTN,byOutfit:byOutfit,REALM:REALM,WEAPONS:WEAPONS,byWeapon:byWeapon,ICO:ICO,WTIER:WTIER,catOf:catOf,BAG:BAG,AFF:AFF,BASE:BASE,DAN:DAN,RECIPES:RECIPES,NEED:NEED,HITS:HITS,PTS:PTS,RESPAWN:300000,misc:MISC};
 })();

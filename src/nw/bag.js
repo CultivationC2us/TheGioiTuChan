@@ -481,11 +481,14 @@ function renderStats(){
   $('bagS').innerHTML='<h3><span style="color:#e8bb48;margin-right:6px">✦</span>'+esc(T('ui.stats'))+'</h3>'+
    rb('st_hp',T('sx.hp'),Math.round(P.hp)+' / '+P.maxHp,P.hp/P.maxHp*100,'linear-gradient(#ff7a58 0 30%,#c02f2c 30% 70%,#6a1418 70%)')+
    rb('st_qi',T('realm.exp'),C.aw?(Math.floor(C.qi)+(nd?' / '+nd:'')):T('j.asleep'),C.aw&&nd?C.qi/nd*100:(C.aw?100:0),'linear-gradient(#d8f6ff 0 30%,#1f9be0 30% 70%,#1b3a8a 70%)')+
+   rb('st_qi',T('st.mp'),Math.floor(P.mp)+' / '+P.maxMp,P.mp/P.maxMp*100,'linear-gradient(#e2d4ff 0 30%,#8a5cff 30% 70%,#3a1f8a 70%)')+
    r2('st_atk',T('sx.atk'),Math.round((7+S.dmg+G.wAtk())*m)+' – '+Math.round((12+S.dmg+G.wAtk())*m))+
    r2('st_def',T('sx.def'),G.defVal())+
    r2('st_spd',T('sx.run'),N((100*(1+G.GS.spd)).toFixed(0))+'%')+
    r2('st_spd',T('sx.spd'),T('sx.spd.v',{n:N((1000/cd).toFixed(2))}))+
    r2('st_rng',T('sx.red'),N((S.red*100).toFixed(1))+'%')+
+   r2('st_atk',T('st.crit'),N((G.critP()*100).toFixed(1))+'%')+
+   r2('st_atk',T('st.cdmg'),'×'+N(G.cdmgV().toFixed(2)))+
    '<h3 class="dt">'+esc(T('ui.detail'))+'</h3>'+
    row('sx.realm',esc(T('realm.n',{n:C.rl}))+' (×'+N(m.toFixed(2))+')')+
    row('sx.dmg',Math.round((7+S.dmg+G.wAtk())*m)+' – '+Math.round((12+S.dmg+G.wAtk())*m))+

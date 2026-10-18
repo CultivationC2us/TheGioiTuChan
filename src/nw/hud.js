@@ -33,8 +33,9 @@ css.textContent=
 '#hud .fr span{position:absolute;left:10px;right:2px;top:-8px;line-height:22px;font-size:10px;font-weight:900;color:#fff;text-align:center;text-shadow:1px 0 #070b16,-1px 0 #070b16,0 1px #070b16,0 -1px #070b16;white-space:nowrap;z-index:2}'+
 '#hud .rl{position:relative;width:132px;height:22px;margin-top:3px;margin-left:2px;border:8px solid transparent;border-image:'+UP('plate')+' 4 fill/8px stretch;image-rendering:pixelated}'+
 '#hud .rl span{position:absolute;left:0;right:0;top:-8px;line-height:22px;font-size:11px;font-weight:900;color:#3a2208;text-align:center;white-space:nowrap}'+
+'#hud .mpb{position:absolute;left:76px;top:76px;width:130px;height:11px;border:1px solid #070b16;border-radius:3px;background:#0b1020;overflow:hidden}#hud .mpb i{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(#e2d4ff 0 28%,#8a5cff 28% 72%,#3a1f8a 72%)}#hud .mpb span{position:absolute;left:0;right:0;top:-1px;text-align:center;font-size:8px;line-height:11px;font-weight:900;color:#fff;text-shadow:0 0 2px #000,0 0 2px #000}'+
 '#hud .up{position:absolute;left:204px;top:50px;width:24px;height:24px;cursor:pointer}#hud .up img{width:100%;height:100%;image-rendering:pixelated}#hud .up:active{transform:translateY(2px)}'+
-'#hud .menu{position:absolute;left:8px;top:calc(env(safe-area-inset-top,0px) + 82px);display:flex;gap:1px;pointer-events:auto}'+
+'#hud .menu{position:absolute;left:8px;top:calc(env(safe-area-inset-top,0px) + 90px);display:flex;gap:1px;pointer-events:auto}'+
 '#hud .mb{width:36px;text-align:center;cursor:pointer;-webkit-tap-highlight-color:transparent}'+
 '#hud .mb canvas{display:block;width:36px;height:34px;border-radius:6px;filter:drop-shadow(0 2px 3px #000a)}'+
 '#hud .mb:active canvas{transform:scale(.94)}'+
@@ -55,7 +56,7 @@ document.head.appendChild(css);
 var hud=document.createElement('div');hud.id='hud';
 hud.innerHTML=
 '<div class="pf"><div class="av" id="hAvB"><canvas id="hAv" width="112" height="112"></canvas><img class="rg" id="hRg"><div class="lv" id="hLv"></div></div><div class="bars">'+
- '<div class="fr hp"><div class="tr"><i id="hHp"></i></div><img class="ic" id="hFh"><span id="hHpT"></span></div><div class="fr qi"><div class="tr"><i id="hQi"></i></div><img class="ic" id="hFq"><span id="hQiT"></span></div><div class="rl"><span id="hRl"></span></div></div><div class="up" id="hUp"><img id="hUpI"></div></div>'+
+ '<div class="fr hp"><div class="tr"><i id="hHp"></i></div><img class="ic" id="hFh"><span id="hHpT"></span></div><div class="fr qi"><div class="tr"><i id="hQi"></i></div><img class="ic" id="hFq"><span id="hQiT"></span></div><div class="rl"><span id="hRl"></span></div></div><div class="mpb"><i id="hMp"></i><span id="hMpT"></span></div><div class="up" id="hUp"><img id="hUpI"></div></div>'+
 '<div class="menu" id="hMenu"></div>'+
 '<div class="mm" id="hMm"><div class="zn" id="hZn"></div><canvas id="hMc" width="96" height="96"></canvas><div class="co" id="hCo"></div><div class="pl">+</div></div>';
 document.body.appendChild(hud);
@@ -157,6 +158,7 @@ function tick(){
   hud.style.display=on?'block':'none';if(!on)return;
   var P=G.P,C=G.cult;
   $('hHp').style.width=Math.max(0,P.hp/P.maxHp*100)+'%';$('hHpT').textContent=Math.round(P.hp)+' / '+P.maxHp;
+  $('hMp').style.width=Math.max(0,P.mp/P.maxMp*100)+'%';$('hMpT').textContent=T('hud.mp',{a:Math.floor(P.mp),b:P.maxMp});
   var qb=$('hQi'),qt=$('hQiT');
   if(!C.aw){qb.style.width='0%';qt.textContent=T('hud.asleep');}
   else if(C.rl>=G.TD.REALM.max){qb.style.width='100%';qt.textContent=T('hud.qi.max',{n:Math.floor(C.qi)});}
