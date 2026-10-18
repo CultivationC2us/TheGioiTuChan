@@ -145,7 +145,7 @@ function skUp(e,id,b,cancel){
   const dx=e.clientX-was.ox,dy=e.clientY-was.oy,l=Math.hypot(dx,dy);
   if(!was.moved){castSkill(id);return;}                  /* chạm nhanh: tự nhắm mục tiêu gần nhất (không có thì bắn về phía đang nhìn) */
   if(l<SK_DEAD)return;                                   /* kéo ra rồi kéo về giữa nút: huỷ */
-  const cfg=SKCFG[id],R=SK_RANGE[cfg.type]||250,d=Math.max(70,Math.min(1,l/SK_MAXPX)*R);
+  const cfg=SKCFG[id],R=SK_RANGE[cfg.type]||250,d=cfg.type==='zone'?Math.max(70,Math.min(1,l/SK_MAXPX)*R):R;   /* đạn: luôn bay hết tầm theo hướng kéo, gặp địch giữa đường thì nổ; vùng (kim): đặt tại điểm kéo */
   castSkill(id,false,{x:P.x+dx/l*d,y:P.y+dy/l*d+4});    /* bắn theo hướng đã ngắm, không tự bám mục tiêu */
 }
 function skBtnTick(t){
