@@ -80,10 +80,11 @@ function drawKie(t){
 }
 
 /* Bóng dưới chân của người đã Trúc Cơ: vòng pháp trận lam (ảnh người dùng) thay cho bóng đen, mờ nhẹ. Trả true nếu đã vẽ. */
+const AURA_W=46;   /* bề ngang vòng lam: sửa số này để to/nhỏ hơn */
 function auraShadow(x,y,rx,al){
   if(NPD||!((cult.tc|0)>0))return false;   /* NPD: đang vẽ NPC cưỡi thú (dùng chung hàm vẽ với người chơi) → NPC không có vòng lam */
   const A=IMG.kie,m=KIEM.aura&&KIEM.aura[0];if(!A||!A.complete||!m)return false;
-  const w=rx*2*2.8,s=w/m[2],h=m[3]*s;
+  const w=AURA_W,s=w/m[2],h=m[3]*s;   /* kích thước CỐ ĐỊNH (px thế giới) cho mọi trạng thái: đi bộ, cưỡi, bay — tham số rx không còn dùng */
   ctx.save();ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';
   ctx.globalAlpha=al*(.92+.08*Math.sin(now()/700));
   ctx.drawImage(A,m[0],m[1],m[2],m[3],x-m[4]*s,y-h*.56,w,h);   /* tâm elip của vòng nằm ở ~56% chiều cao ảnh */
