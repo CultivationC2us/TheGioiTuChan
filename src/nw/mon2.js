@@ -175,22 +175,16 @@ function setEq(k,id){
 function drawHeld(t,atking,row,fr){
   const w=cult.eq.w&&TD.byWeapon[cult.eq.w];if(!w||P.dead)return;const f=ITM[w.ico];if(!f||!IMG.it.complete)return;
   const staff=(w.ico==='w10'||w.ico==='w11'||w.ico==='w12');
-  if(staff){   /* trượng: cầm xuôi như cũ */
-    const sc=.52,pvx=f[2]*.12,pvy=f[3]*.9;let th=-.785+.32;
-    if(atking){const u=Math.min(1,(t-P.atkT)/430);th=u<.3?-.785-.55*(u/.3):-.785-.55+(u-.3)/.7*2.6;}
-    else if(P.mv)th+=Math.sin(t/95)*.08;
-    ctx.save();ctx.translate(8,-13);ctx.rotate(th);ctx.imageSmoothingEnabled=false;ctx.drawImage(IMG.it,f[0],f[1],f[2],f[3],-pvx*sc,-pvy*sc,f[2]*sc,f[3]*sc);ctx.restore();return;
-  }
-  /* kiếm: cán nắm ở góc phải-trên của ảnh, mũi hướng LÊN, lơ lửng cách thân một chút (linh khí giữ thăng bằng); khi đánh thì CHỌC thẳng về phía trước */
-  const sc=.56,pvx=f[2]*.84,pvy=f[3]*.16,UP=2.356;
+  /* kiếm & trượng dùng CHUNG một kiểu cầm: lơ lửng cách thân một chút (linh khí giữ thăng bằng), đầu hướng LÊN, khi đánh thì CHỌC thẳng về phía trước.
+     kiếm: nắm ở cán (góc phải-trên ảnh, mũi chúc xuống-trái) · trượng: nắm giữa thân gậy (đầu ngọc ở góc phải-trên) → xoay ngược chiều để đầu ngọc hướng lên */
+  const sc=.56,pvx=f[2]*(staff?.46:.84),pvy=f[3]*(staff?.58:.16),UP=staff?-.785:2.356,END=staff?.785:3.93;
   let th=UP+.10,ox=13,oy=-15+Math.sin(t/380)*.9;
   if(P.mv&&!atking){th+=Math.sin(t/95)*.05;oy+=Math.sin(t/95)*.6;}
-  let thr=0;
   if(atking){const u=Math.min(1,(t-P.atkT)/430),ez=x=>x*x*(3-2*x);
-    if(u<.3){const k=ez(u/.3);th=UP+.10-.35*k;ox=13-5*k;}                 /* thu kiếm về sau */
-    else if(u<.55){const k=ez((u-.3)/.25);th=UP-.25+(3.93-UP+.25)*k;ox=8+11*k;oy+=2*k;thr=k;}   /* chọc tới */
-    else if(u<.75){th=3.93;ox=19;oy+=2;thr=1;}
-    else{const k=ez((u-.75)/.25);th=3.93-(3.93-UP-.10)*k;ox=19-6*k;oy+=2*(1-k);thr=1-k;}
+    if(u<.3){const k=ez(u/.3);th=UP+.10-.35*k;ox=13-5*k;}                 /* thu về sau */
+    else if(u<.55){const k=ez((u-.3)/.25);th=UP-.25+(END-UP+.25)*k;ox=8+11*k;oy+=2*k;}   /* chọc tới */
+    else if(u<.75){th=END;ox=19;oy+=2;}
+    else{const k=ez((u-.75)/.25);th=END-(END-UP-.10)*k;ox=19-6*k;oy+=2*(1-k);}
   }
   ctx.save();ctx.translate(ox,oy);ctx.rotate(th);ctx.imageSmoothingEnabled=false;
   ctx.drawImage(IMG.it,f[0],f[1],f[2],f[3],-pvx*sc,-pvy*sc,f[2]*sc,f[3]*sc);ctx.restore();
