@@ -17,7 +17,7 @@ const MON_RESPAWN=7000;          /* quái hồi sinh sau 7 giây, ngay gần ch�
 
 /* ---------- CHỈ SỐ NHÂN VẬT ---------- */
 const STT={dmg:0,hp:0,red:0,spd:0,qi:0};
-const GS={atk:0,def:0,hp:0,spd:0,aspd:0,bag:0,crit:0,cdmg:0};   /* cộng từ chỉ số ngẫu nhiên của trang bị đang mặc */
+const GS={atk:0,def:0,hp:0,spd:0,aspd:0,bag:0,crit:0,cdmg:0,mp:0};   /* cộng từ chỉ số ngẫu nhiên của trang bị đang mặc */
 /* ---------- THẾ GIỚI TRÒN: qua mép bản đồ thì dịch cả người, camera, chó, linh thú, tâm tự động ---------- */
 function onWrap(sx,sy){P.x+=sx;P.y+=sy;cam.x+=sx;cam.y+=sy;dog.x+=sx;dog.y+=sy;for(const o of petObjs){o.x+=sx;o.y+=sy;}AUTO.ax+=sx;AUTO.ay+=sy;}
 
@@ -62,7 +62,7 @@ function recalc(){
   const sum=el=>cult.pl[el].reduce((a,b)=>a+b,0),pe=TD.PEARL,rd=x=>Math.round(x*1000)/1000;
   STT.dmg=rd(sum('kim')*pe.kim.per);STT.hp=rd(sum('moc')*pe.moc.per);STT.red=Math.min(.6,rd(sum('tho')*pe.tho.per));STT.spd=rd(sum('hoa')*pe.hoa.per);STT.qi=rd(sum('thuy')*pe.thuy.per);
   if(cult.qi>realmNeed(cult.rl)+TD.DAN['dan.tukhi'].qi)cult.qi=realmNeed(cult.rl);
-  P.maxMp=60+12*((cult.rl|0)-1);P.mp=Math.min(P.mp,P.maxMp);
+  P.maxMp=60+12*((cult.rl|0)-1)+GS.mp;P.mp=Math.min(P.mp,P.maxMp);
   const mx=Math.round((100+STT.hp+GS.hp)*realmMul()),old=P.maxHp;P.maxHp=mx;P.hp=mx>old?Math.min(mx,P.hp+(mx-old)):Math.min(P.hp,mx);
 }
 /* ---------- DEF · TÚI CÓ DUNG TÍCH ---------- */
@@ -112,13 +112,13 @@ function gearRec(id){const u=uidOf(id);if(u)return cult.ins[u]||(gearBase(id)?(c
   if(isBeast(id))return cult.ins[id]||(cult.ins[id]={a:[],cap:5+Math.floor(Math.random()*6)});return null;}
 const gearBase=id=>TD.byOutfit[baseId(id)]||TD.byWeapon[baseId(id)]||TD.byMount[id]||(id===DOGID?{el:'kim'}:null)||(PETS.includes(id)?TD.MONS.find(m=>m.id===id)||null:null);
 function gearStats(){
-  GS.atk=GS.def=GS.hp=GS.spd=GS.aspd=GS.bag=GS.crit=GS.cdmg=0;
+  GS.atk=GS.def=GS.hp=GS.spd=GS.aspd=GS.bag=GS.crit=GS.cdmg=GS.mp=0;
   const own=GKEYS.map(k=>cult.eq[k]).filter(id=>id&&loot[id]>0);
   if(cult.eq.p&&isBeast(cult.eq.p))own.push(cult.eq.p);
   if(cult.mtSel&&loot[cult.mtSel]>0)own.push(cult.mtSel);
   for(const id of own){const r=gearRec(id);if(!r)continue;
     for(const [st,v] of r.a)GS[st]+=v*TD.STU[st]*((st==='spd'||st==='aspd'||st==='crit'||st==='cdmg')?.01:1);}
-  GS.atk=Math.round(GS.atk);GS.def=Math.round(GS.def);GS.hp=Math.round(GS.hp);GS.bag=Math.round(GS.bag);
+  GS.atk=Math.round(GS.atk);GS.def=Math.round(GS.def);GS.hp=Math.round(GS.hp);GS.bag=Math.round(GS.bag);GS.mp=Math.round(GS.mp);
 }
 function lineText(st,v){const u=TD.STU[st]*v,n=x=>I18N.lang==='vi'?String(x).replace('.',','):String(x);
   return '+'+((st==='spd'||st==='aspd'||st==='crit'||st==='cdmg')?n(u.toFixed(1))+'%':Math.round(u))+' '+T('st.'+st);}

@@ -75,4 +75,8 @@ with sync_playwright() as p:
     pg.evaluate("document.querySelectorAll('.slot')[0].click()"); pg.wait_for_timeout(400)
     ok('Linh Thạch' in pg.inner_text('#eqAw') and 'Thức tỉnh' in pg.inner_text('#eqAw'),'nút ghi: '+pg.inner_text('#eqAw').replace('\n',' '))
     pg.screenshot(path='aw_cost.png')
+    ok(pg.evaluate("G.TD.STATS.includes('mp')"),'thức tỉnh có dòng Linh lực')
+    pg.evaluate("(g)=>{G.gearRec(g).a.push(['mp',20]);G.recalc();}",g2); 
+    ok(pg.evaluate("G.P.maxMp")==60+30,'dòng linh lực +30 → tối đa '+str(pg.evaluate("G.P.maxMp")))
+    ok(pg.evaluate("G.lineText('mp',20)")=='+30 Linh lực','hiển thị: '+pg.evaluate("G.lineText('mp',20)"))
     print('TỔNG',sum(res),'/',len(res))

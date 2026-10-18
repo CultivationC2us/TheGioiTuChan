@@ -343,8 +343,8 @@ var OUTFITS=[
 var SLOT={head:'h',torso:'o',boot:'g',ring:'r',aura:'l'};
 var PARTN={head:['mũ','盔','盔'],torso:['giáp','甲','甲'],boot:['hài','靴','靴'],ring:['nhẫn','戒指','戒指'],aura:['linh quang','靈光','灵光']};
 /* ---- chỉ số ngẫu nhiên (thức tỉnh): mỗi dòng = (chỉ số, giá trị 1-50). Hệ số quy đổi + màu theo giá trị ---- */
-var STATS=['atk','def','hp','spd','aspd','bag','crit','cdmg'];
-var STU={atk:1,def:1,hp:3,spd:.5,aspd:.5,bag:2,crit:.5,cdmg:1};          /* hệ số: atk/def/hp cộng thẳng; spd/aspd = % ; bag = ô */
+var STATS=['atk','def','hp','spd','aspd','bag','crit','cdmg','mp'];
+var STU={atk:1,def:1,hp:3,spd:.5,aspd:.5,bag:2,crit:.5,cdmg:1,mp:1.5};          /* hệ số: atk/def/hp cộng thẳng; spd/aspd = % ; bag = ô */
 var RAR=[{max:3,c:'#58d66a'},{max:6,c:'#4aa3ff'},{max:9,c:'#b36bff'},{max:12,c:'#ff9a2e'},{max:15,c:'#ffd93a'},{max:19,c:'#ff4a4a'},{max:50,c:'#16121c',edge:'#ff2a2a'}];
 var RARW=[40,26,16,9,5.5,3,.5];                              /* xác suất mỗi bậc — càng cao càng hiếm */
 function rarOf(v){for(var i=0;i<RAR.length;i++)if(v<=RAR[i].max)return i;return RAR.length-1;}
@@ -979,7 +979,7 @@ const MON_RESPAWN=7000;          /* quái hồi sinh sau 7 giây, ngay gần ch�
 
 /* ---------- CHỈ SỐ NHÂN VẬT ---------- */
 const STT={dmg:0,hp:0,red:0,spd:0,qi:0};
-const GS={atk:0,def:0,hp:0,spd:0,aspd:0,bag:0,crit:0,cdmg:0};   /* cộng từ chỉ số ngẫu nhiên của trang bị đang mặc */
+const GS={atk:0,def:0,hp:0,spd:0,aspd:0,bag:0,crit:0,cdmg:0,mp:0};   /* cộng từ chỉ số ngẫu nhiên của trang bị đang mặc */
 /* ---------- THẾ GIỚI TRÒN: qua mép bản đồ thì dịch cả người, camera, chó, linh thú, tâm tự động ---------- */
 function onWrap(sx,sy){P.x+=sx;P.y+=sy;cam.x+=sx;cam.y+=sy;dog.x+=sx;dog.y+=sy;for(const o of petObjs){o.x+=sx;o.y+=sy;}AUTO.ax+=sx;AUTO.ay+=sy;}
 
@@ -1024,7 +1024,7 @@ function recalc(){
   const sum=el=>cult.pl[el].reduce((a,b)=>a+b,0),pe=TD.PEARL,rd=x=>Math.round(x*1000)/1000;
   STT.dmg=rd(sum('kim')*pe.kim.per);STT.hp=rd(sum('moc')*pe.moc.per);STT.red=Math.min(.6,rd(sum('tho')*pe.tho.per));STT.spd=rd(sum('hoa')*pe.hoa.per);STT.qi=rd(sum('thuy')*pe.thuy.per);
   if(cult.qi>realmNeed(cult.rl)+TD.DAN['dan.tukhi'].qi)cult.qi=realmNeed(cult.rl);
-  P.maxMp=60+12*((cult.rl|0)-1);P.mp=Math.min(P.mp,P.maxMp);
+  P.maxMp=60+12*((cult.rl|0)-1)+GS.mp;P.mp=Math.min(P.mp,P.maxMp);
   const mx=Math.round((100+STT.hp+GS.hp)*realmMul()),old=P.maxHp;P.maxHp=mx;P.hp=mx>old?Math.min(mx,P.hp+(mx-old)):Math.min(P.hp,mx);
 }
 /* ---------- DEF · TÚI CÓ DUNG TÍCH ---------- */
@@ -1074,13 +1074,13 @@ function gearRec(id){const u=uidOf(id);if(u)return cult.ins[u]||(gearBase(id)?(c
   if(isBeast(id))return cult.ins[id]||(cult.ins[id]={a:[],cap:5+Math.floor(Math.random()*6)});return null;}
 const gearBase=id=>TD.byOutfit[baseId(id)]||TD.byWeapon[baseId(id)]||TD.byMount[id]||(id===DOGID?{el:'kim'}:null)||(PETS.includes(id)?TD.MONS.find(m=>m.id===id)||null:null);
 function gearStats(){
-  GS.atk=GS.def=GS.hp=GS.spd=GS.aspd=GS.bag=GS.crit=GS.cdmg=0;
+  GS.atk=GS.def=GS.hp=GS.spd=GS.aspd=GS.bag=GS.crit=GS.cdmg=GS.mp=0;
   const own=GKEYS.map(k=>cult.eq[k]).filter(id=>id&&loot[id]>0);
   if(cult.eq.p&&isBeast(cult.eq.p))own.push(cult.eq.p);
   if(cult.mtSel&&loot[cult.mtSel]>0)own.push(cult.mtSel);
   for(const id of own){const r=gearRec(id);if(!r)continue;
     for(const [st,v] of r.a)GS[st]+=v*TD.STU[st]*((st==='spd'||st==='aspd'||st==='crit'||st==='cdmg')?.01:1);}
-  GS.atk=Math.round(GS.atk);GS.def=Math.round(GS.def);GS.hp=Math.round(GS.hp);GS.bag=Math.round(GS.bag);
+  GS.atk=Math.round(GS.atk);GS.def=Math.round(GS.def);GS.hp=Math.round(GS.hp);GS.bag=Math.round(GS.bag);GS.mp=Math.round(GS.mp);
 }
 function lineText(st,v){const u=TD.STU[st]*v,n=x=>I18N.lang==='vi'?String(x).replace('.',','):String(x);
   return '+'+((st==='spd'||st==='aspd'||st==='crit'||st==='cdmg')?n(u.toFixed(1))+'%':Math.round(u))+' '+T('st.'+st);}
@@ -1967,11 +1967,11 @@ npcLoad();
    Sprite: lib/extract_skill.py → atlas 'sk' (SKM, tên '<hệ>_<số>').
    ============================================================ */
 const SKCFG={
-  hoa:{type:'proj',fly:[1,2,3,4,5,6,7],burst:[8,9,10],bms:170,sc:.88,fsc:.7,r:46,hits:[0],hold:200,yoff:0},
-  thuy:{type:'proj',fly:[1,2,3,4],burst:[5,6,7,8,9,10,11],bms:95,sc:.88,fsc:.7,r:48,hits:[120],hold:200,yoff:0},
-  tho:{type:'proj',fly:[3,4,5,6],burst:[7,8,9],bms:190,sc:.88,fsc:.7,r:46,hits:[150],hold:200,yoff:-16},
-  moc:{type:'proj',fly:[1,2,3,4,5],burst:[6,7,8,9,10,11],bms:130,sc:.88,fsc:.7,r:48,hits:[0,430],hold:250,yoff:0},
-  kim:{type:'zone',burst:[1,2,3,4,5,6,7,8,9,10,11,12,13],bms:85,sc:1.02,r:58,hits:[840],hold:250,yoff:0}
+  hoa:{type:'proj',fly:[1,2,3,4,5,6,7],burst:[8,9,10],bms:170,sc:1.76,fsc:1.4,r:92,hits:[0],hold:200,yoff:0},
+  thuy:{type:'proj',fly:[1,2,3,4],burst:[5,6,7,8,9,10,11],bms:95,sc:1.76,fsc:1.4,r:96,hits:[120],hold:200,yoff:0},
+  tho:{type:'proj',fly:[3,4,5,6],burst:[7,8,9],bms:190,sc:1.76,fsc:1.4,r:92,hits:[150],hold:200,yoff:-32},
+  moc:{type:'proj',fly:[1,2,3,4,5],burst:[6,7,8,9,10,11],bms:130,sc:1.76,fsc:1.4,r:96,hits:[0,430],hold:250,yoff:0},
+  kim:{type:'zone',burst:[1,2,3,4,5,6,7,8,9,10,11,12,13],bms:85,sc:2.04,r:116,hits:[840],hold:250,yoff:0}
 };
 const skCd={},skFx=[];
 cult.sk=[];P.mp=60;P.maxMp=60;
@@ -1984,7 +1984,7 @@ function skHitArea(f){
   f.n++;return any;
 }
 function skTarget(){
-  let best=null,bd=1e9;const R=200;
+  let best=null,bd=1e9;const R=240;
   for(const m of mons2){if(!monAlive(m))continue;const dx=(m.x-P.x)*P.f,d=Math.hypot(m.x-P.x,m.y-P.y);if(dx>-24&&d<R&&d<bd){best={x:m.x,y:m.y,o:m};bd=d;}}
   for(const d of DRG){withDr(d,()=>{if(mTargetable()&&M.st!=='die'){const dx=(M.x-P.x)*P.f,q=Math.hypot(M.x-P.x,M.y-P.y);if(dx>-24&&q<R&&q<bd){best={x:M.x,y:M.y,o:d};bd=q;}}});}
   return best;
@@ -1995,12 +1995,12 @@ function castSkill(id,auto){
   if(P.mp<sk.mp){if(!auto)toast(T('skill.nomp'));return false;}
   P.mp-=sk.mp;skCd[id]=t+sk.cd;
   const tg=skTarget();let tx,ty;
-  if(tg){tx=tg.x;ty=tg.y;}else{tx=P.x+P.f*(cfg.type==='zone'?72:104);ty=P.y+4;}
+  if(tg){tx=tg.x;ty=tg.y;}else{tx=P.x+P.f*(cfg.type==='zone'?110:130);ty=P.y+4;}
   if(Math.abs(tx-P.x)>4)P.f=tx>P.x?1:-1;
   P.atkT=t;P.hitDone=true;P.fxDone=true;
   const ox=P.x+P.f*12,oy=P.y-16;
   if(cfg.type==='zone')skFx.push({id,k:'zone',x:tx,y:ty,r:cfg.r,t0:t,n:0,hits:cfg.hits.slice(),done:[]});
-  else{const dist=Math.hypot(tx-ox,ty-10-oy),fl=Math.max(220,dist/320*1000);
+  else{const dist=Math.hypot(tx-ox,ty-10-oy),fl=Math.max(260,dist/320*1000);
     skFx.push({id,k:'proj',o:tg&&tg.o,ox,oy,x:tx,y:ty,tx,ty,r:cfg.r,t0:t,fl,n:0,hits:cfg.hits.slice(),done:[],bt:0});}
   return true;
 }
@@ -2889,7 +2889,7 @@ pn.innerHTML=
 '<div class="box"><div class="hd"><span id="setIc"></span><h2 data-i18n="set.title"></h2><button id="setX" type="button" data-i18n="bag.close"></button></div>'+
 '<h3 data-i18n="set.lang"></h3><div class="langs" id="setL"></div><div class="note" data-i18n="set.langnote"></div>'+
 '<h3 data-i18n="set.code"></h3><div class="codeRow"><input id="setCode" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false"><button id="setCodeGo" type="button" data-i18n="set.code.go"></button></div><div class="note" id="setCodeMsg"></div>'+
-'<h3 data-i18n="set.account"></h3><div id="setA"></div><div class="note" style="text-align:center;margin-top:14px">v1018.1149</div></div>';
+'<h3 data-i18n="set.account"></h3><div id="setA"></div><div class="note" style="text-align:center;margin-top:14px">v1018.1613</div></div>';
 document.body.appendChild(pn);
 $('setIc').appendChild(gear(2));
 
@@ -3329,7 +3329,7 @@ ov.innerHTML=
 '<div class="err" id="aErr"></div>'+
 '<button class="go" id="aGo" type="submit"></button>'+
 '<div class="note" data-i18n-html="auth.note"></div>'+
-'<div class="note" style="opacity:.7">v1018.1149</div>'+
+'<div class="note" style="opacity:.7">v1018.1613</div>'+
 '</form>';
 document.body.appendChild(ov);
 var acc=document.createElement('div');acc.id='acc';acc.innerHTML='<span id="accN"></span> · <span id="accS"></span>';

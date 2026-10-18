@@ -89,8 +89,8 @@ var OUTFITS=[
 var SLOT={head:'h',torso:'o',boot:'g',ring:'r',aura:'l'};
 var PARTN={head:['mũ','盔','盔'],torso:['giáp','甲','甲'],boot:['hài','靴','靴'],ring:['nhẫn','戒指','戒指'],aura:['linh quang','靈光','灵光']};
 /* ---- chỉ số ngẫu nhiên (thức tỉnh): mỗi dòng = (chỉ số, giá trị 1-50). Hệ số quy đổi + màu theo giá trị ---- */
-var STATS=['atk','def','hp','spd','aspd','bag','crit','cdmg'];
-var STU={atk:1,def:1,hp:3,spd:.5,aspd:.5,bag:2,crit:.5,cdmg:1};          /* hệ số: atk/def/hp cộng thẳng; spd/aspd = % ; bag = ô */
+var STATS=['atk','def','hp','spd','aspd','bag','crit','cdmg','mp'];
+var STU={atk:1,def:1,hp:3,spd:.5,aspd:.5,bag:2,crit:.5,cdmg:1,mp:1.5};          /* hệ số: atk/def/hp cộng thẳng; spd/aspd = % ; bag = ô */
 var RAR=[{max:3,c:'#58d66a'},{max:6,c:'#4aa3ff'},{max:9,c:'#b36bff'},{max:12,c:'#ff9a2e'},{max:15,c:'#ffd93a'},{max:19,c:'#ff4a4a'},{max:50,c:'#16121c',edge:'#ff2a2a'}];
 var RARW=[40,26,16,9,5.5,3,.5];                              /* xác suất mỗi bậc — càng cao càng hiếm */
 function rarOf(v){for(var i=0;i<RAR.length;i++)if(v<=RAR[i].max)return i;return RAR.length-1;}
