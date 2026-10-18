@@ -1070,7 +1070,7 @@ function mkGear(b){const u=Date.now().toString(36)+(insN++).toString(36)+Math.fl
   cult.ins[u]={a:[],cap:5+Math.floor(Math.random()*6)};regIns(id);loot[id]=1;return id;}
 const DOGID='bach_khuyen';
 const isBeast=id=>!!id&&(!!TD.byMount[id]||id===DOGID||PETS.includes(id));
-function gearRec(id){const u=uidOf(id);if(u)return cult.ins[u]||null;
+function gearRec(id){const u=uidOf(id);if(u)return cult.ins[u]||(gearBase(id)?(cult.ins[u]={a:[],cap:5+Math.floor(Math.random()*6)}):null);
   if(isBeast(id))return cult.ins[id]||(cult.ins[id]={a:[],cap:5+Math.floor(Math.random()*6)});return null;}
 const gearBase=id=>TD.byOutfit[baseId(id)]||TD.byWeapon[baseId(id)]||TD.byMount[id]||(id===DOGID?{el:'kim'}:null)||(PETS.includes(id)?TD.MONS.find(m=>m.id===id)||null:null);
 function gearStats(){
@@ -1104,7 +1104,7 @@ function saveEq(){
 function loadEq(u){
   u=u||{};cult.ins={};cult.sk=(Array.isArray(u.sk)?u.sk:[]).filter(id=>TD.bySkill[id]);const si=(u.ins&&typeof u.ins==='object')?u.ins:{};
   for(const k in si){const r=si[k];if(r&&Array.isArray(r.a))cult.ins[k]={a:r.a.filter(x=>Array.isArray(x)&&TD.STATS.includes(x[0])&&x[1]>=1&&x[1]<=50).map(x=>[x[0],x[1]|0]).slice(0,10),cap:Math.max(5,Math.min(10,(r.cap|0)||5))};}
-  for(const id of Object.keys(loot))if(id.indexOf('#')>0){if(gearBase(id))regIns(id);else delete loot[id];}
+  for(const id of Object.keys(loot))if(id.indexOf('#')>0){if(gearBase(id)){regIns(id);gearRec(id);}else delete loot[id];}
   if(loot['cg.vukhi']>0){delete loot['cg.vukhi'];TD.SCROLLS.forEach(s=>{loot[s.id]=Math.max(1,loot[s.id]|0);});}
   const map={};
   /* bộ trang phục cũ (1 món gộp) -> 3 món; vũ khí/đồ cũ không có '#' -> bản thể mới */
@@ -2887,7 +2887,7 @@ pn.innerHTML=
 '<div class="box"><div class="hd"><span id="setIc"></span><h2 data-i18n="set.title"></h2><button id="setX" type="button" data-i18n="bag.close"></button></div>'+
 '<h3 data-i18n="set.lang"></h3><div class="langs" id="setL"></div><div class="note" data-i18n="set.langnote"></div>'+
 '<h3 data-i18n="set.code"></h3><div class="codeRow"><input id="setCode" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false"><button id="setCodeGo" type="button" data-i18n="set.code.go"></button></div><div class="note" id="setCodeMsg"></div>'+
-'<h3 data-i18n="set.account"></h3><div id="setA"></div><div class="note" style="text-align:center;margin-top:14px">v1018.1140</div></div>';
+'<h3 data-i18n="set.account"></h3><div id="setA"></div><div class="note" style="text-align:center;margin-top:14px">v1018.1143</div></div>';
 document.body.appendChild(pn);
 $('setIc').appendChild(gear(2));
 
@@ -3148,7 +3148,8 @@ function req(path,method,body,token,keep,prefer){
   var h={apikey:KEY,'Content-Type':'application/json'};
   if(prefer)h.Prefer=prefer;
   if(token)h.Authorization='Bearer '+token;
-  return fetch(URL_+path,{method:method,headers:h,body:body?JSON.stringify(body):undefined,keepalive:!!keep}).then(function(r){
+  var bs=body?JSON.stringify(body):undefined,ac=window.AbortController?new AbortController():null,tm=ac?setTimeout(function(){ac.abort();},20000):0;   /* hết 20 giây thì bỏ, tránh treo cờ 'đang lưu' mãi */
+  return fetch(URL_+path,{method:method,headers:h,body:bs,keepalive:!!keep&&(!bs||bs.length<60000),signal:ac?ac.signal:undefined}).then(function(r){clearTimeout(tm);
     return r.text().then(function(t){var j=null;try{j=t?JSON.parse(t):null;}catch(e){}return{ok:r.ok,status:r.status,j:j};});
   });
 }
@@ -3326,7 +3327,7 @@ ov.innerHTML=
 '<div class="err" id="aErr"></div>'+
 '<button class="go" id="aGo" type="submit"></button>'+
 '<div class="note" data-i18n-html="auth.note"></div>'+
-'<div class="note" style="opacity:.7">v1018.1140</div>'+
+'<div class="note" style="opacity:.7">v1018.1143</div>'+
 '</form>';
 document.body.appendChild(ov);
 var acc=document.createElement('div');acc.id='acc';acc.innerHTML='<span id="accN"></span> · <span id="accS"></span>';

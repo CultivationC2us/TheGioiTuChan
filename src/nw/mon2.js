@@ -108,7 +108,7 @@ function mkGear(b){const u=Date.now().toString(36)+(insN++).toString(36)+Math.fl
   cult.ins[u]={a:[],cap:5+Math.floor(Math.random()*6)};regIns(id);loot[id]=1;return id;}
 const DOGID='bach_khuyen';
 const isBeast=id=>!!id&&(!!TD.byMount[id]||id===DOGID||PETS.includes(id));
-function gearRec(id){const u=uidOf(id);if(u)return cult.ins[u]||null;
+function gearRec(id){const u=uidOf(id);if(u)return cult.ins[u]||(gearBase(id)?(cult.ins[u]={a:[],cap:5+Math.floor(Math.random()*6)}):null);
   if(isBeast(id))return cult.ins[id]||(cult.ins[id]={a:[],cap:5+Math.floor(Math.random()*6)});return null;}
 const gearBase=id=>TD.byOutfit[baseId(id)]||TD.byWeapon[baseId(id)]||TD.byMount[id]||(id===DOGID?{el:'kim'}:null)||(PETS.includes(id)?TD.MONS.find(m=>m.id===id)||null:null);
 function gearStats(){
@@ -142,7 +142,7 @@ function saveEq(){
 function loadEq(u){
   u=u||{};cult.ins={};cult.sk=(Array.isArray(u.sk)?u.sk:[]).filter(id=>TD.bySkill[id]);const si=(u.ins&&typeof u.ins==='object')?u.ins:{};
   for(const k in si){const r=si[k];if(r&&Array.isArray(r.a))cult.ins[k]={a:r.a.filter(x=>Array.isArray(x)&&TD.STATS.includes(x[0])&&x[1]>=1&&x[1]<=50).map(x=>[x[0],x[1]|0]).slice(0,10),cap:Math.max(5,Math.min(10,(r.cap|0)||5))};}
-  for(const id of Object.keys(loot))if(id.indexOf('#')>0){if(gearBase(id))regIns(id);else delete loot[id];}
+  for(const id of Object.keys(loot))if(id.indexOf('#')>0){if(gearBase(id)){regIns(id);gearRec(id);}else delete loot[id];}
   if(loot['cg.vukhi']>0){delete loot['cg.vukhi'];TD.SCROLLS.forEach(s=>{loot[s.id]=Math.max(1,loot[s.id]|0);});}
   const map={};
   /* bộ trang phục cũ (1 món gộp) -> 3 món; vũ khí/đồ cũ không có '#' -> bản thể mới */

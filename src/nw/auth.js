@@ -25,7 +25,8 @@ function req(path,method,body,token,keep,prefer){
   var h={apikey:KEY,'Content-Type':'application/json'};
   if(prefer)h.Prefer=prefer;
   if(token)h.Authorization='Bearer '+token;
-  return fetch(URL_+path,{method:method,headers:h,body:body?JSON.stringify(body):undefined,keepalive:!!keep}).then(function(r){
+  var bs=body?JSON.stringify(body):undefined,ac=window.AbortController?new AbortController():null,tm=ac?setTimeout(function(){ac.abort();},20000):0;   /* hết 20 giây thì bỏ, tránh treo cờ 'đang lưu' mãi */
+  return fetch(URL_+path,{method:method,headers:h,body:bs,keepalive:!!keep&&(!bs||bs.length<60000),signal:ac?ac.signal:undefined}).then(function(r){clearTimeout(tm);
     return r.text().then(function(t){var j=null;try{j=t?JSON.parse(t):null;}catch(e){}return{ok:r.ok,status:r.status,j:j};});
   });
 }

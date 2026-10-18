@@ -61,4 +61,6 @@ with sync_playwright() as p:
     ok('Công pháp' in t and 'Vạn Kiếm' in t,'panel nhân vật liệt kê công pháp đã học')
     pg.screenshot(path='sk_panel.png')
     ok(not errs,f'không lỗi JS {errs}')
+    pg.evaluate("G.loot['w.u_minh#zzz1']=1;G.regIns('w.u_minh#zzz1')")
+    ok(pg.evaluate("!!G.awakeCost('w.u_minh#zzz1')&&!!G.gearRec('w.u_minh#zzz1')"),'trang bị mất bản ghi chỉ số → tự tạo lại, vẫn thức tỉnh được')
     print('TỔNG',sum(res),'/',len(res))
