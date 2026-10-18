@@ -168,8 +168,26 @@ var MONS=[
  {id:'hoa',el:'hoa',n:['Hỏa Diễm Long','火焰龍','火焰龙']},
  {id:'tho',el:'tho',n:['Thổ Dực Long','土翼龍','土翼龙']},
  {id:'kim',el:'kim',n:['Kim Giáp Tê','金甲犀','金甲犀']},
- {id:'moc',el:'moc',n:['Mộc Linh Thú','木靈獸','木灵兽']}
+ {id:'moc',el:'moc',n:['Mộc Linh Thú','木靈獸','木灵兽']},
+ /* 10 quái mới (mỗi hệ 2 con) — bảng quái thứ 5 (lib/extract_mon10.py) */
+ {id:'thachnhan',el:'tho',n:['Thạch Linh Hộ Vệ','石靈護衛','石灵护卫']},
+ {id:'satrung',el:'tho',n:['Hoàng Sa Trùng','黃沙蟲','黄沙虫']},
+ {id:'dalinh',el:'thuy',n:['U Hồn Đăng Quỷ','幽魂燈鬼','幽魂灯鬼']},
+ {id:'cotxa',el:'thuy',n:['Cốt Hàn Xà','骨寒蛇','骨寒蛇']},
+ {id:'nhanhoa',el:'moc',n:['Huyết Nhãn Yêu Hoa','血眼妖花','血眼妖花']},
+ {id:'namlinh',el:'moc',n:['Độc Vân Nấm Linh','毒雲菇靈','毒云菇灵']},
+ {id:'phapkhi',el:'kim',n:['Bát Quái Phi Bàn','八卦飛盤','八卦飞盘']},
+ {id:'bangtinh',el:'kim',n:['Băng Tinh Cự Nhân','冰晶巨人','冰晶巨人']},
+ {id:'hoakhuyen',el:'hoa',n:['Dung Nham Hỏa Khuyển','熔岩火犬','熔岩火犬']},
+ {id:'hoamoc',el:'hoa',n:['Hỏa Diệm Mộc Yêu','火焰木妖','火焰木妖']}
 ];
+/* NGUYÊN LIỆU CHẾ GIÁP & GIÀY: mỗi hệ 2 món, rơi từ quái mới (chế tạo sẽ làm sau). Icon lấy từ thư viện đá: 'L:<ô>' */
+var ARMAT={kim:0,moc:1,thuy:2,hoa:3,tho:4},ARMATS=[];
+EL.forEach(function(e){var c=ARMAT[e.id];
+  [['gp','Giáp Phiến','甲片','甲片','s2'],['uo','Ủng Liệu','靴料','靴料','s3']].forEach(function(p){var id=p[0]+'.'+e.id;
+    ARMATS.push({id:id,el:e.id,kind:p[0],n:[p[1]+' '+e.n[0],p[2]+'·'+e.n[1],p[3]+'·'+e.n[2]]});MISC[id]={dec:6};ICO[id]='L:'+p[4]+c;});});
+ICO['lt']='L:s00';   /* ảnh Linh Thạch = viên đầu tiên của thư viện đá */
+MONS.forEach(function(m){});
 
 var S=[ /* chuỗi giao diện mới: [vi, zh-Hant, zh-Hans] */
  ['bag.tab.root','Linh Căn','靈根','灵根'],
@@ -358,6 +376,10 @@ OUTFITS.forEach(function(o){var e=EL.filter(function(x){return x.id===o.el;})[0]
     add[LG[k]]['itemdesc.'+o.id]=['{name}: {part} hệ {el}. Chỉ số ngẫu nhiên mở dần qua Thức Tỉnh (cần nguyên liệu). Mặc/tháo riêng từng món; rã: 10 Linh Thạch.','{name}：{el}系{part}。隨機屬性透過覺醒逐條開啟（需材料）。可單獨穿脫；分解：靈石 10。','{name}：{el}系{part}。随机属性通过觉醒逐条开启（需材料）。可单独穿脱；分解：灵石 10。'][k]
       .replace(/\{name\}/g,o.n[k]).replace(/\{el\}/g,e.n[k]).replace(/\{part\}/g,PARTN[o.part][k]);}});
 MONS.forEach(function(m){for(var k=0;k<3;k++)add[LG[k]]['monster.'+m.id]=m.n[k];});
+ARMATS.forEach(function(a){var e=EL.filter(function(x){return x.id===a.el;})[0];for(var k=0;k<3;k++){add[LG[k]]['item.'+a.id]=a.n[k];
+  add[LG[k]]['itemdesc.'+a.id]=[a.kind==='gp'?'{name}: nguyên liệu chế Giáp hệ {el}, rơi từ quái hệ {el}. Rã: 6 Linh Thạch.':'{name}: nguyên liệu chế Giày hệ {el}, rơi từ quái hệ {el}. Rã: 6 Linh Thạch.',
+    a.kind==='gp'?'{name}：製作{el}系護甲的材料，由{el}系妖獸掉落。分解：靈石 6。':'{name}：製作{el}系靴子的材料，由{el}系妖獸掉落。分解：靈石 6。',
+    a.kind==='gp'?'{name}：制作{el}系护甲的材料，由{el}系妖兽掉落。分解：灵石 6。':'{name}：制作{el}系靴子的材料，由{el}系妖兽掉落。分解：灵石 6。'][k].replace(/\{name\}/g,a.n[k]).replace(/\{el\}/g,e.n[k]);}});
 MOUNTS.forEach(function(m){var e=EL.filter(function(x){return x.id===m.el;})[0];
   for(var k=0;k<3;k++){add[LG[k]]['item.'+m.id]=m.n[k];
     add[LG[k]]['itemdesc.'+m.id]=['{name}: linh thú hệ {el}, biết bay. Chạy nhanh ×{run}, bay ×{fly}; bay thì bỏ qua địa hình nhưng không đánh được và cũng không bị đánh. Có nút LƯỚT.',
@@ -365,5 +387,5 @@ MOUNTS.forEach(function(m){var e=EL.filter(function(x){return x.id===m.el;})[0];
       .replace(/\{name\}/g,m.n[k]).replace(/\{el\}/g,e.n[k]).replace(/\{run\}/g,String(m.spd).replace('.',k?'.':',')).replace(/\{fly\}/g,String(m.fspd).replace('.',k?'.':','));}});
 WTIER.forEach(function(t,i){for(var k=0;k<3;k++)add[LG[k]]['wtier.'+(i+1)]=t[k];});
 for(var k=0;k<3;k++)I18N.add(LG[k],add[LG[k]]);
-window.TTData={EL:EL,RES:RES,byItem:byItem,byId:byId,PEARL:PEARL,PCAP:PCAP,PFUSE:PFUSE,PT:PT,pearlId:pearlId,byPearl:byPearl,MONS:MONS,SCROLLS:SCROLLS,scrollOf:scrollOf,MOUNTS:MOUNTS,byMount:byMount,OUTFITS:OUTFITS,SLOT:SLOT,STATS:STATS,STU:STU,RAR:RAR,rarOf:rarOf,rollVal:rollVal,PARTN:PARTN,byOutfit:byOutfit,REALM:REALM,WEAPONS:WEAPONS,byWeapon:byWeapon,ICO:ICO,WTIER:WTIER,catOf:catOf,BAG:BAG,AFF:AFF,BASE:BASE,DAN:DAN,RECIPES:RECIPES,NEED:NEED,HITS:HITS,PTS:PTS,RESPAWN:300000,misc:MISC};
+window.TTData={ARMATS:ARMATS,EL:EL,RES:RES,byItem:byItem,byId:byId,PEARL:PEARL,PCAP:PCAP,PFUSE:PFUSE,PT:PT,pearlId:pearlId,byPearl:byPearl,MONS:MONS,SCROLLS:SCROLLS,scrollOf:scrollOf,MOUNTS:MOUNTS,byMount:byMount,OUTFITS:OUTFITS,SLOT:SLOT,STATS:STATS,STU:STU,RAR:RAR,rarOf:rarOf,rollVal:rollVal,PARTN:PARTN,byOutfit:byOutfit,REALM:REALM,WEAPONS:WEAPONS,byWeapon:byWeapon,ICO:ICO,WTIER:WTIER,catOf:catOf,BAG:BAG,AFF:AFF,BASE:BASE,DAN:DAN,RECIPES:RECIPES,NEED:NEED,HITS:HITS,PTS:PTS,RESPAWN:300000,misc:MISC};
 })();

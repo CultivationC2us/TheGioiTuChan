@@ -12,7 +12,7 @@ def run4():
         pg.click('#tReg'); pg.fill('#aName','mon_test'); pg.fill('#aPw','abcdef'); pg.fill('#aPw2','abcdef'); pg.click('#aGo'); pg.wait_for_timeout(900)
         ok(pg.is_visible('#autoBtn') and 'TỰ ĐỘNG' in pg.inner_text('#autoBtn'),'nút TỰ ĐỘNG hiện sau đăng nhập')
         # ---- quái ----
-        info=pg.evaluate("G.mons2.map(m=>({id:m.id,tx:m.x/16|0,ty:m.y/16|0,t:G.tiles[m.y/16|0][m.x/16|0],d:Math.hypot(m.x/16-100,m.y/16-100),hp:m.hp}))")
+        info=pg.evaluate("G.mons2.filter(m=>['hoa','tho','kim','moc'].includes(m.id)).map(m=>({id:m.id,tx:m.x/16|0,ty:m.y/16|0,t:G.tiles[m.y/16|0][m.x/16|0],d:Math.hypot(m.x/16-100,m.y/16-100),hp:m.hp}))")
         print(info)
         ok(len(info)==40 and {i['id'] for i in info}=={'hoa','tho','kim','moc'},'có 4 loại quái Hỏa/Thổ/Kim/Mộc, mỗi loại 10 con')
         ok(all(i['t']<=2 for i in info),'cả 4 đứng trên đất liền')

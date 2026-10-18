@@ -70,9 +70,10 @@ BTN.forEach(function(b){
   var d=document.createElement('div');d.className='mb';d.innerHTML='<canvas width="78" height="74"></canvas><em></em>';$('hMenu').appendChild(d);mb[b[0]]=d;
   d.onclick=function(){act(b[0]);};
 });
+var BUI={bag:'u42',map:'u45',quest:'u44',sect:'u48',rank:'u47',char:'u43',set:'u46'};   /* bộ icon mới (lib/extract_all.py) */
 function drawBtns(){
-  if(!BI.complete||!BI.naturalWidth){setTimeout(drawBtns,150);return;}
-  BTN.forEach(function(b){var c=mb[b[0]].querySelector('canvas'),x=c.getContext('2d');x.clearRect(0,0,78,74);x.drawImage(BI,b[1]*78,0,78,74,0,0,78,74);});
+  if(!window.UIA||!BI.complete||!BI.naturalWidth||!(G.IMG&&G.IMG.uia&&G.IMG.uia.complete)){setTimeout(drawBtns,150);return;}
+  BTN.forEach(function(b){var c=mb[b[0]].querySelector('canvas'),x=c.getContext('2d');x.clearRect(0,0,78,74);UIA.draw(c,BUI[b[0]],2);});
 }
 drawBtns();
 function labels(){BTN.forEach(function(b){mb[b[0]].querySelector('em').textContent=T(b[2]);});}
@@ -168,4 +169,22 @@ setInterval(tick,120);
 setInterval(function(){if(hud.style.display==='block')drawMini();},250);
 labels();I18N.on(function(){labels();tick();});
 window.TTHud={tick:tick,openMap:openMap};
+})();
+
+/* ----- da mới cho nút ĐÁNH · TỰ ĐỘNG · CƯỠI · BAY · LƯỚT (icon từ bộ UI mới) ----- */
+(function(){
+  function go(){
+    var u=function(n){return 'url('+UIA.url(n)+')';},st=document.getElementById('uiaSkin')||document.createElement('style');st.id='uiaSkin';
+    var lab='text-shadow:-1px 0 #000,1px 0 #000,0 -1px #000,0 1px #000;font-weight:800;color:#fff;letter-spacing:0;';
+    st.textContent=
+     'body #atk{background:'+u('u88')+' center/100% 100% no-repeat;border:0;image-rendering:pixelated;box-sizing:border-box;font-size:11px;align-items:flex-end;padding-bottom:2px;'+lab+'filter:drop-shadow(0 3px 5px #000b)}'+
+     'body #atk.on,body #atk:active{filter:brightness(1.35) drop-shadow(0 0 9px #ff9a4a)}'+
+     'body #autoBtn{background:'+u('u89')+' center/100% 100% no-repeat;border:0;image-rendering:pixelated;box-sizing:border-box;min-width:0;width:50px;height:50px;padding:34px 0 0;border-radius:0;font-size:9px;line-height:12px;text-align:center;'+lab+'filter:drop-shadow(0 2px 4px #000b)}'+
+     'body #autoBtn.on{background-color:transparent;box-shadow:none;filter:brightness(1.4) drop-shadow(0 0 8px #ffb347)}'+
+     'body .mtb{border:0;border-radius:0;box-shadow:none;image-rendering:pixelated;background-size:100% 100%;background-repeat:no-repeat;background-position:center;align-items:flex-end;padding:0 0 1px;font-size:9px;'+lab+'filter:drop-shadow(0 2px 4px #000b)}'+
+     'body .mtb.on{box-shadow:none;filter:brightness(1.4) drop-shadow(0 0 8px #9fe3ff)}'+
+     'body #mtRide{background-image:'+u('u91')+'}body #mtFly{background-image:'+u('u90')+'}body #mtDash{background-image:'+u('u61')+'}';
+    document.head.appendChild(st);
+  }
+  UIA.ready(go);
 })();

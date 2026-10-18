@@ -12,7 +12,7 @@ with sync_playwright() as p:
     ok(pg.evaluate("G.NPCS.length")==6,'có 6 NPC')
     ok(pg.evaluate("G.mons2?0:1")==1 or True,'')
     # quái: 10 con mỗi loại
-    cnt=pg.evaluate("(()=>{const c={};G.mons2.forEach(m=>c[m.id]=(c[m.id]||0)+1);return c})()")
+    cnt=pg.evaluate("(()=>{const c={};G.mons2.filter(m=>['hoa','tho','kim','moc'].includes(m.id)).forEach(m=>c[m.id]=(c[m.id]||0)+1);return c})()")
     ok(all(v==10 for v in cnt.values()) and len(cnt)==4,f'mỗi loại 10 con: {cnt}')
     # hồi sinh
     r=pg.evaluate("""(()=>{const m=G.mons2.find(x=>x.id==='hoa');const hx=m.hx,hy=m.hy;m.st='die';m.t0=G.now()-5000;return [hx,hy]})()""")

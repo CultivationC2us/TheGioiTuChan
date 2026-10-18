@@ -9,6 +9,9 @@
 const MB64={hoa:'{{MON_HOA}}',tho:'{{MON_THO}}',kim:'{{MON_KIM}}',moc:'{{MON_MOC}}'};
 const MMETA={hoa:{{MONMETA_HOA}},tho:{{MONMETA_THO}},kim:{{MONMETA_KIM}},moc:{{MONMETA_MOC}}};
 const MIMG={};for(const k in MB64){const i=new Image();i.src='data:image/webp;base64,'+MB64[k];MIMG[k]=i;}
+/* 10 quái mới dùng chung 1 atlas (khung tên '<id>_fN') */
+const NEW10=['thachnhan','satrung','dalinh','cotxa','nhanhoa','namlinh','phapkhi','bangtinh','hoakhuyen','hoamoc'];
+{const i=new Image();i.src='data:image/webp;base64,{{MON10}}';const mt={{MON10META}};for(const id of NEW10){MIMG[id]=i;MMETA[id]=mt;}}
 let TAME_P=0.01;                 /* tỉ lệ thuần hóa mỗi lần hạ quái */
 const MON_RESPAWN=7000;          /* quái hồi sinh sau 7 giây, ngay gần chỗ cũ */
 
@@ -236,6 +239,41 @@ const MD={
     {k:'proj',cd:2600,range:250,wind:['r3c0','r3c1'],wms:200,fx:['r3c2','r3c3','r3c4'],speed:190,life:1400,ox:44,oy:-34,r:13,dmg:11},
     {k:'aoe', cd:6500,range:300,wind:['r2c0','r2c1'],wms:350,tele:750,fx:['r3c5','r3c6','r3c7'],fxms:170,r:50,dmg:15,col:'140,230,70'}]}
 };
+/* ---- 10 QUÁI MỚI (mỗi hệ 2 con): yếu hơn quái cùng hệ 1 cảnh giới, xuất hiện nhiều nơi, rơi nguyên liệu Giáp Phiến / Ủng Liệu ---- */
+const nF=(id,...n)=>n.flat().map(x=>id+'_f'+x),nR=(a,b)=>Array.from({length:b-a+1},(_,i)=>a+i);
+const NEWMD={
+ thachnhan:{el:'tho',sc:2.4,spd:36,aggro:150,leash:380,lair:[128,22],shw:22,fly:0,idle:nF('thachnhan',nR(0,5)),die:nF('thachnhan',14,15,16),
+   skills:[{k:'proj',cd:3200,range:240,wind:nF('thachnhan',6),wms:230,fx:nF('thachnhan',9,10,11),speed:165,life:1500,ox:26,oy:-24,r:12,dmg:10},
+           {k:'aoe',cd:6500,range:280,wind:nF('thachnhan',8),wms:450,tele:750,fx:nF('thachnhan',12,13),fxms:160,r:44,dmg:14,col:'130,200,255'}]},
+ satrung:{el:'tho',sc:2.3,spd:50,aggro:170,leash:400,lair:[182,72],shw:22,fly:0,idle:nF('satrung',nR(0,5)),die:['satrung_g'],
+   skills:[{k:'proj',cd:2600,range:250,wind:nF('satrung',5),wms:200,fx:nF('satrung',6,7,8),speed:190,life:1400,ox:24,oy:-22,r:12,dmg:10},
+           {k:'aoe',cd:6500,range:290,wind:nF('satrung',4),wms:420,tele:750,fx:nF('satrung',9,10,11),fxms:140,r:46,dmg:14,col:'210,160,90'}]},
+ dalinh:{el:'thuy',sc:2.4,spd:44,aggro:180,leash:420,lair:[100,12],shw:20,fly:1,idle:nF('dalinh',nR(0,7)),die:nF('dalinh',13),
+   skills:[{k:'proj',cd:2800,range:260,wind:nF('dalinh',6),wms:200,fx:nF('dalinh',8,9),speed:175,life:1500,ox:26,oy:-24,r:13,dmg:10},
+           {k:'aoe',cd:6500,range:300,wind:nF('dalinh',7),wms:420,tele:750,fx:nF('dalinh',11,12,10),fxms:150,r:46,dmg:14,col:'110,190,255'}]},
+ cotxa:{el:'thuy',sc:2.4,spd:44,aggro:170,leash:400,lair:[100,188],shw:26,fly:0,idle:nF('cotxa',nR(0,4)),die:['cotxa_d1','cotxa_d2'],
+   skills:[{k:'proj',cd:2800,range:250,wind:nF('cotxa',5),wms:220,fx:nF('cotxa',6,7),speed:180,life:1500,ox:30,oy:-28,r:13,dmg:10},
+           {k:'cone',cd:4200,range:150,wind:nF('cotxa',5),wms:260,fx:nF('cotxa',8,9),fxms:[170,260],ox:26,oy:-22,len:130,hw:34,dmg:14,hit:150}]},
+ nhanhoa:{el:'moc',sc:2.5,spd:38,aggro:150,leash:380,lair:[72,182],shw:20,fly:0,idle:nF('nhanhoa',nR(0,5)),die:nF('nhanhoa',15),
+   skills:[{k:'proj',cd:2500,range:250,wind:nF('nhanhoa',4),wms:200,fx:nF('nhanhoa',7,8,9,10),speed:150,life:1500,ox:22,oy:-26,r:12,dmg:10},
+           {k:'aoe',cd:6500,range:290,wind:nF('nhanhoa',6),wms:480,tele:750,fx:['nhanhoa_ring',...nF('nhanhoa',12,13,14)],fxms:150,r:48,dmg:14,col:'200,60,90'}]},
+ namlinh:{el:'moc',sc:2.5,spd:34,aggro:150,leash:380,lair:[20,128],shw:20,fly:0,idle:nF('namlinh',nR(0,6)),die:nF('namlinh',13),
+   skills:[{k:'proj',cd:2600,range:240,wind:nF('namlinh',5),wms:200,fx:nF('namlinh',7,8),speed:150,life:1400,ox:20,oy:-26,r:14,dmg:10},
+           {k:'aoe',cd:6500,range:280,wind:nF('namlinh',4),wms:400,tele:750,fx:nF('namlinh',9,10,11),fxms:170,r:48,dmg:13,col:'150,110,255'}]},
+ phapkhi:{el:'kim',sc:2.4,spd:48,aggro:170,leash:400,lair:[72,22],shw:18,fly:1,idle:nF('phapkhi',nR(0,6)),die:nF('phapkhi',12,13),
+   skills:[{k:'proj',cd:2500,range:260,wind:nF('phapkhi',1),wms:180,fx:nF('phapkhi',7,8,9),speed:200,life:1400,ox:20,oy:-24,r:14,dmg:10},
+           {k:'aoe',cd:6500,range:300,wind:nF('phapkhi',2),wms:420,tele:750,fx:['phapkhi_f11','phapkhi_pil','phapkhi_f10'],fxms:150,r:50,dmg:14,col:'110,200,255'}]},
+ bangtinh:{el:'kim',sc:2.4,spd:36,aggro:160,leash:400,lair:[20,72],shw:24,fly:0,idle:nF('bangtinh',0,1,2,3,6),die:nF('bangtinh',14),
+   skills:[{k:'proj',cd:2800,range:250,wind:nF('bangtinh',4),wms:220,fx:['bangtinh_p0','bangtinh_p1'],speed:190,life:1400,ox:24,oy:-22,r:13,dmg:10},
+           {k:'aoe',cd:6500,range:290,wind:nF('bangtinh',5),wms:450,tele:750,fx:['bangtinh_p2','bangtinh_p4','bangtinh_p3'],fxms:150,r:46,dmg:14,col:'140,220,255'}]},
+ hoakhuyen:{el:'hoa',sc:2.3,spd:56,aggro:190,leash:420,lair:[135,175],shw:26,fly:0,idle:nF('hoakhuyen',nR(0,5)),die:nF('hoakhuyen',12),
+   skills:[{k:'charge',cd:4200,range:250,wind:nF('hoakhuyen',4),wms:220,dash:nF('hoakhuyen',1,2,3,4,5),dms:70,dist:220,speed:310,dmg:12},
+           {k:'aoe',cd:6500,range:290,wind:nF('hoakhuyen',5),wms:420,tele:750,fx:nF('hoakhuyen',8,10,11),fxms:150,r:46,dmg:14,col:'255,110,40'}]},
+ hoamoc:{el:'hoa',sc:2.4,spd:34,aggro:160,leash:380,lair:[182,128],shw:22,fly:0,idle:nF('hoamoc',nR(0,5)),die:nF('hoamoc',13,14),
+   skills:[{k:'proj',cd:2600,range:250,wind:nF('hoamoc',11),wms:220,fx:['hoamoc_p0','hoamoc_p1','hoamoc_p2'],speed:170,life:1400,ox:20,oy:-30,r:13,dmg:10},
+           {k:'aoe',cd:6500,range:300,wind:nF('hoamoc',11),wms:420,tele:750,fx:nF('hoamoc',10,12),fxms:200,r:50,dmg:14,col:'255,150,50'}]}
+};
+for(const id in NEWMD){const d=NEWMD[id];d.sc=Math.round(d.sc*88)/100;d.walk=d.idle;d.hp=100;d.pack=8;d.mat=1;MD[id]=d;}
 const mons2=[],fx2=[],projs=[];
 function findLand(tx,ty){
   for(let r=0;r<45;r++)for(let dy=-r;dy<=r;dy++)for(let dx=-r;dx<=r;dx++){
@@ -247,7 +285,7 @@ function findLand(tx,ty){
 /* mỗi loại quái là một BẦY 10 con tụ gần hang; con nào chết sẽ hồi sinh ngay gần đó (giữ đủ 10) */
 /* ---- TU VI QUÁI: mỗi loài có cảnh giới riêng, mạnh hơn người cùng cảnh giới (quái chỉ có bản thân làm trang bị) + 1 sở trường theo hệ ----
    hp gốc 220×mul, sát thương skill ×mul×1.25 (mul = 1,2^(tầng-1) như người chơi). Sở trường: Kim=công ×1.7 · Mộc=máu ×1.9 · Thổ=giảm sát thương 40% · Hỏa=nhanh (chạy ×1.4, chiêu hồi ×0.65) · Thủy=hồi máu 2%/giây */
-const MREALM={hoa:3,tho:4,kim:5,moc:6,thuylong:9};
+const MREALM={hoa:3,tho:4,kim:5,moc:6,thuylong:9,hoakhuyen:2,hoamoc:2,thachnhan:3,satrung:3,phapkhi:4,bangtinh:4,nhanhoa:5,namlinh:5,dalinh:8,cotxa:8};   /* quái mới = quái cùng hệ − 1 cảnh giới */
 function monStats(id,el){const rl=MREALM[id]||1,mul=Math.pow(TD.REALM.mul,rl-1);
   const o={rl,hp:Math.round(220*mul),dm:mul*1.25,red:0,spm:1,cdm:1,regen:0};
   if(el==='kim')o.dm*=1.7;else if(el==='moc')o.hp=Math.round(o.hp*1.9);else if(el==='tho')o.red=.4;else if(el==='hoa'){o.spm=1.4;o.cdm=.65;}else if(el==='thuy')o.regen=.02;
@@ -255,7 +293,7 @@ function monStats(id,el){const rl=MREALM[id]||1,mul=Math.pow(TD.REALM.mul,rl-1);
 for(const d of DRG)Object.assign(d,monStats('thuylong','thuy'),{maxHp:monStats('thuylong','thuy').hp,hp:monStats('thuylong','thuy').hp});
 const PACK_N=10;
 for(const id in MD){const d=MD[id];
-  for(let i=0;i<PACK_N;i++){const a=i*2.399+(id.charCodeAt(0)%7),rr=i===0?0:1.5+Math.sqrt(i)*1.55;
+  for(let i=0;i<(d.pack||PACK_N);i++){const a=i*2.399+(id.charCodeAt(0)%7),rr=i===0?0:1.5+Math.sqrt(i)*1.55;
     const h=findLand(Math.round(d.lair[0]+Math.cos(a)*rr),Math.round(d.lair[1]+Math.sin(a)*rr));
     const ms=monStats(id,d.el),mh=ms.hp;
     mons2.push({id,d,rl:ms.rl,dm:ms.dm,red:ms.red,spm:ms.spm,cdm:ms.cdm,regen:ms.regen,x:h.x,y:h.y,hx:h.x,hy:h.y,f:i%2?1:-1,hp:mh,maxHp:mh,st:'idle',t0:0,cd:[0,0],sk:null,flash:0,hold:i*150,deadAt:0,dieMs:900,tx:0,ty:0});}}
@@ -352,6 +390,7 @@ function monHit(m,dmg){
     stats.kills++;m.st='die';m.t0=t;m.sk=null;m.dieMs=m.d.die?m.d.die.length*260+500:1000;
     if(Math.random()<.4){const pid=pearlOf(m.d.el);drops.push({x:m.x,y:m.y-8,t0:t,n:pid});toast(T('toast.pearl',{name:I18N.itemName(pid)}));}
     if(Math.random()<.04){const lk=TD.SCROLLS.map(s=>s.id).filter(id=>!(loot[id]>0));if(lk.length)drops.push({x:m.x+6,y:m.y-8,t0:t,n:lk[Math.floor(Math.random()*lk.length)]});}
+    if(m.d.mat){for(const kd of['gp','uo'])if(Math.random()<.32)drops.push({x:m.x+(kd==='gp'?-8:8),y:m.y-6,t0:t,n:kd+'.'+m.d.el});}   /* nguyên liệu Giáp / Giày theo hệ */
     tameRoll(m.id);
   }
 }
