@@ -14,8 +14,17 @@ NPC_GEAR.push({id:'mt.tuyet_van',slot:'m',price:500,name:TD.byMount['mt.tuyet_va
 const npcPrice=id=>{const g=NPC_GEAR.find(x=>x.id===id);return g?g.price:0;};
 const NPCS=[];
 function npcMk(i){
-  const a=Math.random()*6.283,r=30+Math.random()*60;
-  return{i,x:NPC_PLAZA[0]+Math.cos(a)*r,y:NPC_PLAZA[1]+Math.sin(a)*r,f:1,rl:1+Math.floor(Math.random()*3),qi:0,lt:[700,1500,400,2200,900,300][i%6],
+  /* sinh rải rác khắp bản đồ (không tụ ở quảng trường): chọn điểm đất liền cách các NPC khác >= 30 ô và cách quảng trường >= 14 ô */
+  let sp=null;
+  for(let k=0;k<30&&!sp;k++){
+    const q=findLand(8+Math.floor(Math.random()*(MW-16)),8+Math.floor(Math.random()*(MH-16)));
+    const tx=q.x/TILE,ty=q.y/TILE;
+    if(Math.hypot(tx-NPC_PLAZA[0]/TILE,ty-NPC_PLAZA[1]/TILE)<14)continue;
+    if(NPCS.some(o=>Math.hypot(o.x-q.x,o.y-q.y)<30*TILE*(k<20?1:.4)))continue;
+    sp=q;
+  }
+  if(!sp){const a=Math.random()*6.283,r=30+Math.random()*60;sp={x:NPC_PLAZA[0]+Math.cos(a)*r,y:NPC_PLAZA[1]+Math.sin(a)*r};}
+  return{i,x:sp.x,y:sp.y,f:1,rl:1+Math.floor(Math.random()*3),qi:0,lt:[700,1500,400,2200,900,300][i%6],
     inv:{},eq:{w:null,h:null,o:null,g:null,r:null,l:null,p:null,m:null},path:null,pg:null,bl:{},lx:0,ly:0,lt0:0,stuck:0,hp:100,mhp:100,st:'idle',t0:0,tgt:null,atkT:-999,mv:false,ph:Math.random()*4000,say:null,sayT:0,want:6+Math.floor(Math.random()*5),cdA:0,kills:0};
 }
 function npcSave(){try{localStorage.setItem(NPC_KEY,JSON.stringify({ts:Date.now(),n:NPCS.map(n=>({rl:n.rl,qi:n.qi,lt:n.lt,eq:n.eq,inv:n.inv,kills:n.kills|0}))}));}catch(e){}}
