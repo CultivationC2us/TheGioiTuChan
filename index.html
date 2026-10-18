@@ -608,7 +608,7 @@ var S=[ /* chuỗi giao diện mới: [vi, zh-Hant, zh-Hans] */
  ['toast.tame','Thuần hóa thành công! {name} đã theo bạn.','馴服成功！{name}已跟隨你。','驯服成功！{name}已跟随你。'],
  ['toast.pearl','Nhận được {name}','獲得{name}','获得{name}'],
  ['auto.btn','TỰ ĐỘNG','自動','自动'],['auto.btn.on','ĐANG CHẠY','運行中','运行中'],
- ['toast.auto.on','Tự động: gặp gì gần là săn, không giới hạn vùng.','自動：附近有目標就打，不限範圍。','自动：附近有目标就打，不限范围。'],
+ ['toast.auto.on','Tự động: đánh người tấn công → quái → nhặt đồ → khai thác. Không giới hạn vùng.','自動：先打攻擊你的人→怪物→撿物品→採集，不限範圍。','自动：先打攻击你的人→怪物→捡物品→采集，不限范围。'],
  ['toast.auto.off','Đã tắt tự động.','已關閉自動。','已关闭自动。'],
  ['toast.auto.low','Máu thấp — tự động đã tắt.','生命過低，已關閉自動。','生命过低，已关闭自动。'],
  ['itemdesc.nl','{name}: nguyên liệu hệ {el}. Sử dụng: luyện hóa +{pts} điểm {el} cho Linh Căn. Rã: nhận {ls} Linh Thạch.','{name}：{el}系材料。使用：煉化 +{pts} 點{el}行。分解：得 {ls} 靈石。','{name}：{el}系材料。使用：炼化 +{pts} 点{el}行。分解：得 {ls} 灵石。']
@@ -1532,25 +1532,29 @@ function setAuto(v,why){
 autoBtn.addEventListener('pointerdown',e=>{setAuto(!AUTO.on);e.preventDefault();e.stopPropagation();});
 autoBtn.addEventListener('click',e=>e.stopPropagation());
 I18N.on(autoLabel);autoLabel();
+/* THỨ TỰ ƯU TIÊN CỦA TỰ ĐỘNG: ① người đang đánh mình → ② quái vật → ③ nhặt vật phẩm rơi → ④ khai thác tài nguyên.
+   Đánh bằng cả công pháp lẫn chém thường. */
 function pickTarget(t){
   AUTO.ax=P.x;AUTO.ay=P.y;const inR=(x,y)=>Math.hypot(x-P.x,y-P.y)<=AUTO.R;let best=null,bd=1e9;
-  for(const d of drops){if(d.exp||!inR(d.x,d.y))continue;const dd=Math.hypot(d.x-P.x,d.y-P.y);if(dd<bd){bd=dd;best={k:'drop',ref:d,x:d.x,y:d.y,reach:5};}}
+  for(const n of NPCS){if(n.st!=='fight'||n.foe!=='p')continue;const dd=Math.hypot(n.x-P.x,n.y-P.y);if(dd<520&&dd<bd){bd=dd;best={k:'npc',ref:n,x:n.x,y:n.y-14,reach:38};}}
   if(best)return best;
   for(const m of mons2.concat(DRG)){if(!monAlive(m)||!inR(m.x,m.y))continue;const dd=Math.hypot(m.x-P.x,m.y-P.y);if(dd<bd){bd=dd;best={k:'mon',ref:m,x:m.x,y:m.y-14,reach:38};}}
+  if(best)return best;
+  for(const d of drops){if(d.exp||!inR(d.x,d.y))continue;const dd=Math.hypot(d.x-P.x,d.y-P.y);if(dd<bd){bd=dd;best={k:'drop',ref:d,x:d.x,y:d.y,reach:5};}}
   if(best)return best;
   for(const n of nodesNear(AUTO.ax,AUTO.ay,Math.ceil(AUTO.R/64)+1)){if(n.gone||!inR(n.x,n.y))continue;const dd=Math.hypot(n.x-P.x,n.y-P.y);if(dd<bd){bd=dd;best={k:'node',ref:n,x:n.x,y:n.y-6,reach:24};}}
   return best;
 }
-function validTarget(g){return g.k==='drop'?drops.includes(g.ref):g.k==='mon'?monAlive(g.ref):!g.ref.gone;}
+function validTarget(g){return g.k==='drop'?drops.includes(g.ref):g.k==='mon'?monAlive(g.ref):g.k==='npc'?(g.ref.st==='fight'&&g.ref.foe==='p'):!g.ref.gone;}
 function autoThink(t){
   if(P.dead){setAuto(false);return{x:0,y:0};}
   if(P.hp<P.maxHp*.3){setAuto(false,'low');return{x:0,y:0};}
   if(!AUTO.tgt||t-AUTO.pt>300||!validTarget(AUTO.tgt)){AUTO.tgt=pickTarget(t);AUTO.pt=t;}
   const g=AUTO.tgt;
   if(!g){if(t>AUTO.ht){AUTO.hd=Math.random()*6.2832;AUTO.ht=t+4000+Math.random()*3000;}return{x:Math.cos(AUTO.hd),y:Math.sin(AUTO.hd)};}   /* hết mục tiêu → dạo theo hướng ngẫu nhiên đi tìm */
-  if(g.k==='mon'){g.x=g.ref.x;g.y=g.ref.y-14;}
+  if(g.k==='mon'||g.k==='npc'){g.x=g.ref.x;g.y=g.ref.y-14;}
   const dx=g.x-P.x,dy=g.y-(P.y-6),d=Math.hypot(dx,dy);
-  if(d<=g.reach&&g.k!=='drop'){P.f=dx>=0?1:-1;attack();return{x:0,y:0};}
+  if(d<=g.reach&&g.k!=='drop'){P.f=dx>=0?1:-1;attack();return{x:0,y:0};}   /* chém thường (công pháp tự tung ở skUpdate) */
   return d>1?{x:dx/d,y:dy/d}:{x:0,y:0};
 }
 function drawAutoRing(t){}
@@ -2137,12 +2141,12 @@ function skTarget(){
   for(const d of DRG){withDr(d,()=>{if(mTargetable()&&M.st!=='die'){const dx=(M.x-P.x)*P.f,q=Math.hypot(M.x-P.x,M.y-P.y);if(dx>-24&&q<R&&q<bd){best={x:M.x,y:M.y,o:d};bd=q;}}});}
   return best;
 }
-function castSkill(id,auto){
+function castSkill(id,auto,ft){
   const sk=TD.bySkill[id],cfg=SKCFG[id];if(!sk||!skLearned(id)||P.dead||P.fly)return false;
   const t=now();if(t<(skCd[id]|0))return false;
   if(P.mp<sk.mp){if(!auto)toast(T('skill.nomp'));return false;}
   P.mp-=sk.mp;skCd[id]=t+sk.cd;
-  const tg=skTarget();let tx,ty;
+  const tg=ft||skTarget();let tx,ty;
   if(tg){tx=tg.x;ty=tg.y;}else{tx=P.x+P.f*(cfg.type==='zone'?150:170);ty=P.y+4;}
   if(Math.abs(tx-P.x)>4)P.f=tx>P.x?1:-1;
   P.atkT=t;P.hitDone=true;P.fxDone=true;
@@ -2161,8 +2165,10 @@ function skUpdate(dt){
     const e=t-bs;
     for(let h=0;h<f.hits.length;h++)if(!f.done[h]&&e>=f.hits[h]){f.done[h]=1;skHitArea(f);}
     if(e>cfg.burst.length*cfg.bms+cfg.hold)skFx.splice(i,1);}
-  if(AUTO&&AUTO.on&&!P.dead&&!P.fly){const tg=skTarget();
-    if(tg&&Math.hypot(tg.x-P.x,tg.y-P.y)<130)for(const id of cult.sk){if(castSkill(id,true))break;}}
+  if(AUTO&&AUTO.on&&!P.dead&&!P.fly){   /* tự tung công pháp vào mục tiêu của Tự Động (người đang đánh mình hoặc quái) */
+    const g=AUTO.tgt&&(AUTO.tgt.k==='npc'||AUTO.tgt.k==='mon')?AUTO.tgt:null;
+    const tg=g?{x:g.ref.x,y:g.ref.y,o:g.ref}:skTarget();
+    if(tg&&Math.hypot(tg.x-P.x,tg.y-P.y)<(g?190:130))for(const id of cult.sk){if(castSkill(id,true,g?tg:undefined))break;}}
   skBtnTick(t);
 }
 const SKS=4; /* atlas HD: sprite gốc phóng ×4 (nearest) rồi vẽ có làm mượt -> nét, không răng cưa khi zoom lẻ */
@@ -2260,6 +2266,7 @@ function update(dt){
       let hitM=false;
       for(const d of DRG){if(hitM)break;withDr(d,()=>{if(mTargetable()&&M.st!=='die'){const cx=M.x,cy=M.y-18,dx=(cx-P.x)*P.f,dy=cy-(P.y-6);
         if(dx>-10&&Math.hypot(cx-P.x,cy-(P.y-6))<54){mHit(dmgRoll());hitM=true;}}});}
+      if(!hitM&&AUTO.on&&AUTO.tgt&&AUTO.tgt.k==='npc')hitM=hitNpcs(dmgRoll());   /* Tự Động đang đánh người → chém người trước */
       if(!hitM)hitM=hitMons2(dmgRoll());
       if(!hitM)hitM=hitNpcs(dmgRoll());
       if(!hitM)harvest(t);
@@ -3066,7 +3073,7 @@ pn.innerHTML=
 '<div class="box"><div class="hd"><span id="setIc"></span><h2 data-i18n="set.title"></h2><button id="setX" type="button" data-i18n="bag.close"></button></div>'+
 '<h3 data-i18n="set.lang"></h3><div class="langs" id="setL"></div><div class="note" data-i18n="set.langnote"></div>'+
 '<h3 data-i18n="set.code"></h3><div class="codeRow"><input id="setCode" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false"><button id="setCodeGo" type="button" data-i18n="set.code.go"></button></div><div class="note" id="setCodeMsg"></div>'+
-'<h3 data-i18n="set.account"></h3><div id="setA"></div><div class="note" style="text-align:center;margin-top:14px">v1019.0132</div></div>';
+'<h3 data-i18n="set.account"></h3><div id="setA"></div><div class="note" style="text-align:center;margin-top:14px">v1019.0350</div></div>';
 document.body.appendChild(pn);
 $('setIc').appendChild(gear(2));
 
@@ -3507,7 +3514,7 @@ ov.innerHTML=
 '<div class="err" id="aErr"></div>'+
 '<button class="go" id="aGo" type="submit"></button>'+
 '<div class="note" data-i18n-html="auth.note"></div>'+
-'<div class="note" style="opacity:.7">v1019.0132</div>'+
+'<div class="note" style="opacity:.7">v1019.0350</div>'+
 '</form>';
 document.body.appendChild(ov);
 var acc=document.createElement('div');acc.id='acc';acc.innerHTML='<span id="accN"></span> · <span id="accS"></span>';

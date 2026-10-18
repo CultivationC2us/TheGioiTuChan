@@ -419,6 +419,7 @@ function update(dt){
       let hitM=false;
       for(const d of DRG){if(hitM)break;withDr(d,()=>{if(mTargetable()&&M.st!=='die'){const cx=M.x,cy=M.y-18,dx=(cx-P.x)*P.f,dy=cy-(P.y-6);
         if(dx>-10&&Math.hypot(cx-P.x,cy-(P.y-6))<54){mHit(dmgRoll());hitM=true;}}});}
+      if(!hitM&&AUTO.on&&AUTO.tgt&&AUTO.tgt.k==='npc')hitM=hitNpcs(dmgRoll());   /* Tự Động đang đánh người → chém người trước */
       if(!hitM)hitM=hitMons2(dmgRoll());
       if(!hitM)hitM=hitNpcs(dmgRoll());
       if(!hitM)harvest(t);

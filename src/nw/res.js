@@ -354,7 +354,7 @@ var S=[ /* chuỗi giao diện mới: [vi, zh-Hant, zh-Hans] */
  ['toast.tame','Thuần hóa thành công! {name} đã theo bạn.','馴服成功！{name}已跟隨你。','驯服成功！{name}已跟随你。'],
  ['toast.pearl','Nhận được {name}','獲得{name}','获得{name}'],
  ['auto.btn','TỰ ĐỘNG','自動','自动'],['auto.btn.on','ĐANG CHẠY','運行中','运行中'],
- ['toast.auto.on','Tự động: gặp gì gần là săn, không giới hạn vùng.','自動：附近有目標就打，不限範圍。','自动：附近有目标就打，不限范围。'],
+ ['toast.auto.on','Tự động: đánh người tấn công → quái → nhặt đồ → khai thác. Không giới hạn vùng.','自動：先打攻擊你的人→怪物→撿物品→採集，不限範圍。','自动：先打攻击你的人→怪物→捡物品→采集，不限范围。'],
  ['toast.auto.off','Đã tắt tự động.','已關閉自動。','已关闭自动。'],
  ['toast.auto.low','Máu thấp — tự động đã tắt.','生命過低，已關閉自動。','生命过低，已关闭自动。'],
  ['itemdesc.nl','{name}: nguyên liệu hệ {el}. Sử dụng: luyện hóa +{pts} điểm {el} cho Linh Căn. Rã: nhận {ls} Linh Thạch.','{name}：{el}系材料。使用：煉化 +{pts} 點{el}行。分解：得 {ls} 靈石。','{name}：{el}系材料。使用：炼化 +{pts} 点{el}行。分解：得 {ls} 灵石。']

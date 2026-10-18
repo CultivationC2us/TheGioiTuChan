@@ -515,25 +515,29 @@ function setAuto(v,why){
 autoBtn.addEventListener('pointerdown',e=>{setAuto(!AUTO.on);e.preventDefault();e.stopPropagation();});
 autoBtn.addEventListener('click',e=>e.stopPropagation());
 I18N.on(autoLabel);autoLabel();
+/* THỨ TỰ ƯU TIÊN CỦA TỰ ĐỘNG: ① người đang đánh mình → ② quái vật → ③ nhặt vật phẩm rơi → ④ khai thác tài nguyên.
+   Đánh bằng cả công pháp lẫn chém thường. */
 function pickTarget(t){
   AUTO.ax=P.x;AUTO.ay=P.y;const inR=(x,y)=>Math.hypot(x-P.x,y-P.y)<=AUTO.R;let best=null,bd=1e9;
-  for(const d of drops){if(d.exp||!inR(d.x,d.y))continue;const dd=Math.hypot(d.x-P.x,d.y-P.y);if(dd<bd){bd=dd;best={k:'drop',ref:d,x:d.x,y:d.y,reach:5};}}
+  for(const n of NPCS){if(n.st!=='fight'||n.foe!=='p')continue;const dd=Math.hypot(n.x-P.x,n.y-P.y);if(dd<520&&dd<bd){bd=dd;best={k:'npc',ref:n,x:n.x,y:n.y-14,reach:38};}}
   if(best)return best;
   for(const m of mons2.concat(DRG)){if(!monAlive(m)||!inR(m.x,m.y))continue;const dd=Math.hypot(m.x-P.x,m.y-P.y);if(dd<bd){bd=dd;best={k:'mon',ref:m,x:m.x,y:m.y-14,reach:38};}}
+  if(best)return best;
+  for(const d of drops){if(d.exp||!inR(d.x,d.y))continue;const dd=Math.hypot(d.x-P.x,d.y-P.y);if(dd<bd){bd=dd;best={k:'drop',ref:d,x:d.x,y:d.y,reach:5};}}
   if(best)return best;
   for(const n of nodesNear(AUTO.ax,AUTO.ay,Math.ceil(AUTO.R/64)+1)){if(n.gone||!inR(n.x,n.y))continue;const dd=Math.hypot(n.x-P.x,n.y-P.y);if(dd<bd){bd=dd;best={k:'node',ref:n,x:n.x,y:n.y-6,reach:24};}}
   return best;
 }
-function validTarget(g){return g.k==='drop'?drops.includes(g.ref):g.k==='mon'?monAlive(g.ref):!g.ref.gone;}
+function validTarget(g){return g.k==='drop'?drops.includes(g.ref):g.k==='mon'?monAlive(g.ref):g.k==='npc'?(g.ref.st==='fight'&&g.ref.foe==='p'):!g.ref.gone;}
 function autoThink(t){
   if(P.dead){setAuto(false);return{x:0,y:0};}
   if(P.hp<P.maxHp*.3){setAuto(false,'low');return{x:0,y:0};}
   if(!AUTO.tgt||t-AUTO.pt>300||!validTarget(AUTO.tgt)){AUTO.tgt=pickTarget(t);AUTO.pt=t;}
   const g=AUTO.tgt;
   if(!g){if(t>AUTO.ht){AUTO.hd=Math.random()*6.2832;AUTO.ht=t+4000+Math.random()*3000;}return{x:Math.cos(AUTO.hd),y:Math.sin(AUTO.hd)};}   /* hết mục tiêu → dạo theo hướng ngẫu nhiên đi tìm */
-  if(g.k==='mon'){g.x=g.ref.x;g.y=g.ref.y-14;}
+  if(g.k==='mon'||g.k==='npc'){g.x=g.ref.x;g.y=g.ref.y-14;}
   const dx=g.x-P.x,dy=g.y-(P.y-6),d=Math.hypot(dx,dy);
-  if(d<=g.reach&&g.k!=='drop'){P.f=dx>=0?1:-1;attack();return{x:0,y:0};}
+  if(d<=g.reach&&g.k!=='drop'){P.f=dx>=0?1:-1;attack();return{x:0,y:0};}   /* chém thường (công pháp tự tung ở skUpdate) */
   return d>1?{x:dx/d,y:dy/d}:{x:0,y:0};
 }
 function drawAutoRing(t){}

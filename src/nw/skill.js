@@ -28,12 +28,12 @@ function skTarget(){
   for(const d of DRG){withDr(d,()=>{if(mTargetable()&&M.st!=='die'){const dx=(M.x-P.x)*P.f,q=Math.hypot(M.x-P.x,M.y-P.y);if(dx>-24&&q<R&&q<bd){best={x:M.x,y:M.y,o:d};bd=q;}}});}
   return best;
 }
-function castSkill(id,auto){
+function castSkill(id,auto,ft){
   const sk=TD.bySkill[id],cfg=SKCFG[id];if(!sk||!skLearned(id)||P.dead||P.fly)return false;
   const t=now();if(t<(skCd[id]|0))return false;
   if(P.mp<sk.mp){if(!auto)toast(T('skill.nomp'));return false;}
   P.mp-=sk.mp;skCd[id]=t+sk.cd;
-  const tg=skTarget();let tx,ty;
+  const tg=ft||skTarget();let tx,ty;
   if(tg){tx=tg.x;ty=tg.y;}else{tx=P.x+P.f*(cfg.type==='zone'?150:170);ty=P.y+4;}
   if(Math.abs(tx-P.x)>4)P.f=tx>P.x?1:-1;
   P.atkT=t;P.hitDone=true;P.fxDone=true;
@@ -52,8 +52,10 @@ function skUpdate(dt){
     const e=t-bs;
     for(let h=0;h<f.hits.length;h++)if(!f.done[h]&&e>=f.hits[h]){f.done[h]=1;skHitArea(f);}
     if(e>cfg.burst.length*cfg.bms+cfg.hold)skFx.splice(i,1);}
-  if(AUTO&&AUTO.on&&!P.dead&&!P.fly){const tg=skTarget();
-    if(tg&&Math.hypot(tg.x-P.x,tg.y-P.y)<130)for(const id of cult.sk){if(castSkill(id,true))break;}}
+  if(AUTO&&AUTO.on&&!P.dead&&!P.fly){   /* tự tung công pháp vào mục tiêu của Tự Động (người đang đánh mình hoặc quái) */
+    const g=AUTO.tgt&&(AUTO.tgt.k==='npc'||AUTO.tgt.k==='mon')?AUTO.tgt:null;
+    const tg=g?{x:g.ref.x,y:g.ref.y,o:g.ref}:skTarget();
+    if(tg&&Math.hypot(tg.x-P.x,tg.y-P.y)<(g?190:130))for(const id of cult.sk){if(castSkill(id,true,g?tg:undefined))break;}}
   skBtnTick(t);
 }
 const SKS=4; /* atlas HD: sprite gốc phóng ×4 (nearest) rồi vẽ có làm mượt -> nét, không răng cưa khi zoom lẻ */

@@ -42,6 +42,18 @@ with sync_playwright() as p:
     pg.evaluate("(()=>{const a=G.NPCS[2],c=G.NPCS[3];for(const n of [a,c]){n.hp=n.mhp=300;n.st='idle';n.cdA=0;}a.x=G.P.x+300;a.y=G.P.y;c.x=a.x+18;c.y=a.y;a.st='fight';a.foe=c;a.foeT=Date.now()+1e9;window.__c=c;})()")
     pg.wait_for_timeout(2500)
     ok(pg.evaluate("__c.hp<300"),'NPC đánh NPC')
+    # thứ tự ưu tiên của Tự Động
+    pg.evaluate("""(()=>{G.P.hp=G.P.maxHp=1e6;G.P.dead=0;G.mons2.forEach(m=>{m.hold=1e13;m.x=-5000;m.y=-5000;m.hx=m.x;m.hy=m.y});G.drops.length=0;
+      const m=G.mons2.find(o=>o.tier===0);m.x=m.hx=G.P.x+150;m.y=m.hy=G.P.y;m.st='idle';m.hp=m.maxHp;
+      G.NPCS.forEach(o=>{o.st='idle';o.foe=null;o.x=-4000;o.y=-4000});const n=G.NPCS[4];n.st='fight';n.foe='p';n.foeT=Date.now()+1e9;n.hp=n.mhp;n.x=G.P.x-120;n.y=G.P.y;n.cdA=Date.now()+1e9;
+      G.drops.push({x:G.P.x+60,y:G.P.y,t0:G.now(),n:'lt'});window.__m=m;window.__n=n;G.AUTO.tgt=null;G.AUTO.on=true;})()""")
+    pg.wait_for_timeout(400)
+    ok(pg.evaluate("G.AUTO.tgt&&G.AUTO.tgt.k")=='npc','Tự Động: bị người đánh → đánh người trước')
+    pg.evaluate("G.NPCS.forEach(o=>{o.st='dead';o.deadAt=Date.now()+1e9});G.AUTO.tgt=null"); pg.wait_for_timeout(400)
+    ok(pg.evaluate("G.AUTO.tgt&&G.AUTO.tgt.k")=='mon','Tự Động: không ai đánh → đánh quái')
+    pg.evaluate("__m.x=__m.hx=-5000;__m.y=__m.hy=-5000;G.AUTO.tgt=null"); pg.wait_for_timeout(400)
+    ok(pg.evaluate("G.AUTO.tgt&&G.AUTO.tgt.k")=='drop','Tự Động: hết quái → nhặt vật phẩm')
+    pg.evaluate("G.AUTO.on=false")
     # vách đá chặn người chơi
     c=pg.evaluate("(()=>{for(let y=2;y<498;y++)for(let x=2;x<498;x++)if(G.tiles[y][x]===10&&G.tiles[y][x-1]!==10&&G.tiles[y][x-1]!==5)return [x,y];})()")
     pg.evaluate(f"G.P.x={c[0]*16-14};G.P.y={c[1]*16+8};G.P.fly=false;G.P.hp=1e6;G.cam.x=G.P.x;G.cam.y=G.P.y;G.keys.d=1")
