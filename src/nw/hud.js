@@ -64,16 +64,16 @@ var soon=document.createElement('div');soon.id='sooner';document.body.appendChil
 
 /* ----- nút menu (ảnh cắt từ thiết kế mẫu: it/ui_btn.webp, 7 ô 78x74) ----- */
 var BI=new Image();BI.src='data:image/webp;base64,{{UIBTN}}';
-var BTN=[['bag',0,'hud.bag'],['map',1,'hud.map'],['quest',2,'hud.quest'],['sect',3,'hud.sect'],['rank',7,'hud.rank'],['char',5,'hud.char'],['set',6,'hud.set']];
+var BTN=[['bag',0,'hud.bag'],['quest',2,'hud.quest'],['sect',3,'hud.sect'],['rank',7,'hud.rank'],['set',6,'hud.set']];   /* Bản đồ & Nhân vật bỏ: bấm minimap / avatar để mở */
 var mb={};
 BTN.forEach(function(b){
-  var d=document.createElement('div');d.className='mb';d.innerHTML='<canvas width="78" height="74"></canvas><em></em>';$('hMenu').appendChild(d);mb[b[0]]=d;
+  var d=document.createElement('div');d.className='mb';d.innerHTML='<canvas width="108" height="102"></canvas><em></em>';$('hMenu').appendChild(d);mb[b[0]]=d;
   d.onclick=function(){act(b[0]);};
 });
-var BUI={bag:'u42',map:'u45',quest:'u44',sect:'u48',rank:'u47',char:'u43',set:'u46'};   /* bộ icon mới (lib/extract_all.py) */
+var BUI={bag:'h42',quest:'h44',sect:'h48',rank:'h47',set:'h46'};   /* bộ icon mới (lib/extract_all.py) */
 function drawBtns(){
   if(!window.UIA||!BI.complete||!BI.naturalWidth||!(G.IMG&&G.IMG.uia&&G.IMG.uia.complete)){setTimeout(drawBtns,150);return;}
-  BTN.forEach(function(b){var c=mb[b[0]].querySelector('canvas'),x=c.getContext('2d');x.clearRect(0,0,78,74);UIA.draw(c,BUI[b[0]],2);});
+  BTN.forEach(function(b){var c=mb[b[0]].querySelector('canvas'),x=c.getContext('2d');x.clearRect(0,0,108,102);UIA.draw(c,BUI[b[0]],1);});
 }
 drawBtns();
 function labels(){BTN.forEach(function(b){mb[b[0]].querySelector('em').textContent=T(b[2]);});}
@@ -171,20 +171,35 @@ labels();I18N.on(function(){labels();tick();});
 window.TTHud={tick:tick,openMap:openMap};
 })();
 
-/* ----- da mới cho nút ĐÁNH · TỰ ĐỘNG · CƯỠI · BAY · LƯỚT (icon từ bộ UI mới) ----- */
+/* ----- da mới cho nút ĐÁNH · TỰ ĐỘNG · CƯỠI · BAY · LƯỚT (icon độ phân giải cao, vẽ mượt) ----- */
 (function(){
   function go(){
     var u=function(n){return 'url('+UIA.url(n)+')';},st=document.getElementById('uiaSkin')||document.createElement('style');st.id='uiaSkin';
     var lab='text-shadow:-1px 0 #000,1px 0 #000,0 -1px #000,0 1px #000;font-weight:800;color:#fff;letter-spacing:0;';
+    var bg=function(n){return 'background:'+u(n)+' center/100% 100% no-repeat;';};
     st.textContent=
-     'body #atk{background:'+u('u88')+' center/100% 100% no-repeat;border:0;image-rendering:pixelated;box-sizing:border-box;font-size:11px;align-items:flex-end;padding-bottom:2px;'+lab+'filter:drop-shadow(0 3px 5px #000b)}'+
+     'body #atk{'+bg('h88')+'border:0;box-sizing:border-box;font-size:11px;align-items:flex-end;padding-bottom:3px;'+lab+'filter:drop-shadow(0 3px 5px #000b)}'+
      'body #atk.on,body #atk:active{filter:brightness(1.35) drop-shadow(0 0 9px #ff9a4a)}'+
-     'body #autoBtn{background:'+u('u89')+' center/100% 100% no-repeat;border:0;image-rendering:pixelated;box-sizing:border-box;min-width:0;width:50px;height:50px;padding:34px 0 0;border-radius:0;font-size:9px;line-height:12px;text-align:center;'+lab+'filter:drop-shadow(0 2px 4px #000b)}'+
-     'body #autoBtn.on{background-color:transparent;box-shadow:none;filter:brightness(1.4) drop-shadow(0 0 8px #ffb347)}'+
-     'body .mtb{border:0;border-radius:0;box-shadow:none;image-rendering:pixelated;background-size:100% 100%;background-repeat:no-repeat;background-position:center;align-items:flex-end;padding:0 0 1px;font-size:9px;'+lab+'filter:drop-shadow(0 2px 4px #000b)}'+
-     'body .mtb.on{box-shadow:none;filter:brightness(1.4) drop-shadow(0 0 8px #9fe3ff)}'+
-     'body #mtRide{background-image:'+u('u91')+'}body #mtFly{background-image:'+u('u90')+'}body #mtDash{background-image:'+u('u61')+'}';
+     'body #autoBtn{'+bg('h89')+'border:0;box-sizing:border-box;min-width:0;width:52px;height:52px;padding:36px 0 0;border-radius:0;font-size:9px;line-height:12px;text-align:center;'+lab+'filter:drop-shadow(0 2px 4px #000b)}'+
+     'body #autoBtn.on{'+bg('h89')+'box-shadow:none;filter:brightness(1.45) drop-shadow(0 0 8px #ffb347)}'+
+     'body .mtb,body .mtb.on{border:0;border-radius:0;box-shadow:none;background-color:transparent;background-size:100% 100%;background-repeat:no-repeat;background-position:center;align-items:flex-end;padding:0 0 1px;font-size:9px;'+lab+'filter:drop-shadow(0 2px 4px #000b)}'+
+     'body .mtb.on{filter:brightness(1.4) drop-shadow(0 0 8px #9fe3ff)}'+
+     'body #mtFly,body #mtFly.on{background-image:'+u('h90')+'}body #mtDash,body #mtDash.on{background-image:'+u('h61')+'}';
     document.head.appendChild(st);
   }
   UIA.ready(go);
+  /* CƯỠI / XUỐNG: biểu tượng là chính con linh thú đang chọn trên đĩa tròn (vẽ mượt), thay cho icon giày cũ */
+  var lastM=null;
+  function rideSkin(){
+    var el=document.getElementById('mtRide');if(!el||!G.cult)return;
+    var id=G.cult.mtSel||Object.keys(G.loot).find(function(k){return G.TD.byMount[k]&&G.loot[k]>0;})||'';
+    if(id===lastM)return;var ic=id&&G.iconCanvas(id,3);if(id&&!ic)return;lastM=id;
+    var c=document.createElement('canvas');c.width=c.height=128;var x=c.getContext('2d');
+    var g=x.createRadialGradient(52,46,6,64,64,62);g.addColorStop(0,'#34507a');g.addColorStop(1,'#0e1830');
+    x.fillStyle=g;x.beginPath();x.arc(64,64,58,0,7);x.fill();
+    x.lineWidth=7;x.strokeStyle='#c8963a';x.stroke();x.lineWidth=2.5;x.strokeStyle='#ffe3a1';x.beginPath();x.arc(64,64,54.5,0,7);x.stroke();x.lineWidth=2;x.strokeStyle='#4a2f10';x.beginPath();x.arc(64,64,61.5,0,7);x.stroke();
+    if(ic){var k=Math.min(80/ic.width,80/ic.height);x.imageSmoothingEnabled=false;x.drawImage(ic,64-ic.width*k/2,66-ic.height*k/2,ic.width*k,ic.height*k);}
+    var url='url('+c.toDataURL('image/png')+')';el.style.setProperty('background-image',url,'important');
+  }
+  setInterval(rideSkin,600);
 })();

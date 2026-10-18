@@ -77,6 +77,7 @@ def simple(path,dil,B,ncol,name,order,split=None):
     return frames
 
 BU,BS,BK,BM=3,3,3,3
+ui_order=lambda t:(round((t[1]+t[3])/2/40),t[0])
 def main():
     # ---------- UI ----------
     ui_order=lambda t:(round((t[1]+t[3])/2/40),t[0])

@@ -13,7 +13,7 @@ rep={'{{UIPIECES}}':json.dumps(UIP,separators=(',',':')),'{{OF_JS}}':open('nw/ou
  '{{RES_JS}}':open('nw/res.js',encoding='utf-8').read(),'{{RESATLAS}}':b64('nw/assets/res.webp'),'{{RESMETA}}':open('nw/assets/res_meta.json').read(),'{{ITATLAS}}':b64('nw/it/atlas.webp'),'{{ITMETA}}':open('nw/it/meta.json').read(),
  '{{I18N_JS}}':open('nw/i18n.js',encoding='utf-8').read(),
  '{{SET_JS}}':open('nw/settings.js',encoding='utf-8').read(),
- '{{GLATLAS}}':b64('nw/lib/out/stone_atlas.webp'),'{{GLMETA}}':open('nw/lib/out/stone_meta.json').read(),'{{UIAATLAS}}':b64('nw/lib/out/ui_atlas.webp'),'{{UIAMETA}}':open('nw/lib/out/ui_meta.json').read(),'{{MON10}}':b64('nw/lib/out/mon10_atlas.webp'),'{{MON10META}}':open('nw/lib/out/mon10_meta.json').read(),
+ '{{GLATLAS}}':b64('nw/lib/out/stone_atlas.webp'),'{{GLMETA}}':open('nw/lib/out/stone_meta.json').read(),'{{UIAATLAS}}':b64('nw/lib/out/ui_atlas.webp'),'{{UIAMETA}}':open('nw/lib/out/ui_meta.json').read(),'{{UIHATLAS}}':b64('nw/lib/out/uih_atlas.webp'),'{{UIHMETA}}':open('nw/lib/out/uih_meta.json').read(),'{{MON10}}':b64('nw/lib/out/mon10_atlas.webp'),'{{MON10META}}':open('nw/lib/out/mon10_meta.json').read(),
  '{{BAG_JS}}':open('nw/bag.js',encoding='utf-8').read(),
  '{{AUTH_JS}}':open('nw/auth.js',encoding='utf-8').read(),'{{HUD_JS}}':open('nw/hud.js',encoding='utf-8').read(),'{{UIBTN}}':b64('nw/it/ui_btn.webp'),
  '{{T_GRASS}}':b64('nw/assets/tile_grass.webp'),'{{T_T4}}':b64('nw/assets/tile_t4.webp'),'{{T_T3}}':b64('nw/assets/tile_t3.webp'),'{{T_T2}}':b64('nw/assets/tile_t2.webp'),'{{T_T16}}':b64('nw/assets/tile_t16.webp'),'{{T_T5}}':b64('nw/assets/tile_t5.webp')}

@@ -36,7 +36,7 @@ def run3():
         pg.fill('#aPw2','abcdef'); pg.click('#aGo'); pg.wait_for_timeout(900)
         # 3) trong game
         ok(pg.inner_text('#atk')=='攻击' and '拖动屏幕' in pg.inner_text('#hint') and pg.inner_text('#monN')=='水龙','HUD trong game: 攻击 / hướng dẫn / 水龙')
-        ok(pg.is_visible('#hMenu .mb:nth-child(6)') and pg.is_visible('#hMenu .mb:nth-child(1)'),'nút Cài đặt và Túi (HUD) cùng hiện')
+        ok(pg.is_visible('#hMenu .mb:nth-child(5)') and pg.is_visible('#hMenu .mb:nth-child(1)'),'nút Cài đặt và Túi (HUD) cùng hiện')
         ok('已保存' in pg.inner_text('#accS') or '已加载' in pg.inner_text('#accS'),'trạng thái lưu bằng tiếng Trung: '+pg.inner_text('#accS'))
         pg.evaluate("document.getElementById('setBtn').click()"); pg.wait_for_timeout(200)
         ok(pg.is_visible('#set') and pg.inner_text('#set h2')=='设置','mở Cài đặt (设置)')
