@@ -5,11 +5,11 @@
    Sprite: lib/extract_skill.py → atlas 'sk' (SKM, tên '<hệ>_<số>').
    ============================================================ */
 const SKCFG={
-  hoa:{type:'proj',fly:[1,2,3,4,5,6,7],burst:[8,9,10],bms:170,sc:3.52,fsc:2.8,r:184,hits:[0],hold:200,yoff:0},
-  thuy:{type:'proj',fly:[1,2,3,4],burst:[5,6,7,8,9,10,11],bms:95,sc:3.52,fsc:2.8,r:192,hits:[120],hold:200,yoff:0},
-  tho:{type:'proj',fly:[3,4,5,6],burst:[7,8,9],bms:190,sc:3.52,fsc:2.8,r:184,hits:[150],hold:200,yoff:-64},
-  moc:{type:'proj',fly:[1,2,3,4,5],burst:[6,7,8,9,10,11],bms:130,sc:3.52,fsc:2.8,r:192,hits:[0,430],hold:250,yoff:0},
-  kim:{type:'zone',burst:[1,2,3,4,5,6,7,8,9,10,11,12,13],bms:85,sc:4.08,r:232,hits:[840],hold:250,yoff:0}
+  hoa:{type:'proj',fly:[1,2,3,4,5,6,7],burst:[8,9,10],bms:170,sc:1.76,fsc:1.4,r:92,hits:[0],hold:200,yoff:0},
+  thuy:{type:'proj',fly:[1,2,3,4],burst:[5,6,7,8,9,10,11],bms:95,sc:1.76,fsc:1.4,r:96,hits:[120],hold:200,yoff:0},
+  tho:{type:'proj',fly:[3,4,5,6],burst:[7,8,9],bms:190,sc:1.76,fsc:1.4,r:92,hits:[150],hold:200,yoff:-32},
+  moc:{type:'proj',fly:[1,2,3,4,5],burst:[6,7,8,9,10,11],bms:130,sc:1.76,fsc:1.4,r:96,hits:[0,430],hold:250,yoff:0},
+  kim:{type:'zone',burst:[1,2,3,4,5,6,7,8,9,10,11,12,13],bms:85,sc:2.04,r:116,hits:[840],hold:250,yoff:0}
 };
 const skCd={},skFx=[];
 cult.sk=[];P.mp=60;P.maxMp=60;
@@ -55,15 +55,27 @@ function skUpdate(dt){
     if(tg&&Math.hypot(tg.x-P.x,tg.y-P.y)<130)for(const id of cult.sk){if(castSkill(id,true))break;}}
   skBtnTick(t);
 }
+const SKS=4; /* atlas HD: sprite gốc phóng ×4 (nearest) rồi vẽ có làm mượt -> nét, không răng cưa khi zoom lẻ */
+function skDraw(nm,x,y,s,al,rot,sg){
+  const fr=SKM[nm];if(!fr||al<=0)return;
+  ctx.globalAlpha=al;
+  if(rot!==undefined){ctx.save();ctx.translate(x,y);ctx.scale(sg,1);ctx.rotate(rot);ctx.drawImage(IMG.sk,fr[0]*SKS,fr[1]*SKS,fr[2]*SKS,fr[3]*SKS,fr[4]*s,fr[5]*s,fr[2]*s,fr[3]*s);ctx.restore();}
+  else ctx.drawImage(IMG.sk,fr[0]*SKS,fr[1]*SKS,fr[2]*SKS,fr[3]*SKS,x+fr[4]*s,y+fr[5]*s,fr[2]*s,fr[3]*s);
+}
 function drawSkFx(t){
   if(!IMG.sk||!IMG.sk.complete)return;
+  ctx.save();ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';
   for(const f of skFx){const cfg=SKCFG[f.id];
-    if(f.k==='proj'&&t<f.t0+f.fl){const k=(t-f.t0)/f.fl,x=f.ox+(f.tx-f.ox)*k,y=f.oy+(f.ty-10-f.oy)*k,dx=f.tx-f.ox,dy=f.ty-10-f.oy,sg=dx<0?-1:1,ang=Math.atan2(dy,Math.abs(dx)||1);
-      const nm=f.id+'_'+cfg.fly[Math.floor((t-f.t0)/70)%cfg.fly.length],fr=SKM[nm];if(!fr)continue;
-      ctx.save();ctx.translate(x,y);ctx.scale(sg,1);ctx.rotate(ang);ctx.drawImage(IMG.sk,fr[0],fr[1],fr[2],fr[3],fr[4]*cfg.fsc,fr[5]*cfg.fsc,fr[2]*cfg.fsc,fr[3]*cfg.fsc);ctx.restore();continue;}
-    const bs=f.k==='zone'?f.t0:f.t0+f.fl,e=t-bs,i=Math.min(cfg.burst.length-1,Math.floor(e/cfg.bms)),fr=SKM[f.id+'_'+cfg.burst[i]];if(!fr||e<0)continue;
-    const tail=cfg.burst.length*cfg.bms,al=e>tail?Math.max(0,1-(e-tail)/cfg.hold):1,s=cfg.sc;
-    ctx.save();ctx.globalAlpha=al;ctx.drawImage(IMG.sk,fr[0],fr[1],fr[2],fr[3],f.x+fr[4]*s,f.y+cfg.yoff+fr[5]*s,fr[2]*s,fr[3]*s);ctx.restore();}
+    if(f.k==='proj'&&t<f.t0+f.fl){const k0=(t-f.t0)/f.fl,k=Math.pow(k0,1.3),x=f.ox+(f.tx-f.ox)*k,y=f.oy+(f.ty-10-f.oy)*k,dx=f.tx-f.ox,dy=f.ty-10-f.oy,sg=dx<0?-1:1,ang=Math.atan2(dy,Math.abs(dx)||1);
+      const n=cfg.fly.length,u=(t-f.t0)/70,i=Math.floor(u),fr=u-i,s=cfg.fsc*(.6+.4*Math.min(1,(t-f.t0)/110));
+      skDraw(f.id+'_'+cfg.fly[i%n],x,y,s,1,ang,sg);
+      if(n>1)skDraw(f.id+'_'+cfg.fly[(i+1)%n],x,y,s,fr,ang,sg);continue;}
+    const bs=f.k==='zone'?f.t0:f.t0+f.fl,e=t-bs;if(e<0)continue;
+    const N=cfg.burst.length,tail=N*cfg.bms,al=e>tail?Math.max(0,1-(e-tail)/cfg.hold):1,u=Math.min(N-1,e/cfg.bms),i=Math.floor(u),fr=u-i;
+    const s=cfg.sc*(.82+.18*Math.min(1,e/90)); /* nở nhẹ lúc bung */
+    skDraw(f.id+'_'+cfg.burst[i],f.x,f.y+cfg.yoff,s,al,undefined);
+    if(i<N-1)skDraw(f.id+'_'+cfg.burst[i+1],f.x,f.y+cfg.yoff,s,al*fr);}
+  ctx.restore();
 }
 /* ----- nút kỹ năng ----- */
 const skBar=document.createElement('div');skBar.id='skBar';
