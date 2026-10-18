@@ -56,7 +56,7 @@ with sync_playwright() as p:
     E("G.KIE.t0-=70000"); pg.wait_for_timeout(500)
     ok(E("G.KIE.dealt")==1500 and E("G.KIE.i")==40,'hết 2 phút: đúng 40 đạo, tổng đúng 1500 HP')
     ok(E("G.KIE.on")==False and E("G.cult.tc")==0,'lần đầu (random 0.5 > 1%) → THẤT BẠI')
-    ok(abs(E("G.P.hp")-E("G.P.maxHp")*.3)<2,'thất bại: trọng thương còn 30% HP')
+    ok(E("G.P.hp")>E("G.P.maxHp")*.3 and E("G.cult.tc")==0,'thất bại: không bị phạt thêm (HP không bị ép về 30%)')
     ok(E("G.cult.r.kim")==300 and E("G.cult.pl.kim[0]")==10 and E("G.cult.tcd")==30,'thất bại: không mất gì (linh căn, châu, đan đã ăn)')
     ok(abs(E("G.kieChance()")-.5)<1e-9,'các lần sau: thành công 50%')
     E("G.P.hp=G.P.maxHp"); E("Math.random=()=>.3")

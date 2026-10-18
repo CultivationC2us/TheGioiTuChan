@@ -37,7 +37,7 @@ function kieEnd(ok,why){
   if(ok){cult.tc=1;cult.qi=0;
     TD.EL.forEach(e=>{cult.pb[e.id]=(cult.pb[e.id]|0)+cult.pl[e.id].reduce((a,b)=>a+b,0);cult.pl[e.id]=[0,0,0];});   /* châu đã nuốt về 0/20 nhưng chỉ số giữ lại (cộng dồn); linh căn giữ nguyên, trần lên 900 */
     recalc();P.hp=P.maxHp;P.mp=P.maxMp;}
-  else if(!P.dead){P.hp=Math.max(1,Math.round(P.maxHp*.3));}
+  /* thất bại: KHÔNG phạt thêm (lần đầu gần như chắc chắn thất bại đã là cái giá); phạt nặng để dành cho Kết Đan sau này */
   kieBanner(ok,why);
 }
 function kieStrike(d){
