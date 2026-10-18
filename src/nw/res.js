@@ -164,6 +164,7 @@ var byPearl={};
 EL.forEach(function(e){for(var t=1;t<=PT;t++){byPearl[pearlId(e.id,t)]={el:e.id,tier:t};MISC[pearlId(e.id,t)]={dec:PDEC[t-1]};}});
 /* quái (id, hệ, tên) */
 var MONS=[
+ {id:'hacmieu',el:'tho',n:['Hắc Miêu','黑貓','黑猫']},
  {id:'thuylong',el:'thuy',n:['Thủy Long','水龍','水龙']},
  {id:'hoa',el:'hoa',n:['Hỏa Diễm Long','火焰龍','火焰龙']},
  {id:'tho',el:'tho',n:['Thổ Dực Long','土翼龍','土翼龙']},
