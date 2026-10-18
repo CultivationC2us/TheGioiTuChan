@@ -230,6 +230,7 @@ function hurtPlayer(d,sx,sy){if(P.dead||P.inv>0||P.fly||dashing(now()))return;  
   const a=Math.atan2(P.y-sy,P.x-sx);P.kx=Math.cos(a)*90;P.ky=Math.sin(a)*90;
   if(P.hp<=0){P.dead=now();toast(T('toast.dead'));}}
 function mUpdate(dt){const t=now(),e=t-M.t0,dist=Math.hypot(P.x-M.x,P.y-M.y);
+  if(M.regen&&M.st!=='die'&&M.st!=='dead'&&M.hp<M.maxHp)M.hp=Math.min(M.maxHp,M.hp+dt*M.maxHp*M.regen);
   M.cd1-=dt;M.cd2-=dt;M.flash=Math.max(0,M.flash-dt);
   const aggro=!P.dead&&dist<190&&Math.hypot(P.x-HOME.x,P.y-HOME.y)<420;
   const face=()=>{M.f=(P.x>=M.x)?1:-1;};
@@ -251,7 +252,7 @@ function mUpdate(dt){const t=now(),e=t-M.t0,dist=Math.hypot(P.x-M.x,P.y-M.y);
     if(e>900){setSt('surge');addSplash(M.x,M.y,26);addRing(M.x,M.y,6,40,700);M.cd2=7;}
     break;}
   case'surge':{face(); // row 4 của sheet: geyser → geyser+đuôi → vòm nước → vòng → đứng
-    if(e>140&&!M.surgeHit){M.surgeHit=true;if(Math.hypot(P.x-M.x,P.y-M.y)<34)hurtPlayer(18,M.x,M.y);}
+    if(e>140&&!M.surgeHit){M.surgeHit=true;if(Math.hypot(P.x-M.x,P.y-M.y)<34)hurtPlayer(18*(M.dm||1),M.x,M.y);}
     if(e>620){setSt('idle');M.hold=1100;}
     break;}
   case'rise':{ // trồi mượt: sprite nhô dần khỏi mặt nước (cắt theo mặt nước)
@@ -279,7 +280,7 @@ function mUpdate(dt){const t=now(),e=t-M.t0,dist=Math.hypot(P.x-M.x,P.y-M.y);
   case'fire':{ // 460ms: tia nước từ miệng, gây sát thương một lần theo hướng đã khoá
     const b=M.beam;
     if(e>90&&!M.fired){M.fired=true;const px=(P.x-b.mx)*M.f,py=(P.y-8)-b.my;const c=Math.cos(b.ang),s=Math.sin(b.ang);
-      const al=px*c+py*s,pe=-px*s+py*c;if(al>-6&&al<b.L+14&&Math.abs(pe)<14)hurtPlayer(14,b.mx,b.my);}
+      const al=px*c+py*s,pe=-px*s+py*c;if(al>-6&&al<b.L+14&&Math.abs(pe)<14)hurtPlayer(14*(M.dm||1),b.mx,b.my);}
     if(e>470){setSt('recover');M.cd1=3.6;}
     break;}
   case'recover':{if(e>260){setSt('dive');}break;}
@@ -400,15 +401,22 @@ function drawPlayer(t){
 }
 /* tên + thanh HP trên đầu nhân vật (vẽ bằng ô vuông pixel) */
 let NPD=false;   /* đang vẽ NPC: bỏ thanh tên/máu của người chơi */
+/* khung tên + thanh máu pixel: x,y = góc trên thanh máu; dòng 1 = tên, dòng 2 = cảnh giới (tuỳ chọn) */
+function tagBox(x,y,w,frac,l1,l2,c1,c2){
+  ctx.save();ctx.imageSmoothingEnabled=false;ctx.textAlign='center';ctx.textBaseline='alphabetic';ctx.font='bold 6px system-ui,sans-serif';
+  frac=Math.max(0,Math.min(1,frac));
+  ctx.fillStyle='#14101e';ctx.fillRect(x-w/2-1,y,w+2,4);ctx.fillStyle='#c9a24a';ctx.fillRect(x-w/2-1,y,w+2,.5);ctx.fillRect(x-w/2-1,y+3.5,w+2,.5);ctx.fillRect(x-w/2-1,y,.5,4);ctx.fillRect(x+w/2+.5,y,.5,4);
+  ctx.fillStyle='#3a1218';ctx.fillRect(x-w/2,y+.5,w,3);const fw=Math.round(w*frac*2)/2;ctx.fillStyle='#d8353a';ctx.fillRect(x-w/2,y+.5,fw,3);ctx.fillStyle='#ff8a7a';ctx.fillRect(x-w/2,y+.5,fw,1);ctx.fillStyle='#8f1a22';ctx.fillRect(x-w/2,y+2.5,fw,1);
+  const line=(txt,ty,col)=>{if(!txt)return;ctx.fillStyle='#07060c';for(const[dx,dy]of[[-.5,0],[.5,0],[0,-.5],[0,.5]])ctx.fillText(txt,x+dx,ty+dy);ctx.fillStyle=col;ctx.fillText(txt,x,ty);};
+  if(l2){line(l2,y-1.5,c2||'#bfffd0');line(l1,y-8,c1||'#ffe9b0');}else line(l1,y-1.5,c1||'#ffe9b0');
+  ctx.restore();
+}
+function realmTxt(){return cult.aw?T('realm.n',{n:cult.rl}):T('j.asleep');}
+/* tên + cảnh giới + thanh HP trên đầu nhân vật */
 function drawTag(t,lift){
   if(NPD)return;
-  const nm=(window.G&&window.G.pname)||'';const top=P.y-26-lift-(P.flyH||0),x=Math.round(P.x);
-  ctx.save();ctx.imageSmoothingEnabled=false;ctx.textAlign='center';ctx.textBaseline='alphabetic';ctx.font='bold 6px system-ui,sans-serif';
-  const y=Math.round(top)-5,w=22,hp=Math.max(0,Math.min(1,P.hp/P.maxHp));
-  ctx.fillStyle='#14101e';ctx.fillRect(x-w/2-1,y,w+2,4);ctx.fillStyle='#c9a24a';ctx.fillRect(x-w/2-1,y,w+2,.5);ctx.fillRect(x-w/2-1,y+3.5,w+2,.5);ctx.fillRect(x-w/2-1,y,.5,4);ctx.fillRect(x+w/2+.5,y,.5,4);
-  ctx.fillStyle='#3a1218';ctx.fillRect(x-w/2,y+.5,w,3);const fw=Math.round(w*hp*2)/2;ctx.fillStyle='#d8353a';ctx.fillRect(x-w/2,y+.5,fw,3);ctx.fillStyle='#ff8a7a';ctx.fillRect(x-w/2,y+.5,fw,1);ctx.fillStyle='#8f1a22';ctx.fillRect(x-w/2,y+2.5,fw,1);
-  if(nm){ctx.fillStyle='#07060c';for(const[dx,dy]of[[-.5,0],[.5,0],[0,-.5],[0,.5]])ctx.fillText(nm,x+dx,y-1.5+dy);ctx.fillStyle='#ffe9b0';ctx.fillText(nm,x,y-1.5);}
-  ctx.restore();
+  const nm=(window.G&&window.G.pname)||'';const top=P.y-26-lift-(P.flyH||0);
+  tagBox(Math.round(P.x),Math.round(top)-5,22,P.hp/P.maxHp,nm,realmTxt());
 }
 function drawDog(t){
   const f=(dog.run?4:0)+(Math.floor(t/(dog.run?95:260))%4),b=dog.run?Math.abs(Math.sin(t/72*Math.PI/2))*.2:Math.sin(t/104)*.1;
@@ -511,7 +519,7 @@ function drawWorld(t,hw,hh,ph){   /* ph=0: mặt đất · ph=1: vật thể (t�
    for(let i=-rcx;i<=rcx;i++)for(let j=-rcy;j<=rcy;j++){const a=nodeCell.get((ccx+i)+','+(ccy+j));if(!a)continue;
     for(const n of a)if(Math.abs(n.x-cam.x)<hw+30&&Math.abs(n.y-cam.y)<hh+30)L.push({y:n.y,f:()=>drawNode(n,t)});}}
   for(const m of mons2)if(m.st!=='dead'&&Math.abs(m.x-cam.x)<hw+90&&Math.abs(m.y-cam.y)<hh+90)L.push({y:m.y,f:()=>drawMon2(m,t)});
-  for(const d of DRG)if(Math.abs(d.x-cam.x)<hw+140&&Math.abs(d.y-cam.y)<hh+140)L.push({y:d.y,f:()=>withDr(d,()=>drawMonster(t))});
+  for(const d of DRG)if(Math.abs(d.x-cam.x)<hw+140&&Math.abs(d.y-cam.y)<hh+140)L.push({y:d.y,f:()=>withDr(d,()=>{drawMonster(t);if(M.st!=='sub'&&M.st!=='tele'&&M.st!=='dead'&&M.st!=='dying')tagBox(Math.round(M.x),Math.round(M.y-66),34,M.hp/M.maxHp,T('monster.thuylong')+' - '+T('realm.n',{n:M.rl||9}),null,'#9fe3ff')})});
   for(const o of petObjs)L.push({y:o.y,f:()=>drawPet(o,t)});
   for(const n of NPCS)if(Math.abs(n.x-cam.x)<hw+60&&Math.abs(n.y-cam.y)<hh+60)L.push({y:n.y,f:()=>drawNpc(n,t)});
   L.sort((a,b)=>a.y-b.y);

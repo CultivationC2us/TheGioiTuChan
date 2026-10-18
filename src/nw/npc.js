@@ -151,15 +151,12 @@ function drawNpc(n,t){
 }
 const NP_KEYS=['x','y','f','mt','fly','flyH','mv','atkT','dead','hurtT','mtFx','dashT'];
 function npcTag(n,t,lift){
-  /* tên + cảnh giới + lời nói */
+  /* tên + cảnh giới + thanh HP + lời nói */
   const x=Math.round(n.x),y=Math.round(n.y-29-lift);
-  ctx.save();ctx.imageSmoothingEnabled=false;ctx.textAlign='center';ctx.textBaseline='alphabetic';ctx.font='bold 6px system-ui,sans-serif';
   const nm=NPC_NAMES[n.i][npcLang()],rl=T('realm.n',{n:n.rl});
-  ctx.fillStyle='#07060c';for(const[dx,dy]of[[-.5,0],[.5,0],[0,-.5],[0,.5]]){ctx.fillText(nm,x+dx,y+dy);ctx.fillText(rl,x+dx,y+7+dy);}
-  ctx.fillStyle='#9fe3ff';ctx.fillText(nm,x,y);ctx.fillStyle='#bfffd0';ctx.font='bold 5px system-ui,sans-serif';ctx.fillText(rl,x,y+7);
-  if(n.say&&t<n.sayT){ctx.font='bold 6px system-ui,sans-serif';const w=ctx.measureText(n.say).width+8,by=y-14;
-    ctx.fillStyle='#07060ccc';ctx.fillRect(x-w/2,by-7,w,10);ctx.fillStyle='#ffe9b0';ctx.fillText(n.say,x,by);}
-  ctx.restore();
+  tagBox(x,y,22,(n.hp||0)/(n.mhp||1),nm,rl,'#9fe3ff','#bfffd0');
+  if(n.say&&t<n.sayT){ctx.save();ctx.textAlign='center';ctx.font='bold 6px system-ui,sans-serif';const w=ctx.measureText(n.say).width+8,by=y-20;
+    ctx.fillStyle='#07060ccc';ctx.fillRect(x-w/2,by-7,w,10);ctx.fillStyle='#ffe9b0';ctx.fillText(n.say,x,by);ctx.restore();}
 }
 /* dữ liệu cho bảng xếp hạng: NPC là người chơi có tiến trình thật (đang chạy trên máy này) */
 function npcTotalQi(n){let s=0;for(let l=1;l<n.rl;l++)s+=npcNeed(l);return Math.round(s+n.qi);}

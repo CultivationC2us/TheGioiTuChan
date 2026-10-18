@@ -245,12 +245,20 @@ function findLand(tx,ty){
   }return{x:tx*TILE+8,y:ty*TILE+8};
 }
 /* mỗi loại quái là một BẦY 10 con tụ gần hang; con nào chết sẽ hồi sinh ngay gần đó (giữ đủ 10) */
-const PACK_N=10,PACK_HP=.6;
+/* ---- TU VI QUÁI: mỗi loài có cảnh giới riêng, mạnh hơn người cùng cảnh giới (quái chỉ có bản thân làm trang bị) + 1 sở trường theo hệ ----
+   hp gốc 220×mul, sát thương skill ×mul×1.25 (mul = 1,2^(tầng-1) như người chơi). Sở trường: Kim=công ×1.7 · Mộc=máu ×1.9 · Thổ=giảm sát thương 40% · Hỏa=nhanh (chạy ×1.4, chiêu hồi ×0.65) · Thủy=hồi máu 2%/giây */
+const MREALM={hoa:3,tho:4,kim:5,moc:6,thuylong:9};
+function monStats(id,el){const rl=MREALM[id]||1,mul=Math.pow(TD.REALM.mul,rl-1);
+  const o={rl,hp:Math.round(220*mul),dm:mul*1.25,red:0,spm:1,cdm:1,regen:0};
+  if(el==='kim')o.dm*=1.7;else if(el==='moc')o.hp=Math.round(o.hp*1.9);else if(el==='tho')o.red=.4;else if(el==='hoa'){o.spm=1.4;o.cdm=.65;}else if(el==='thuy')o.regen=.02;
+  return o;}
+for(const d of DRG)Object.assign(d,monStats('thuylong','thuy'),{maxHp:monStats('thuylong','thuy').hp,hp:monStats('thuylong','thuy').hp});
+const PACK_N=10;
 for(const id in MD){const d=MD[id];
   for(let i=0;i<PACK_N;i++){const a=i*2.399+(id.charCodeAt(0)%7),rr=i===0?0:1.5+Math.sqrt(i)*1.55;
     const h=findLand(Math.round(d.lair[0]+Math.cos(a)*rr),Math.round(d.lair[1]+Math.sin(a)*rr));
-    const mh=Math.round(d.hp*PACK_HP);
-    mons2.push({id,d,x:h.x,y:h.y,hx:h.x,hy:h.y,f:i%2?1:-1,hp:mh,maxHp:mh,st:'idle',t0:0,cd:[0,0],sk:null,flash:0,hold:i*150,deadAt:0,dieMs:900,tx:0,ty:0});}}
+    const ms=monStats(id,d.el),mh=ms.hp;
+    mons2.push({id,d,rl:ms.rl,dm:ms.dm,red:ms.red,spm:ms.spm,cdm:ms.cdm,regen:ms.regen,x:h.x,y:h.y,hx:h.x,hy:h.y,f:i%2?1:-1,hp:mh,maxHp:mh,st:'idle',t0:0,cd:[0,0],sk:null,flash:0,hold:i*150,deadAt:0,dieMs:900,tx:0,ty:0});}}
 function packSpot(m){for(let k=0;k<12;k++){const a=Math.random()*6.283,r=14+Math.random()*50,x=m.hx+Math.cos(a)*r,y=m.hy+Math.sin(a)*r;
   if(!isWater(x,y)&&!isWater(x,y+8)&&tiles[y/TILE|0]&&[G,D,R].includes(tiles[y/TILE|0][x/TILE|0]))return{x,y};}return{x:m.hx,y:m.hy};}
 const monAlive=m=>m.dr?withDr(m,()=>mTargetable()&&M.st!=='die'):(m.st!=='dead'&&m.st!=='die');
@@ -286,32 +294,33 @@ function moveMon(m,tx,ty,spd,dt){
   if(!isWater(nx,m.y))m.x=nx;if(!isWater(m.x,ny))m.y=ny;
 }
 function startSkill(m,i,t){
-  const s=m.d.skills[i];m.st='atk';m.sk=s;m.t0=t;m.cd[i]=t+s.cd;m.done=false;m.f=P.x>=m.x?1:-1;m.dashInit=false;
+  const s=m.d.skills[i];m.st='atk';m.sk=s;m.t0=t;m.cd[i]=t+s.cd*(m.cdm||1);m.done=false;m.f=P.x>=m.x?1:-1;m.dashInit=false;
   if(s.k==='aoe'){m.tx=P.x;m.ty=P.y;fx2.push({k:'tele',x:m.tx,y:m.ty,r:s.r,t0:t,dur:s.tele,col:s.col});}
 }
 function endSkill(m,t){m.st='chase';m.sk=null;m.t0=t;m.hold=t+250;}
 function skillStep(m,t,dt){
   const s=m.sk,e=t-m.t0,d=m.d;
   if(s.k==='cone'){const wt=s.wind.length*s.wms,ft=s.fxms.reduce((a,b)=>a+b,0);
-    if(!m.done&&e>=wt){m.done=true;fx2.push({k:'cone',id:m.id,mx:m.x+m.f*s.ox*d.sc,my:m.y+s.oy*d.sc,f:m.f,frames:s.fx,fxms:s.fxms,t0:t,dur:ft,len:s.len,hw:s.hw,dmg:s.dmg,hitT:s.hit,hit:false,sc:d.sc});}
+    if(!m.done&&e>=wt){m.done=true;fx2.push({k:'cone',id:m.id,mx:m.x+m.f*s.ox*d.sc,my:m.y+s.oy*d.sc,f:m.f,frames:s.fx,fxms:s.fxms,t0:t,dur:ft,len:s.len,hw:s.hw,dmg:s.dmg*m.dm,hitT:s.hit,hit:false,sc:d.sc});}
     if(e>wt+ft+300)endSkill(m,t);
   }else if(s.k==='proj'){const wt=s.wind.length*s.wms;
     if(!m.done&&e>=wt){m.done=true;const mx=m.x+m.f*s.ox*d.sc,my=m.y+s.oy*d.sc+(d.fly?-16:0),a=Math.atan2(P.y-12-my,P.x-mx);
-      projs.push({x:mx,y:my,vx:Math.cos(a)*s.speed,vy:Math.sin(a)*s.speed,t0:t,life:s.life,r:s.r,dmg:s.dmg,frames:s.fx,sc:d.sc,id:m.id});}
+      projs.push({x:mx,y:my,vx:Math.cos(a)*s.speed,vy:Math.sin(a)*s.speed,t0:t,life:s.life,r:s.r,dmg:s.dmg*m.dm,frames:s.fx,sc:d.sc,id:m.id});}
     if(e>wt+400)endSkill(m,t);
   }else if(s.k==='aoe'){
-    if(!m.done&&e>=s.tele){m.done=true;fx2.push({k:'aoe',id:m.id,x:m.tx,y:m.ty,frames:s.fx,fxms:s.fxms,t0:t,dur:s.fx.length*s.fxms+120,hitT:s.fxms,hit:false,r:s.r,dmg:s.dmg,sc:d.sc});}
+    if(!m.done&&e>=s.tele){m.done=true;fx2.push({k:'aoe',id:m.id,x:m.tx,y:m.ty,frames:s.fx,fxms:s.fxms,t0:t,dur:s.fx.length*s.fxms+120,hitT:s.fxms,hit:false,r:s.r,dmg:s.dmg*m.dm,sc:d.sc});}
     if(e>s.tele+s.fx.length*s.fxms+300)endSkill(m,t);
   }else if(s.k==='charge'){const wt=s.wind.length*s.wms,dtm=s.dist/s.speed*1000;
     if(e>=wt&&e<wt+dtm){
       if(!m.dashInit){m.dashInit=true;const a=Math.atan2(P.y-m.y,P.x-m.x);m.dvx=Math.cos(a);m.dvy=Math.sin(a);m.f=m.dvx>=0?1:-1;m.dhit=false;}
       const nx=m.x+m.dvx*s.speed*dt,ny=m.y+m.dvy*s.speed*dt;if(!isWater(nx,ny)){m.x=nx;m.y=ny;}
-      if(!m.dhit&&!P.dead&&Math.hypot(P.x-m.x,P.y-m.y)<30){m.dhit=true;hurtPlayer(s.dmg,m.x,m.y);}
+      if(!m.dhit&&!P.dead&&Math.hypot(P.x-m.x,P.y-m.y)<30){m.dhit=true;hurtPlayer(s.dmg*m.dm,m.x,m.y);}
     }else if(e>=wt+dtm+300)endSkill(m,t);
   }
 }
 function stepMon(m,dt,t){
   const d=m.d;m.flash=Math.max(0,m.flash-dt);
+  if(m.regen&&m.st!=='die'&&m.st!=='dead'&&m.hp<m.maxHp)m.hp=Math.min(m.maxHp,m.hp+dt*m.maxHp*m.regen);
   if(m.st==='dead'){if(t-m.deadAt>MON_RESPAWN){const s=packSpot(m);m.hp=m.maxHp;m.x=s.x;m.y=s.y;m.st='idle';m.t0=t;m.hold=t+600;}return;}
   if(m.st==='die'){if(t-m.t0>m.dieMs){m.st='dead';m.deadAt=t;}return;}
   const pd=Math.hypot(P.x-m.x,P.y-m.y),hd=Math.hypot(m.hx-m.x,m.hy-m.y);
@@ -325,10 +334,10 @@ function stepMon(m,dt,t){
      m.f=P.x>=m.x?1:-1;
      if(t>=m.hold){const a=d.skills[0],b=d.skills[1],ra=t>=m.cd[0]&&pd<a.range,rb=t>=m.cd[1]&&pd<b.range;
        if(ra||rb){startSkill(m,(ra&&rb)?(Math.random()<.45?1:0):(rb?1:0),t);break;}}
-     if(pd>58)moveMon(m,P.x,P.y,d.spd,dt);
+     if(pd>58)moveMon(m,P.x,P.y,d.spd*(m.spm||1),dt);
      break;}
    case'return':
-     moveMon(m,m.hx,m.hy,d.spd*1.5,dt);m.hp=Math.min(m.maxHp,m.hp+dt*m.maxHp*.2);
+     moveMon(m,m.hx,m.hy,d.spd*1.5*(m.spm||1),dt);m.hp=Math.min(m.maxHp,m.hp+dt*m.maxHp*.2);
      if(hd<6){m.st='idle';m.t0=t;m.hold=t+400;}
      break;
    case'atk':skillStep(m,t,dt);break;
@@ -336,7 +345,7 @@ function stepMon(m,dt,t){
 }
 function monHit(m,dmg){
   if(m.dr){withDr(m,()=>mHit(dmg));return;}
-  if(!monAlive(m))return;const t=now();
+  if(!monAlive(m))return;const t=now();dmg=Math.max(1,Math.round(dmg*(1-(m.red||0))));
   m.hp=Math.max(0,m.hp-dmg);m.flash=.12;floaters.push({x:m.x,y:m.y-m.d.sc*38,t0:t,s:String(dmg),c:'#fff'});
   if(m.st==='idle'||m.st==='return'){m.st='chase';m.t0=t;m.hold=t;}
   if(m.hp<=0){
@@ -387,8 +396,8 @@ function drawMon2(m,t){
   let al=1;if(m.st==='die'){const k=(t-m.t0)/m.dieMs;al=d.die?(k>.7?Math.max(0,1-(k-.7)/.3):1):Math.max(0,1-k);}
   spr1(img,meta,name,m.x,m.y+hover,d.sc,m.f,al);
   if(m.flash>0){ctx.save();ctx.globalCompositeOperation='lighter';spr1(img,meta,name,m.x,m.y+hover,d.sc,m.f,al*.55);ctx.restore();}
-  if(m.st!=='die'&&m.hp<m.maxHp){const f=meta[name],bw=34,by=m.y+hover+(f?f[5]*d.sc:-50)-8;
-    ctx.fillStyle='rgba(0,0,0,.6)';ctx.fillRect(m.x-bw/2-1,by-1,bw+2,5);ctx.fillStyle=TD.PEARL[d.el].col;ctx.fillRect(m.x-bw/2,by,bw*m.hp/m.maxHp,3);}
+  if(m.st!=='die'){const f=meta[name],by=m.y+hover+(f?f[5]*d.sc:-50)-10;
+    tagBox(Math.round(m.x),Math.round(by),34,m.hp/m.maxHp,T('monster.'+m.id)+' - '+T('realm.n',{n:m.rl}),null,TD.PEARL[d.el].col);}
 }
 function drawPet(o,t){
   const bob=Math.sin(t/200+o.x)*(o.run?1.4:.6);
