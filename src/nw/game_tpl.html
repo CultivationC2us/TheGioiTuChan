@@ -399,7 +399,9 @@ function drawPlayer(t){
   drawTag(t,0);
 }
 /* tên + thanh HP trên đầu nhân vật (vẽ bằng ô vuông pixel) */
+let NPD=false;   /* đang vẽ NPC: bỏ thanh tên/máu của người chơi */
 function drawTag(t,lift){
+  if(NPD)return;
   const nm=(window.G&&window.G.pname)||'';const top=P.y-26-lift-(P.flyH||0),x=Math.round(P.x);
   ctx.save();ctx.imageSmoothingEnabled=false;ctx.textAlign='center';ctx.textBaseline='alphabetic';ctx.font='bold 6px system-ui,sans-serif';
   const y=Math.round(top)-5,w=22,hp=Math.max(0,Math.min(1,P.hp/P.maxHp));
