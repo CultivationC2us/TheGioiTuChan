@@ -488,11 +488,11 @@ var S=[ /* chuỗi giao diện mới: [vi, zh-Hant, zh-Hans] */
  ['ui.h1','Hạ yêu thú ngũ hành để thu nguyên liệu, rồi luyện hóa vào Linh Căn.','擊敗五行妖獸取得材料，再煉化入靈根。','击败五行妖兽取得材料，再炼化入灵根。'],
  ['ui.h2','Linh Căn đủ đầy mới thức tỉnh được; tu vi tăng dần theo thời gian.','靈根圓滿方可覺醒；修為隨時間增長。','灵根圆满方可觉醒；修为随时间增长。'],
  ['ui.h3','Đủ tu vi thì đột phá để lên tầng cảnh giới mới.','修為足夠即可突破，晉升新境界。','修为足够即可突破，晋升新境界。'],
- ['toast.equip.g','Đã trang bị {name}','已裝備{name}','已装备{name}'],['toast.awk','Thức tỉnh: {line}','覺醒：{line}','觉醒：{line}'],['toast.awk.no','Chưa đủ nguyên liệu thức tỉnh','覺醒材料不足','觉醒材料不足'],['toast.awk.max','Đã mở hết dòng chỉ số','屬性已全部開啟','属性已全部开启'],
+ ['toast.equip.g','Đã trang bị {name}','已裝備{name}','已装备{name}'],['toast.awk','Thức tỉnh: {line}','覺醒：{line}','觉醒：{line}'],['toast.awk.no','Không đủ Linh Thạch để thức tỉnh','靈石不足，無法覺醒','灵石不足，无法觉醒'],['toast.awk.max','Đã mở hết dòng chỉ số','屬性已全部開啟','属性已全部开启'],
  ['st.atk','Tấn công','攻擊','攻击'],['st.def','Phòng thủ','防禦','防御'],['st.hp','Khí huyết','氣血','气血'],['st.spd','Tốc chạy','移速','移速'],['st.aspd','Tốc đánh','攻速','攻速'],['st.crit','Tỉ lệ chí mạng','暴擊率','暴击率'],['st.cdmg','Sát thương chí mạng','暴擊傷害','暴击伤害'],['st.bag','Sức chứa kho','倉庫容量','仓库容量'],
  ['rar.0','Lục','綠','绿'],['rar.1','Lam','藍','蓝'],['rar.2','Tím','紫','紫'],['rar.3','Cam','橙','橙'],['rar.4','Vàng','金','金'],['rar.5','Đỏ','紅','红'],['rar.6','Huyền Bí','玄秘','玄秘'],
  ['eq.title','Trang bị','裝備','装备'],['eq.base','Cơ bản','基礎','基础'],['eq.lines','Thức tỉnh {n}/{cap}','覺醒 {n}/{cap}','觉醒 {n}/{cap}'],['eq.empty','Chưa mở dòng nào','尚未開啟','尚未开启'],['eq.locked','（chưa mở）','（未開）','（未开）'],
- ['eq.unequip','Tháo','卸下','卸下'],['eq.replace','Thay thế','更換','更换'],['eq.awake','Thức tỉnh','覺醒','觉醒'],['eq.awake.cost','Cần {lt} Linh Thạch + {n} nguyên liệu hệ {el} ({have} có)','需 {lt} 靈石 + {n} 個{el}系材料（現有 {have}）','需 {lt} 灵石 + {n} 个{el}系材料（现有 {have}）'],['eq.awake.full','Đã mở hết','已全開','已全开'],
+ ['eq.unequip','Tháo','卸下','卸下'],['eq.replace','Thay thế','更換','更换'],['eq.awake','Thức tỉnh','覺醒','觉醒'],['eq.awake.cost','Thức tỉnh tốn {lt} Linh Thạch (đang có {have})','覺醒需 {lt} 靈石（現有 {have}）','觉醒需 {lt} 灵石（现有 {have}）'],['eq.awake.btn','Thức tỉnh\n−{lt} Linh Thạch','覺醒\n−{lt} 靈石','觉醒\n−{lt} 灵石'],['eq.awake.full','Đã mở hết','已全開','已全开'],
  ['eq.none','Không có món phù hợp trong kho','倉庫中沒有合適的','仓库中没有合适的'],['eq.pick','Chọn món để thay','選擇要更換的裝備','选择要更换的装备'],['eq.close','Đóng','關閉','关闭'],
  ['eq.slot.head','Mũ','頭盔','头盔'],['eq.slot.body','Giáp','護甲','护甲'],['eq.slot.boot','Hài','靴子','靴子'],['eq.slot.wp','Vũ khí','武器','武器'],['eq.slot.ring','Nhẫn','戒指','戒指'],['eq.slot.aura','Linh quang','靈光','灵光'],['eq.slot.pet','Pet','寵物','宠物'],['eq.slot.mount','Linh thú','靈獸','灵兽'],
  ['monster.bach_khuyen','Bạch Khuyển','白犬','白犬'],['eq.dog.info','Bạn đồng hành trung thành, luôn theo sau chủ nhân','忠誠的夥伴，始終跟隨主人','忠诚的伙伴，始终跟随主人'],['eq.pet.info','Linh thú đồng hành hệ {el}','同行靈寵，{el}系','同行灵宠，{el}系'],['eq.mount.info','Chạy ×{run} · Bay ×{fly} · hệ {el}','奔跑 ×{run} · 飛行 ×{fly} · {el}系','奔跑 ×{run} · 飞行 ×{fly} · {el}系'],['eq.ride','Cưỡi','騎乘','骑乘'],['eq.unride','Xuống','下騎','下骑'],
@@ -1085,12 +1085,12 @@ function gearStats(){
 function lineText(st,v){const u=TD.STU[st]*v,n=x=>I18N.lang==='vi'?String(x).replace('.',','):String(x);
   return '+'+((st==='spd'||st==='aspd'||st==='crit'||st==='cdmg')?n(u.toFixed(1))+'%':Math.round(u))+' '+T('st.'+st);}
 function awakeCost(id){const r=gearRec(id),o=gearBase(id);if(!r||!o)return null;const k=r.a.length;
-  return{lt:10*(k+1),n:2+k,el:o.el,have:ingHave('@mat:'+o.el+':1'),full:k>=r.cap,lines:k,cap:r.cap};}
+  return{lt:10*(k+1),n:0,el:o.el,have:0,full:k>=r.cap,lines:k,cap:r.cap};   /* chỉ tốn Linh Thạch */}
 function awakenGear(id){
   const r=gearRec(id),c=awakeCost(id);if(!r||!c)return null;
   if(c.full){toast(T('toast.awk.max'));return null;}
-  if((loot.lt|0)<c.lt||c.have<c.n){toast(T('toast.awk.no'));return null;}
-  loot.lt-=c.lt;if(!(loot.lt>0))delete loot.lt;ingTake('@mat:'+c.el+':1',c.n);
+  if((loot.lt|0)<c.lt){toast(T('toast.awk.no'));return null;}
+  loot.lt-=c.lt;if(!(loot.lt>0))delete loot.lt;
   const st=TD.STATS[Math.floor(Math.random()*TD.STATS.length)],v=TD.rollVal();r.a.push([st,v]);
   recalc();lootUI();toast(T('toast.awk',{line:lineText(st,v)}));return [st,v];
 }
@@ -2621,7 +2621,7 @@ function showInfo(){
     '<div class="acts"><button type="button" class="dr" id="biDr"'+(inf.keep?' disabled':'')+'>'+esc(T('act.drop'))+'</button>'+
     '<button type="button" class="mid" id="biDec"'+(inf.dec>0?'':' disabled')+'>'+esc(T('act.dec',{n:inf.dec}))+'</button>'+
     '<button type="button" class="us" id="biUse"'+(inf.use?'':' disabled')+'>'+esc(T(inf.weapon?(inf.equipped?'act.unequip':'act.equip'):inf.mount?(inf.mounted?'act.unride':'act.ride'):inf.recipe?'act.open':'act.use'))+'</button></div>'+
-    (G.gearRec(sel)?'<div class="acts two"><button type="button" class="mid" id="biAw"'+((function(){var c=G.awakeCost(sel);return !c||c.full||(G.loot.lt|0)<c.lt||c.have<c.n;})()?' disabled':'')+'>'+esc(T('eq.awake'))+'</button></div>':'')+(inf.fuse?'<div class="acts two"><button type="button" class="mid" id="biFuse"'+((l[sel]|0)>=G.TD.PFUSE?'':' disabled')+'>'+esc(T('act.fuse',{n:G.TD.PFUSE,name:I18N.itemName(pi.next)}))+'</button></div>':'');
+    (G.gearRec(sel)?'<div class="acts two"><button type="button" class="mid" id="biAw"'+((function(){var c=G.awakeCost(sel);return !c||c.full||(G.loot.lt|0)<c.lt;})()?' disabled':'')+'>'+esc(awLbl(sel))+'</button></div>':'')+(inf.fuse?'<div class="acts two"><button type="button" class="mid" id="biFuse"'+((l[sel]|0)>=G.TD.PFUSE?'':' disabled')+'>'+esc(T('act.fuse',{n:G.TD.PFUSE,name:I18N.itemName(pi.next)}))+'</button></div>':'');
   function after(){lastKeys='';refresh();if(window.TT&&TT.push)TT.push(false,false);}
   $('biDr').onclick=function(){G.dropItem(sg);after();};
   $('biDec').onclick=function(){G.decompose(sg);after();};
@@ -2680,9 +2680,11 @@ function linesHtml(id){
   r.a.forEach(function(x){var ri=G.TD.rarOf(x[1]);h+='<div class="gl" style="'+rarCss(ri)+'">'+esc(G.lineText(x[0],x[1]))+' <small>'+esc(T('rar.'+ri))+' '+x[1]+'</small></div>';});
   for(var i=r.a.length;i<r.cap;i++)h+='<div class="gl lk">? '+esc(T('eq.locked'))+'</div>';
   return h;}
+(function(){var st=document.createElement('style');st.textContent='#eqAw,#biAw{white-space:pre-line!important;line-height:1.15!important;font-size:12px!important;height:auto!important;min-height:38px;padding-top:3px!important;padding-bottom:3px!important}';document.head.appendChild(st);})();
+function awLbl(id){var c=G.awakeCost(id);return c&&!c.full?T('eq.awake.btn',{lt:c.lt}):T('eq.awake');}
 function awkHtml(id){var c=G.awakeCost(id);if(!c)return '';if(c.full)return '<div class="gl lk">'+esc(T('eq.awake.full'))+'</div>';
-  var ok=(G.loot.lt|0)>=c.lt&&c.have>=c.n;
-  return '<div class="gl aw" style="color:'+(ok?'#9fe3b0':'#f0907f')+'">'+esc(T('eq.awake.cost',{lt:c.lt,n:c.n,el:T('el.'+c.el),have:c.have}))+'</div>';}
+  var ok=(G.loot.lt|0)>=c.lt;
+  return '<div class="gl aw" style="color:'+(ok?'#9fe3b0':'#f0907f')+'">'+esc(T('eq.awake.cost',{lt:c.lt,have:G.loot.lt|0}))+'</div>';}
 function petOrb(id){if(id==='bach_khuyen'){var dc=G.dogIcon(3);dc.style.cssText='max-width:22px;max-height:22px;display:block;image-rendering:pixelated';return dc;}var e=elOf((G.TD.MONS.filter(function(m){return m.id===id;})[0]||{}).el||'moc'),d=document.createElement('div');
   d.style.cssText='width:22px;height:22px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff,'+e.c+' 45%,'+e.c+'88);box-shadow:0 0 6px '+e.c;return d;}
 function itemIcon(k,id){if(k==='p')return petOrb(id);var c=G.iconCanvas(id,3);if(c){c.style.cssText='max-width:22px;max-height:22px;display:block;image-rendering:pixelated';}return c;}
@@ -2720,7 +2722,7 @@ function renderEq(){
     if(k==='m'){h+=ebtn('gold','eqRide',T(G.P.mt===cur?'eq.unride':'eq.ride'));}
     else h+=ebtn('red','eqOff',T('eq.unequip'));
     h+=ebtn('blue','eqRep',T('eq.replace'));
-    if(isGearId(cur)){var c=G.awakeCost(cur);h+=ebtn('gold','eqAw',T('eq.awake'),!c||c.full||(G.loot.lt|0)<c.lt||c.have<c.n);}
+    if(isGearId(cur)){var c=G.awakeCost(cur);h+=ebtn('gold','eqAw',awLbl(cur),!c||c.full||(G.loot.lt|0)<c.lt);}
     h+='</div>';
   }else{
     var cand=candidates(k);
@@ -2772,9 +2774,9 @@ function updChTop(){
   b.lastChild.textContent=C.aw?(T('realm.exp')+' '+Math.floor(C.qi)+(mx?'':' / '+nd)):T('hud.asleep');
 }
 function skillRow(){
-  var C=G.cult,h='<div class="row2" style="flex-wrap:wrap"><span class="lb" style="width:100%">'+esc(T('sx.skills'))+'</span>';
-  if(!C.sk.length)return h+'<span class="vv" style="opacity:.7;font-size:12px">'+esc(T('sx.skills.none'))+'</span></div>';
-  C.sk.forEach(function(id){var k=G.TD.bySkill[id];h+='<span class="vv" style="display:inline-flex;align-items:center;gap:4px;margin-right:8px"><span style="width:20px;height:20px;border-radius:4px;background:#10161f;box-shadow:0 0 0 1px #e8bb48;display:inline-block;overflow:hidden" data-sk="'+id+'"></span>'+esc(T('skill.'+id))+'</span>';});
+  var C=G.cult,h='<div style="padding:6px 8px;font-size:13px;color:#cfe3f5"><div style="opacity:.8;margin-bottom:2px">'+esc(T('sx.skills'))+'</div>';
+  if(!C.sk.length)return h+'<div style="opacity:.7;font-size:12px">'+esc(T('sx.skills.none'))+'</div></div>';
+  C.sk.forEach(function(id){var k=G.TD.bySkill[id];h+='<div style="display:flex;align-items:center;gap:6px;width:100%;margin:2px 0"><span style="width:20px;height:20px;border-radius:4px;background:#10161f;box-shadow:0 0 0 1px #e8bb48;display:inline-block;overflow:hidden" data-sk="'+id+'"></span>'+esc(T('skill.'+id))+'</div>';});
   return h+'</div>';}
 function renderStats(){
   var P=G.P,S=G.S,C=G.cult,N=I18N.lang==='vi'?function(x){return String(x).replace('.',',');}:function(x){return String(x);};
@@ -2887,7 +2889,7 @@ pn.innerHTML=
 '<div class="box"><div class="hd"><span id="setIc"></span><h2 data-i18n="set.title"></h2><button id="setX" type="button" data-i18n="bag.close"></button></div>'+
 '<h3 data-i18n="set.lang"></h3><div class="langs" id="setL"></div><div class="note" data-i18n="set.langnote"></div>'+
 '<h3 data-i18n="set.code"></h3><div class="codeRow"><input id="setCode" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false"><button id="setCodeGo" type="button" data-i18n="set.code.go"></button></div><div class="note" id="setCodeMsg"></div>'+
-'<h3 data-i18n="set.account"></h3><div id="setA"></div><div class="note" style="text-align:center;margin-top:14px">v1018.1143</div></div>';
+'<h3 data-i18n="set.account"></h3><div id="setA"></div><div class="note" style="text-align:center;margin-top:14px">v1018.1149</div></div>';
 document.body.appendChild(pn);
 $('setIc').appendChild(gear(2));
 
@@ -3327,7 +3329,7 @@ ov.innerHTML=
 '<div class="err" id="aErr"></div>'+
 '<button class="go" id="aGo" type="submit"></button>'+
 '<div class="note" data-i18n-html="auth.note"></div>'+
-'<div class="note" style="opacity:.7">v1018.1143</div>'+
+'<div class="note" style="opacity:.7">v1018.1149</div>'+
 '</form>';
 document.body.appendChild(ov);
 var acc=document.createElement('div');acc.id='acc';acc.innerHTML='<span id="accN"></span> · <span id="accS"></span>';

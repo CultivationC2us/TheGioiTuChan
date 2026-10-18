@@ -319,7 +319,7 @@ function showInfo(){
     '<div class="acts"><button type="button" class="dr" id="biDr"'+(inf.keep?' disabled':'')+'>'+esc(T('act.drop'))+'</button>'+
     '<button type="button" class="mid" id="biDec"'+(inf.dec>0?'':' disabled')+'>'+esc(T('act.dec',{n:inf.dec}))+'</button>'+
     '<button type="button" class="us" id="biUse"'+(inf.use?'':' disabled')+'>'+esc(T(inf.weapon?(inf.equipped?'act.unequip':'act.equip'):inf.mount?(inf.mounted?'act.unride':'act.ride'):inf.recipe?'act.open':'act.use'))+'</button></div>'+
-    (G.gearRec(sel)?'<div class="acts two"><button type="button" class="mid" id="biAw"'+((function(){var c=G.awakeCost(sel);return !c||c.full||(G.loot.lt|0)<c.lt||c.have<c.n;})()?' disabled':'')+'>'+esc(T('eq.awake'))+'</button></div>':'')+(inf.fuse?'<div class="acts two"><button type="button" class="mid" id="biFuse"'+((l[sel]|0)>=G.TD.PFUSE?'':' disabled')+'>'+esc(T('act.fuse',{n:G.TD.PFUSE,name:I18N.itemName(pi.next)}))+'</button></div>':'');
+    (G.gearRec(sel)?'<div class="acts two"><button type="button" class="mid" id="biAw"'+((function(){var c=G.awakeCost(sel);return !c||c.full||(G.loot.lt|0)<c.lt;})()?' disabled':'')+'>'+esc(awLbl(sel))+'</button></div>':'')+(inf.fuse?'<div class="acts two"><button type="button" class="mid" id="biFuse"'+((l[sel]|0)>=G.TD.PFUSE?'':' disabled')+'>'+esc(T('act.fuse',{n:G.TD.PFUSE,name:I18N.itemName(pi.next)}))+'</button></div>':'');
   function after(){lastKeys='';refresh();if(window.TT&&TT.push)TT.push(false,false);}
   $('biDr').onclick=function(){G.dropItem(sg);after();};
   $('biDec').onclick=function(){G.decompose(sg);after();};
@@ -378,9 +378,11 @@ function linesHtml(id){
   r.a.forEach(function(x){var ri=G.TD.rarOf(x[1]);h+='<div class="gl" style="'+rarCss(ri)+'">'+esc(G.lineText(x[0],x[1]))+' <small>'+esc(T('rar.'+ri))+' '+x[1]+'</small></div>';});
   for(var i=r.a.length;i<r.cap;i++)h+='<div class="gl lk">? '+esc(T('eq.locked'))+'</div>';
   return h;}
+(function(){var st=document.createElement('style');st.textContent='#eqAw,#biAw{white-space:pre-line!important;line-height:1.15!important;font-size:12px!important;height:auto!important;min-height:38px;padding-top:3px!important;padding-bottom:3px!important}';document.head.appendChild(st);})();
+function awLbl(id){var c=G.awakeCost(id);return c&&!c.full?T('eq.awake.btn',{lt:c.lt}):T('eq.awake');}
 function awkHtml(id){var c=G.awakeCost(id);if(!c)return '';if(c.full)return '<div class="gl lk">'+esc(T('eq.awake.full'))+'</div>';
-  var ok=(G.loot.lt|0)>=c.lt&&c.have>=c.n;
-  return '<div class="gl aw" style="color:'+(ok?'#9fe3b0':'#f0907f')+'">'+esc(T('eq.awake.cost',{lt:c.lt,n:c.n,el:T('el.'+c.el),have:c.have}))+'</div>';}
+  var ok=(G.loot.lt|0)>=c.lt;
+  return '<div class="gl aw" style="color:'+(ok?'#9fe3b0':'#f0907f')+'">'+esc(T('eq.awake.cost',{lt:c.lt,have:G.loot.lt|0}))+'</div>';}
 function petOrb(id){if(id==='bach_khuyen'){var dc=G.dogIcon(3);dc.style.cssText='max-width:22px;max-height:22px;display:block;image-rendering:pixelated';return dc;}var e=elOf((G.TD.MONS.filter(function(m){return m.id===id;})[0]||{}).el||'moc'),d=document.createElement('div');
   d.style.cssText='width:22px;height:22px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff,'+e.c+' 45%,'+e.c+'88);box-shadow:0 0 6px '+e.c;return d;}
 function itemIcon(k,id){if(k==='p')return petOrb(id);var c=G.iconCanvas(id,3);if(c){c.style.cssText='max-width:22px;max-height:22px;display:block;image-rendering:pixelated';}return c;}
@@ -418,7 +420,7 @@ function renderEq(){
     if(k==='m'){h+=ebtn('gold','eqRide',T(G.P.mt===cur?'eq.unride':'eq.ride'));}
     else h+=ebtn('red','eqOff',T('eq.unequip'));
     h+=ebtn('blue','eqRep',T('eq.replace'));
-    if(isGearId(cur)){var c=G.awakeCost(cur);h+=ebtn('gold','eqAw',T('eq.awake'),!c||c.full||(G.loot.lt|0)<c.lt||c.have<c.n);}
+    if(isGearId(cur)){var c=G.awakeCost(cur);h+=ebtn('gold','eqAw',awLbl(cur),!c||c.full||(G.loot.lt|0)<c.lt);}
     h+='</div>';
   }else{
     var cand=candidates(k);
@@ -470,9 +472,9 @@ function updChTop(){
   b.lastChild.textContent=C.aw?(T('realm.exp')+' '+Math.floor(C.qi)+(mx?'':' / '+nd)):T('hud.asleep');
 }
 function skillRow(){
-  var C=G.cult,h='<div class="row2" style="flex-wrap:wrap"><span class="lb" style="width:100%">'+esc(T('sx.skills'))+'</span>';
-  if(!C.sk.length)return h+'<span class="vv" style="opacity:.7;font-size:12px">'+esc(T('sx.skills.none'))+'</span></div>';
-  C.sk.forEach(function(id){var k=G.TD.bySkill[id];h+='<span class="vv" style="display:inline-flex;align-items:center;gap:4px;margin-right:8px"><span style="width:20px;height:20px;border-radius:4px;background:#10161f;box-shadow:0 0 0 1px #e8bb48;display:inline-block;overflow:hidden" data-sk="'+id+'"></span>'+esc(T('skill.'+id))+'</span>';});
+  var C=G.cult,h='<div style="padding:6px 8px;font-size:13px;color:#cfe3f5"><div style="opacity:.8;margin-bottom:2px">'+esc(T('sx.skills'))+'</div>';
+  if(!C.sk.length)return h+'<div style="opacity:.7;font-size:12px">'+esc(T('sx.skills.none'))+'</div></div>';
+  C.sk.forEach(function(id){var k=G.TD.bySkill[id];h+='<div style="display:flex;align-items:center;gap:6px;width:100%;margin:2px 0"><span style="width:20px;height:20px;border-radius:4px;background:#10161f;box-shadow:0 0 0 1px #e8bb48;display:inline-block;overflow:hidden" data-sk="'+id+'"></span>'+esc(T('skill.'+id))+'</div>';});
   return h+'</div>';}
 function renderStats(){
   var P=G.P,S=G.S,C=G.cult,N=I18N.lang==='vi'?function(x){return String(x).replace('.',',');}:function(x){return String(x);};

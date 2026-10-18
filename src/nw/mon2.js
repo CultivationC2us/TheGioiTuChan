@@ -123,12 +123,12 @@ function gearStats(){
 function lineText(st,v){const u=TD.STU[st]*v,n=x=>I18N.lang==='vi'?String(x).replace('.',','):String(x);
   return '+'+((st==='spd'||st==='aspd'||st==='crit'||st==='cdmg')?n(u.toFixed(1))+'%':Math.round(u))+' '+T('st.'+st);}
 function awakeCost(id){const r=gearRec(id),o=gearBase(id);if(!r||!o)return null;const k=r.a.length;
-  return{lt:10*(k+1),n:2+k,el:o.el,have:ingHave('@mat:'+o.el+':1'),full:k>=r.cap,lines:k,cap:r.cap};}
+  return{lt:10*(k+1),n:0,el:o.el,have:0,full:k>=r.cap,lines:k,cap:r.cap};   /* chỉ tốn Linh Thạch */}
 function awakenGear(id){
   const r=gearRec(id),c=awakeCost(id);if(!r||!c)return null;
   if(c.full){toast(T('toast.awk.max'));return null;}
-  if((loot.lt|0)<c.lt||c.have<c.n){toast(T('toast.awk.no'));return null;}
-  loot.lt-=c.lt;if(!(loot.lt>0))delete loot.lt;ingTake('@mat:'+c.el+':1',c.n);
+  if((loot.lt|0)<c.lt){toast(T('toast.awk.no'));return null;}
+  loot.lt-=c.lt;if(!(loot.lt>0))delete loot.lt;
   const st=TD.STATS[Math.floor(Math.random()*TD.STATS.length)],v=TD.rollVal();r.a.push([st,v]);
   recalc();lootUI();toast(T('toast.awk',{line:lineText(st,v)}));return [st,v];
 }
