@@ -241,7 +241,7 @@ var S=[ /* chuỗi giao diện mới: [vi, zh-Hant, zh-Hans] */
  ['hud.map','Bản đồ','地圖','地图'],
  ['hud.quest','Nhiệm vụ','任務','任务'],
  ['hud.rank','Xếp hạng','排行','排行'],['rank.title','Bảng Xếp Hạng','排行榜','排行榜'],['rank.t0','Tổng','總榜','总榜'],['rank.t1','Tu vi','修為','修为'],['rank.t2','Giết quái','斬妖','斩妖'],
- ['rank.me','Bạn','你','你'],['rank.npc','NPC','NPC','NPC'],['rank.off','Bảng xếp hạng online chưa bật — đang hiện bản trên máy này (bạn và NPC).','線上排行榜尚未啟用，目前顯示本機榜（你與 NPC）。','在线排行榜尚未启用，目前显示本机榜（你与 NPC）。'],
+ ['rank.me','Bạn','你','你'],['rank.npc','NPC','NPC','NPC'],['rank.off','Chưa kết nối được bảng xếp hạng online — đang hiện bản trên máy này.','尚未連上線上排行榜，目前顯示本機榜。','尚未连上在线排行榜，目前显示本机榜。'],
  ['rank.load','Đang tải…','載入中…','加载中…'],['rank.hint','ID để tra lịch sử · điểm = tu vi + 10 × số quái','ID 用於查詢紀錄 · 分數 = 修為 + 10 × 擊殺','ID 用于查询记录 · 分数 = 修为 + 10 × 击杀'],
  ['rank.rl','Tầng {n}','第{n}層','第{n}层'],['rank.k','{n} quái','{n} 擊殺','{n} 击杀'],['rank.empty','Chưa có ai','暫無資料','暂无数据'],
  ['hud.sect','Tông Môn','宗門','宗门'],

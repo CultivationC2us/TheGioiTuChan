@@ -495,7 +495,7 @@ var S=[ /* chuỗi giao diện mới: [vi, zh-Hant, zh-Hans] */
  ['hud.map','Bản đồ','地圖','地图'],
  ['hud.quest','Nhiệm vụ','任務','任务'],
  ['hud.rank','Xếp hạng','排行','排行'],['rank.title','Bảng Xếp Hạng','排行榜','排行榜'],['rank.t0','Tổng','總榜','总榜'],['rank.t1','Tu vi','修為','修为'],['rank.t2','Giết quái','斬妖','斩妖'],
- ['rank.me','Bạn','你','你'],['rank.npc','NPC','NPC','NPC'],['rank.off','Bảng xếp hạng online chưa bật — đang hiện bản trên máy này (bạn và NPC).','線上排行榜尚未啟用，目前顯示本機榜（你與 NPC）。','在线排行榜尚未启用，目前显示本机榜（你与 NPC）。'],
+ ['rank.me','Bạn','你','你'],['rank.npc','NPC','NPC','NPC'],['rank.off','Chưa kết nối được bảng xếp hạng online — đang hiện bản trên máy này.','尚未連上線上排行榜，目前顯示本機榜。','尚未连上在线排行榜，目前显示本机榜。'],
  ['rank.load','Đang tải…','載入中…','加载中…'],['rank.hint','ID để tra lịch sử · điểm = tu vi + 10 × số quái','ID 用於查詢紀錄 · 分數 = 修為 + 10 × 擊殺','ID 用于查询记录 · 分数 = 修为 + 10 × 击杀'],
  ['rank.rl','Tầng {n}','第{n}層','第{n}层'],['rank.k','{n} quái','{n} 擊殺','{n} 击杀'],['rank.empty','Chưa có ai','暫無資料','暂无数据'],
  ['hud.sect','Tông Môn','宗門','宗门'],
@@ -1816,7 +1816,7 @@ function drawNpc(n,t){
 }
 /* dữ liệu cho bảng xếp hạng: NPC là người chơi có tiến trình thật (đang chạy trên máy này) */
 function npcTotalQi(n){let s=0;for(let l=1;l<n.rl;l++)s+=npcNeed(l);return Math.round(s+n.qi);}
-function npcRank(){return NPCS.map(n=>({name:NPC_NAMES[n.i][npcLang()],pid:'NPC-0'+(n.i+1),realm:n.rl,qi_total:npcTotalQi(n),kills:n.kills|0,npc:1}));}
+function npcRank(){return NPCS.map(n=>({name:NPC_NAMES[n.i][npcLang()],pid:'TC-'+['7A3F9C','B21E58','4D90A7','E6C413','19F8B2','C57D06'][n.i%6],realm:n.rl,qi_total:npcTotalQi(n),kills:n.kills|0,npc:1}));}
 npcLoad();
 
 
@@ -2250,7 +2250,7 @@ function renderRank(rows,off){
   all.sort(function(a,b){return rkVal(b,rkTab)-rkVal(a,rkTab)||b.realm-a.realm;});
   var h=off?'<div class="msg">'+esc(T('rank.off'))+'</div>':'';
   all.slice(0,100).forEach(function(r,i){
-    h+='<div class="rw r'+(i+1)+(r.me?' me':'')+(r.npc?' np':'')+'"><div class="rn">'+(i+1)+'</div><div class="nm">'+esc(r.name)+(r.me?'<span class="tg" style="color:#ffd54a">'+esc(T('rank.me'))+'</span>':'')+(r.npc?'<span class="tg" style="color:#7be0c6">'+esc(T('rank.npc'))+'</span>':'')+'<small>ID '+esc(r.pid||'')+'</small></div>'+
+    h+='<div class="rw r'+(i+1)+(r.me?' me':'')+'"><div class="rn">'+(i+1)+'</div><div class="nm">'+esc(r.name)+(r.me?'<span class="tg" style="color:#ffd54a">'+esc(T('rank.me'))+'</span>':'')+'<small>ID '+esc(r.pid||'')+'</small></div>'+
       '<div class="vl">'+rkVal(r,rkTab)+'<small>'+esc(T('rank.rl',{n:r.realm})+' · '+T('rank.k',{n:r.kills}))+'</small></div></div>';});
   L.innerHTML=h||'<div class="msg">'+esc(T('rank.empty'))+'</div>';
 }
@@ -2625,7 +2625,7 @@ pn.innerHTML=
 '<div class="box"><div class="hd"><span id="setIc"></span><h2 data-i18n="set.title"></h2><button id="setX" type="button" data-i18n="bag.close"></button></div>'+
 '<h3 data-i18n="set.lang"></h3><div class="langs" id="setL"></div><div class="note" data-i18n="set.langnote"></div>'+
 '<h3 data-i18n="set.code"></h3><div class="codeRow"><input id="setCode" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false"><button id="setCodeGo" type="button" data-i18n="set.code.go"></button></div><div class="note" id="setCodeMsg"></div>'+
-'<h3 data-i18n="set.account"></h3><div id="setA"></div><div class="note" style="text-align:center;margin-top:14px">v1018.0503</div></div>';
+'<h3 data-i18n="set.account"></h3><div id="setA"></div><div class="note" style="text-align:center;margin-top:14px">v1018.0943</div></div>';
 document.body.appendChild(pn);
 $('setIc').appendChild(gear(2));
 
@@ -3022,7 +3022,7 @@ ov.innerHTML=
 '<div class="err" id="aErr"></div>'+
 '<button class="go" id="aGo" type="submit"></button>'+
 '<div class="note" data-i18n-html="auth.note"></div>'+
-'<div class="note" style="opacity:.7">v1018.0503</div>'+
+'<div class="note" style="opacity:.7">v1018.0943</div>'+
 '</form>';
 document.body.appendChild(ov);
 var acc=document.createElement('div');acc.id='acc';acc.innerHTML='<span id="accN"></span> · <span id="accS"></span>';

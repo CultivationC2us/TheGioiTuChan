@@ -126,5 +126,5 @@ function drawNpc(n,t){
 }
 /* dữ liệu cho bảng xếp hạng: NPC là người chơi có tiến trình thật (đang chạy trên máy này) */
 function npcTotalQi(n){let s=0;for(let l=1;l<n.rl;l++)s+=npcNeed(l);return Math.round(s+n.qi);}
-function npcRank(){return NPCS.map(n=>({name:NPC_NAMES[n.i][npcLang()],pid:'NPC-0'+(n.i+1),realm:n.rl,qi_total:npcTotalQi(n),kills:n.kills|0,npc:1}));}
+function npcRank(){return NPCS.map(n=>({name:NPC_NAMES[n.i][npcLang()],pid:'TC-'+['7A3F9C','B21E58','4D90A7','E6C413','19F8B2','C57D06'][n.i%6],realm:n.rl,qi_total:npcTotalQi(n),kills:n.kills|0,npc:1}));}
 npcLoad();
