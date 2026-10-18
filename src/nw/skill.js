@@ -5,11 +5,11 @@
    Sprite: lib/extract_skill.py → atlas 'sk' (SKM, tên '<hệ>_<số>').
    ============================================================ */
 const SKCFG={
-  hoa:{type:'proj',fly:[1,2,3,4,5,6,7],burst:[8,9,10],bms:170,sc:1.76,fsc:1.4,r:92,hits:[0],hold:200,yoff:0},
-  thuy:{type:'proj',fly:[1,2,3,4],burst:[5,6,7,8,9,10,11],bms:95,sc:1.76,fsc:1.4,r:96,hits:[120],hold:200,yoff:0},
-  tho:{type:'proj',fly:[3,4,5,6],burst:[7,8,9],bms:190,sc:1.76,fsc:1.4,r:92,hits:[150],hold:200,yoff:-32},
-  moc:{type:'proj',fly:[1,2,3,4,5],burst:[6,7,8,9,10,11],bms:130,sc:1.76,fsc:1.4,r:96,hits:[0,430],hold:250,yoff:0},
-  kim:{type:'zone',burst:[1,2,3,4,5,6,7,8,9,10,11,12,13],bms:85,sc:2.04,r:116,hits:[840],hold:250,yoff:0}
+  hoa:{type:'proj',fly:[1,2,3,4,5,6,7],burst:[8,9,10],bms:170,sc:1.232,fsc:.98,r:64,hits:[0],hold:200,yoff:0},
+  thuy:{type:'proj',fly:[1,2,3,4],burst:[5,6,7,8,9,10,11],bms:95,sc:1.232,fsc:.98,r:67,hits:[120],hold:200,yoff:0},
+  tho:{type:'proj',fly:[3,4,5,6],burst:[7,8,9],bms:190,sc:1.232,fsc:.98,r:64,hits:[150],hold:200,yoff:-22},
+  moc:{type:'proj',fly:[1,2,3,4,5],burst:[6,7,8,9,10,11],bms:130,sc:1.232,fsc:.98,r:67,hits:[0,430],hold:250,yoff:0},
+  kim:{type:'zone',burst:[1,2,3,4,5,6,7,8,9,10,11,12,13],bms:85,sc:1.428,r:81,hits:[840],hold:250,yoff:0}
 };
 const skCd={},skFx=[];
 cult.sk=[];P.mp=60;P.maxMp=60;
@@ -67,6 +67,7 @@ function skDraw(nm,x,y,s,al,rot,sg){
 }
 function drawSkFx(t){
   if(!IMG.sk||!IMG.sk.complete)return;
+  drawSkAim();
   ctx.save();ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';
   for(const f of skFx){const cfg=SKCFG[f.id];
     if(f.k==='proj'&&t<f.t0+f.fl){const k0=(t-f.t0)/f.fl,k=Math.pow(k0,1.3),x=f.ox+(f.tx-f.ox)*k,y=f.oy+(f.ty-10-f.oy)*k,dx=f.tx-f.ox,dy=f.ty-10-f.oy,sg=dx<0?-1:1,ang=Math.atan2(dy,Math.abs(dx)||1);
@@ -80,32 +81,77 @@ function drawSkFx(t){
     if(i<N-1)skDraw(f.id+'_'+cfg.burst[i+1],f.x,f.y+cfg.yoff,s,al*fr);}
   ctx.restore();
 }
-/* ----- nút kỹ năng ----- */
+/* ----- nút kỹ năng: xếp vòng cung quanh nút ĐÁNH (trái + trên) như game MOBA; kéo để NGẮM HƯỚNG, chạm nhanh = tự nhắm ----- */
+const SK_AR=124,SK_SZ=46,SK_RANGE={proj:290,zone:200},SK_MAXPX=64,SK_DEAD=14;   /* bán kính cung · cỡ nút · tầm ngắm tối đa (px thế giới) · kéo tối đa (px màn hình) */
+const SKAIM={on:false,id:null,dx:0,dy:0,len:0,moved:false,pid:null,ox:0,oy:0};
 const skBar=document.createElement('div');skBar.id='skBar';
 {const st=document.createElement('style');st.textContent=
- '#skBar{position:fixed;z-index:40;right:calc(env(safe-area-inset-right,0px) + 16px);bottom:calc(env(safe-area-inset-bottom,0px) + 196px);display:none;flex-direction:column-reverse;flex-wrap:wrap-reverse;gap:7px;max-height:calc(100vh - 330px);pointer-events:none}'+
- '#skBar .skb{position:relative;width:46px;height:46px;border-radius:9px;pointer-events:auto;touch-action:none;-webkit-tap-highlight-color:transparent;box-shadow:0 0 0 2px #e8bb48,0 0 0 3px #1a1206,0 3px 6px #000b;background:#10161f;overflow:hidden}'+
- '#skBar .skb canvas{position:absolute;inset:0;width:100%;height:100%;image-rendering:auto}'+
- '#skBar .skb i{position:absolute;inset:0;background:#000b;transform-origin:bottom;transform:scaleY(0)}'+
- '#skBar .skb b{position:absolute;left:0;right:0;bottom:0;text-align:center;font-size:9px;line-height:11px;font-weight:900;color:#d8c8ff;background:#1a0f3acc;text-shadow:0 1px 1px #000}'+
- '#skBar .skb.no b{color:#ff8a8a}#skBar .skb:active{transform:scale(.93)}'+
- '#skBar .skb u{position:absolute;left:1px;top:0;font-size:9px;font-weight:900;color:#fff;text-decoration:none;text-shadow:0 0 2px #000,0 0 2px #000}';
+ '#skBar{position:fixed;z-index:40;right:0;bottom:0;width:0;height:0;display:none;pointer-events:none}'+
+ '#skBar .skb{position:absolute;width:'+SK_SZ+'px;height:'+SK_SZ+'px;border-radius:50%;pointer-events:auto;touch-action:none;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none;box-shadow:0 0 0 2px #e8bb48,0 0 0 3px #1a1206,0 3px 6px #000b;background:#10161f;overflow:hidden}'+
+ '#skBar .skb canvas{position:absolute;inset:0;width:100%;height:100%;image-rendering:auto;pointer-events:none}'+
+ '#skBar .skb i{position:absolute;inset:0;background:#000b;transform-origin:bottom;transform:scaleY(0);pointer-events:none}'+
+ '#skBar .skb b{position:absolute;left:0;right:0;bottom:0;text-align:center;font-size:9px;line-height:11px;font-weight:900;color:#d8c8ff;background:#1a0f3acc;text-shadow:0 1px 1px #000;pointer-events:none}'+
+ '#skBar .skb.no b{color:#ff8a8a}#skBar .skb.aim{box-shadow:0 0 0 3px #fff,0 0 14px 3px #ffd54a;transform:scale(1.12)}'+
+ '#skBar .skb u{position:absolute;left:3px;top:1px;font-size:9px;font-weight:900;color:#fff;text-decoration:none;text-shadow:0 0 2px #000,0 0 2px #000;pointer-events:none}'+
+ /* nút cưỡi/bay/lướt dời lên cột bên phải để nhường chỗ cho vòng cung kỹ năng */
+ 'body #mtRide{right:calc(env(safe-area-inset-right,0px) + 14px)!important;bottom:calc(env(safe-area-inset-bottom,0px) + 238px)!important}'+
+ 'body #mtFly{right:calc(env(safe-area-inset-right,0px) + 14px)!important;bottom:calc(env(safe-area-inset-bottom,0px) + 298px)!important}'+
+ 'body #mtDash{right:calc(env(safe-area-inset-right,0px) + 14px)!important;bottom:calc(env(safe-area-inset-bottom,0px) + 358px)!important}';
  document.head.appendChild(st);document.body.appendChild(skBar);}
 let skSig='';
+function skSlot(n){   /* tâm nút n (0..4) trên cung: φ=0 là ngay bên trái nút ĐÁNH, φ=90 là ngay phía trên */
+  const phi=n*(Math.PI/2)/4,cxr=22+42,cyb=28+42;
+  return{r:cxr+SK_AR*Math.cos(phi),b:cyb+SK_AR*Math.sin(phi)};}
 function skBuild(){
   const sig=cult.sk.join(',')+'|'+(IMG.gl&&IMG.gl.complete?1:0);if(sig===skSig)return;skSig=sig;skBar.innerHTML='';
-  cult.sk.forEach((id,n)=>{const sk=TD.bySkill[id],fr=GLM['sk_'+id];if(!sk||!fr)return;
+  cult.sk.forEach((id,n)=>{const sk=TD.bySkill[id],fr=GLM['sk_'+id];if(!sk||!fr||n>4)return;
     const b=document.createElement('div');b.className='skb';b.dataset.id=id;b.setAttribute('aria-label',I18N.t('skill.'+id));
+    const sl=skSlot(n);b.style.right='calc(env(safe-area-inset-right,0px) + '+(sl.r-SK_SZ/2)+'px)';b.style.bottom='calc(env(safe-area-inset-bottom,0px) + '+(sl.b-SK_SZ/2)+'px)';
     const c=document.createElement('canvas');c.width=64;c.height=64;const x=c.getContext('2d');x.imageSmoothingEnabled=true;x.drawImage(IMG.gl,fr[0],fr[1],fr[2],fr[3],0,0,64,64);
     b.appendChild(c);b.insertAdjacentHTML('beforeend','<i></i><u>'+(n+1)+'</u><b>'+sk.mp+'</b>');
-    b.addEventListener('pointerdown',e=>{castSkill(id);e.preventDefault();e.stopPropagation();});
+    b.addEventListener('pointerdown',e=>skDown(e,id,b));b.addEventListener('pointermove',e=>skMove(e,b));
+    b.addEventListener('pointerup',e=>skUp(e,id,b,false));b.addEventListener('pointercancel',e=>skUp(e,id,b,true));
     skBar.appendChild(b);});
+}
+function skDown(e,id,b){
+  e.preventDefault();e.stopPropagation();
+  const sk=TD.bySkill[id];if(!sk)return;
+  if(sk.passive)return;                                  /* kỹ năng bị động: không ngắm, không bấm */
+  const r=b.getBoundingClientRect();
+  Object.assign(SKAIM,{on:true,id,dx:0,dy:0,len:0,moved:false,pid:e.pointerId,ox:r.left+r.width/2,oy:r.top+r.height/2});
+  try{b.setPointerCapture(e.pointerId);}catch(_){}
+  b.classList.add('aim');
+}
+function skMove(e,b){
+  if(!SKAIM.on||e.pointerId!==SKAIM.pid)return;
+  const dx=e.clientX-SKAIM.ox,dy=e.clientY-SKAIM.oy,l=Math.hypot(dx,dy);
+  if(l>SK_DEAD)SKAIM.moved=true;
+  SKAIM.len=Math.min(l,SK_MAXPX);if(l>1){SKAIM.dx=dx/l;SKAIM.dy=dy/l;}
+}
+function skUp(e,id,b,cancel){
+  if(!SKAIM.on||e.pointerId!==SKAIM.pid)return;
+  const was={...SKAIM};SKAIM.on=false;b.classList.remove('aim');try{b.releasePointerCapture(e.pointerId);}catch(_){}
+  if(cancel)return;
+  const dx=e.clientX-was.ox,dy=e.clientY-was.oy,l=Math.hypot(dx,dy);
+  if(!was.moved){castSkill(id);return;}                  /* chạm nhanh: tự nhắm mục tiêu gần nhất (không có thì bắn về phía đang nhìn) */
+  if(l<SK_DEAD)return;                                   /* kéo ra rồi kéo về giữa nút: huỷ */
+  const cfg=SKCFG[id],R=SK_RANGE[cfg.type]||250,d=Math.max(70,Math.min(1,l/SK_MAXPX)*R);
+  castSkill(id,false,{x:P.x+dx/l*d,y:P.y+dy/l*d+4});    /* bắn theo hướng đã ngắm, không tự bám mục tiêu */
 }
 function skBtnTick(t){
   const on=document.getElementById('bagBtn')&&document.getElementById('bagBtn').style.display!=='none';
-  skBuild();skBar.style.display=(on&&cult.sk.length)?'flex':'none';
+  skBuild();skBar.style.display=(on&&cult.sk.length)?'block':'none';
   for(const b of skBar.children){const id=b.dataset.id,sk=TD.bySkill[id],rem=Math.max(0,(skCd[id]|0)-t);
     b.firstElementChild.nextElementSibling.style.transform='scaleY('+Math.min(1,rem/sk.cd)+')';b.classList.toggle('no',P.mp<sk.mp);}
+}
+/* vạch ngắm: đường từ nhân vật tới điểm sẽ trúng + vòng tầm nổ */
+function drawSkAim(){
+  if(!SKAIM.on||!SKAIM.moved||SKAIM.len<SK_DEAD*.5)return;
+  const cfg=SKCFG[SKAIM.id];if(!cfg)return;const R=SK_RANGE[cfg.type]||250,d=Math.max(70,Math.min(1,SKAIM.len/SK_MAXPX)*R);
+  const x0=P.x,y0=P.y-8,x1=P.x+SKAIM.dx*d,y1=P.y+SKAIM.dy*d+4,col={hoa:'255,120,60',thuy:'90,190,255',tho:'210,160,80',moc:'110,220,110',kim:'255,225,110'}[SKAIM.id]||'255,255,255';
+  ctx.save();ctx.lineCap='round';ctx.setLineDash([6,5]);ctx.strokeStyle='rgba('+col+',.85)';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(x0,y0);ctx.lineTo(x1,y1);ctx.stroke();ctx.setLineDash([]);
+  const a=Math.atan2(y1-y0,x1-x0);ctx.fillStyle='rgba('+col+',.9)';ctx.beginPath();ctx.moveTo(x1+Math.cos(a)*7,y1+Math.sin(a)*7);ctx.lineTo(x1+Math.cos(a+2.5)*6,y1+Math.sin(a+2.5)*6);ctx.lineTo(x1+Math.cos(a-2.5)*6,y1+Math.sin(a-2.5)*6);ctx.fill();
+  ctx.fillStyle='rgba('+col+',.16)';ctx.strokeStyle='rgba('+col+',.7)';ctx.lineWidth=1.5;ctx.beginPath();ctx.ellipse(x1,y1,cfg.r,cfg.r/1.4,0,0,7);ctx.fill();ctx.stroke();ctx.restore();
 }
 addEventListener('keydown',e=>{if(e.target&&e.target.tagName==='INPUT')return;const n=parseInt(e.key,10);if(n>=1&&n<=5&&cult.sk[n-1])castSkill(cult.sk[n-1]);});
 function learnBook(n){

@@ -19,7 +19,7 @@ with sync_playwright() as p:
     for e in ['hoa','thuy','tho','moc','kim']: pg.evaluate(f"G.useItem('sk.{e}')")
     ok(pg.evaluate("G.cult.sk.length")==5 and not pg.evaluate("G.loot['sk.hoa']"),'học sách → học được, sách mất')
     pg.wait_for_timeout(300)
-    ok(pg.evaluate("document.getElementById('skBar').children.length")==5 and pg.evaluate("getComputedStyle(document.getElementById('skBar')).display")=='flex','5 nút công pháp hiện')
+    ok(pg.evaluate("document.getElementById('skBar').children.length")==5 and pg.evaluate("getComputedStyle(document.getElementById('skBar')).display")=='block','5 nút công pháp hiện')
     ok(pg.evaluate("G.saveEq().sk.length")==5,'lưu công pháp vào save')
     # sát thương ≥ 2× đòn thường tối đa
     pg.evaluate("Math.random=()=>0.5")
