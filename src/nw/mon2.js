@@ -466,8 +466,8 @@ function drawPet(o,t){
     if(o.st==='claw')nm='claw_'+(1+Math.min(2,Math.floor((t-o.t0)/100)));
     else if(o.st==='orb')nm='orb_'+(1+Math.min(1,Math.floor((t-o.t0)/180)));
     else if(o.sleep)nm='sleep_'+(1+Math.floor(t/700)%2);
-    else if(o.run)nm=o.fast?'run_'+(1+Math.floor(t/70)%7):'walk_'+(1+Math.floor(t/90)%8);
-    else nm='idle_'+(1+Math.floor(t/600)%2);
+    else if(o.run)nm='run_'+(1+Math.floor(t/(o.fast?70:105))%7);   /* đi chậm cũng dùng chu kỳ chân của dáng chạy (khung đi bộ gốc chân gần như đứng yên) */
+    else nm=Math.floor(t/800)%2?'walk_5':'walk_1';   /* đứng: dáng đứng cùng cỡ với lúc chạy */
     const f=CATM[nm];if(!f||!IMG.cat.complete)return;const s=.55;ctx.save();ctx.translate(o.x,o.y+(o.run?bob*.5:0));if(o.f<0)ctx.scale(-1,1);
     ctx.drawImage(IMG.cat,f[0],f[1],f[2],f[3],f[4]*s,f[5]*s,f[2]*s,f[3]*s);ctx.restore();return;}
   const d=MD[o.id];if(!d)return;spr1(MIMG[o.id],MMETA[o.id],d.idle[Math.floor(t/130)%d.idle.length],o.x,o.y+bob+(d.fly?-5:0),d.sc*.34,o.f);
