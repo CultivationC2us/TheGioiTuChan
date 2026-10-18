@@ -81,7 +81,7 @@ function drawKie(t){
 
 /* Bóng dưới chân của người đã Trúc Cơ: vòng pháp trận lam (ảnh người dùng) thay cho bóng đen, mờ nhẹ. Trả true nếu đã vẽ. */
 function auraShadow(x,y,rx,al){
-  if(!((cult.tc|0)>0))return false;
+  if(NPD||!((cult.tc|0)>0))return false;   /* NPD: đang vẽ NPC cưỡi thú (dùng chung hàm vẽ với người chơi) → NPC không có vòng lam */
   const A=IMG.kie,m=KIEM.aura&&KIEM.aura[0];if(!A||!A.complete||!m)return false;
   const w=rx*2*2.8,s=w/m[2],h=m[3]*s;
   ctx.save();ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';

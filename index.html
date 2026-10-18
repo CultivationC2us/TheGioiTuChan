@@ -2411,7 +2411,7 @@ function drawKie(t){
 
 /* Bóng dưới chân của người đã Trúc Cơ: vòng pháp trận lam (ảnh người dùng) thay cho bóng đen, mờ nhẹ. Trả true nếu đã vẽ. */
 function auraShadow(x,y,rx,al){
-  if(!((cult.tc|0)>0))return false;
+  if(NPD||!((cult.tc|0)>0))return false;   /* NPD: đang vẽ NPC cưỡi thú (dùng chung hàm vẽ với người chơi) → NPC không có vòng lam */
   const A=IMG.kie,m=KIEM.aura&&KIEM.aura[0];if(!A||!A.complete||!m)return false;
   const w=rx*2*2.8,s=w/m[2],h=m[3]*s;
   ctx.save();ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';
@@ -3272,7 +3272,7 @@ pn.innerHTML=
 '<div class="box"><div class="hd"><span id="setIc"></span><h2 data-i18n="set.title"></h2><button id="setX" type="button" data-i18n="bag.close"></button></div>'+
 '<h3 data-i18n="set.lang"></h3><div class="langs" id="setL"></div><div class="note" data-i18n="set.langnote"></div>'+
 '<h3 data-i18n="set.code"></h3><div class="codeRow"><input id="setCode" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false"><button id="setCodeGo" type="button" data-i18n="set.code.go"></button></div><div class="note" id="setCodeMsg"></div>'+
-'<h3 data-i18n="set.account"></h3><div id="setA"></div><div class="note" style="text-align:center;margin-top:14px">v1019.0647</div></div>';
+'<h3 data-i18n="set.account"></h3><div id="setA"></div><div class="note" style="text-align:center;margin-top:14px">v1019.0649</div></div>';
 document.body.appendChild(pn);
 $('setIc').appendChild(gear(2));
 
@@ -3713,7 +3713,7 @@ ov.innerHTML=
 '<div class="err" id="aErr"></div>'+
 '<button class="go" id="aGo" type="submit"></button>'+
 '<div class="note" data-i18n-html="auth.note"></div>'+
-'<div class="note" style="opacity:.7">v1019.0647</div>'+
+'<div class="note" style="opacity:.7">v1019.0649</div>'+
 '</form>';
 document.body.appendChild(ov);
 var acc=document.createElement('div');acc.id='acc';acc.innerHTML='<span id="accN"></span> · <span id="accS"></span>';
