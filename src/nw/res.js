@@ -51,13 +51,16 @@ var RES=[ /* kind: tree|herb|ore (quyết định nơi mọc), sc: tỉ lệ v�
  {id:'hoang_tho_thach', el:'tho', tier:2,kind:'ore',sc:1.2}
 ];
 var HITS={1:3,2:4,3:5}, PTS={1:5,2:15,3:40}, LS={1:1,2:3,3:8}, NEED=100;
-var MISC={'Thủy Long Châu':{dec:20},'lt':{dec:0},'dp.tukhi':{dec:0,keep:1},'cg.vukhi':{dec:0,keep:1},'dan.tukhi':{dec:10}};
-var BAG={cap:120,sz:{'dp.tukhi':2,'cg.vukhi':2,'dan.tukhi':1}};   /* dung tích túi (ô); sz: kích thước riêng từng vật phẩm */
+var MISC={'Thủy Long Châu':{dec:20},'lt':{dec:0},'dp.tukhi':{dec:0,keep:1},'cg.vukhi':{dec:0,keep:1},'dan.tukhi':{dec:10},'dp.trucco':{dec:0,keep:1},'dan.trucco':{dec:30}};
+var BAG={cap:120,sz:{'dp.tukhi':2,'cg.vukhi':2,'dan.tukhi':1,'dp.trucco':2,'dan.trucco':1}};   /* dung tích túi (ô); sz: kích thước riêng từng vật phẩm */
 var BASE={def:2};                                       /* phòng thủ gốc (cố định trừ thẳng vào sát thương nhận, nhân theo cảnh giới) */
 /* ---- TU VI (Luyện Khí 1-10) ---- */
 var REALM={max:10,base:100,mul:1.2,rate:.2};  /* tu vi cần để qua tầng n = base*2^(n-1); mỗi tầng nhân ×mul máu & sát thương; tu luyện thường rate/giây */
-var DAN={'dan.tukhi':{qi:100}};                          /* đan -> tu vi cộng thêm */
-var RECIPES={'dp.tukhi':{verb:'alc',list:[{out:'dan.tukhi',ing:[['@herb1',3],['lt',1]]}]}};   /* '@herb1' = thảo dược bậc 1 bất kỳ */
+var DAN={'dan.tukhi':{qi:100},'dan.trucco':{qi:0,hp:50}};                          /* đan -> tu vi cộng thêm */
+var RECIPES={'dp.tukhi':{verb:'alc',list:[{out:'dan.tukhi',ing:[['@herb1',3],['lt',1]]}]},'dp.trucco':{verb:'alc',list:[{out:'dan.trucco',ing:[['@herb2',5],['@herb3',2],['lt',30]]}]}};
+/* TRÚC CƠ: cần ăn đủ need viên Trúc Cơ Đan (mỗi viên +hpPer HP tối đa vĩnh viễn) → độ lôi kiếp dur giây, strikes đạo sét, tổng total HP sát thương thật.
+   Thành công p (lần đầu pFirst). Sau đột phá: sức mạnh ×mul (sơ kỳ), mỗi tầng sau ×tier; ngũ hành reset 0, chỉ số giữ. qi = tu vi cần sơ→trung, trung→hậu. */
+var TC={need:5,hpPer:50,dur:120,strikes:40,total:1500,pFirst:.01,p:.5,mul:1.6,tier:1.4,qi:[40000,80000]};   /* '@herb1' = thảo dược bậc 1 bất kỳ */
 /* RECIPES.cg.vukhi gán sau khi có FORGE */
 var AFF=[['moc','thuy'],['hoa','tho','kim'],['kim','tho','hoa'],null,null,null,['hoa','tho','kim'],['thuy','moc'],['kim','thuy'],['moc','thuy']];   /* hệ ưa thích theo địa hình: cỏ(0) · cát(1) · đá(2) */  /* đan phương: không mất khi dùng */
 var WATK={1:4,2:9,3:16}, WLS={1:8,2:25,3:60};   /* sát thương cộng thêm và Linh Thạch khi rã, theo phẩm */
@@ -76,7 +79,7 @@ var WEAPONS=[ /* vũ khí: id, ô ảnh trong it/atlas, hệ, phẩm (1-3), tên
  {id:'w.tu_lam',ico:'w11',el:'thuy',tier:2,atk:WATK[2],n:['Tử Lam Trượng','紫藍杖','紫蓝杖']},
  {id:'w.thuy_ngoc',ico:'w12',el:'moc',tier:3,atk:WATK[3],n:['Thúy Ngọc Trượng','翠玉杖','翠玉杖']}
 ];
-var byWeapon={},ICO={'dp.tukhi':'s7','cg.vukhi':'s2','dan.tukhi':'o4'};
+var byWeapon={},ICO={'dp.tukhi':'s7','cg.vukhi':'s2','dan.tukhi':'o4','dp.trucco':'s7','dan.trucco':'o5'};
 WEAPONS.forEach(function(w){byWeapon[w.id]=w;ICO[w.id]=w.ico;MISC[w.id]={dec:WLS[w.tier]};BAG.sz[w.id]=3;});
 /* thú cưỡi: spd = nhân tốc độ khi chạy, fspd = khi bay (linh thú bay được, phàm thú chỉ chạy) */
 var MOUNTS=[{id:'mt.tuyet_van',el:'thuy',fly:true,spd:1.7,fspd:2.6,n:['Tuyết Vân Kỳ Lân','雪雲麒麟','雪云麒麟']}];
@@ -288,6 +291,32 @@ var S=[ /* chuỗi giao diện mới: [vi, zh-Hant, zh-Hans] */
  ['hud.asleep','Chưa thức tỉnh Linh Căn','尚未覺醒靈根','尚未觉醒灵根'],
  ['hud.qi','Tu vi {a} / {b}','修為 {a} / {b}','修为 {a} / {b}'],
  ['hud.qi.max','Tu vi {n} · viên mãn','修為 {n} · 圓滿','修为 {n} · 圆满'],
+ ['realm.tc1','Trúc Cơ sơ kỳ','築基初期','筑基初期'],['realm.tc2','Trúc Cơ trung kỳ','築基中期','筑基中期'],['realm.tc3','Trúc Cơ hậu kỳ','築基後期','筑基后期'],
+ ['item.dp.trucco','Đan Phương: Trúc Cơ Đan','丹方：築基丹','丹方：筑基丹'],
+ ['itemdesc.dp.trucco','Công thức luyện Trúc Cơ Đan (5 thảo dược bậc 2 bất kỳ + 2 thảo dược bậc 3 bất kỳ + 30 Linh Thạch). Bấm Sử dụng để mở lò luyện. Không mất sau khi dùng.','築基丹的煉製丹方（任意 5 株二階草藥 + 2 株三階草藥 + 30 靈石）。點擊使用開爐煉丹。使用後不會消失。','筑基丹的炼制丹方（任意 5 株二阶草药 + 2 株三阶草药 + 30 灵石）。点击使用开炉炼丹。使用后不会消失。'],
+ ['item.dan.trucco','Trúc Cơ Đan','築基丹','筑基丹'],
+ ['itemdesc.dan.trucco','Đan để đột phá Trúc Cơ: cần ăn đủ 5 viên mới được độ lôi kiếp. Sử dụng: +50 HP tối đa vĩnh viễn (ăn càng nhiều càng dễ chống đỡ thiên kiếp). Rã: 30 Linh Thạch.','突破築基之丹：需服足 5 顆方可渡雷劫。使用：永久 +50 最大生命（服越多越能抵擋天劫）。分解：靈石 30。','突破筑基之丹：需服足 5 颗方可渡雷劫。使用：永久 +50 最大生命（服越多越能抵挡天劫）。分解：灵石 30。'],
+ ['alc.herb2','Thảo dược bậc 2 (bất kỳ)','二階草藥（任意）','二阶草药（任意）'],['alc.herb3','Thảo dược bậc 3 (bất kỳ)','三階草藥（任意）','三阶草药（任意）'],
+ ['alc.out.hp','{name}: +{hp} HP tối đa vĩnh viễn','{name}：永久 +{hp} 最大生命','{name}：永久 +{hp} 最大生命'],
+ ['toast.tc.recipe','Luyện Khí viên mãn! Bạn nhận được Đan Phương Trúc Cơ Đan','練氣圓滿！獲得築基丹丹方','练气圆满！获得筑基丹丹方'],
+ ['toast.tc.need','Cần ăn đủ {n} Trúc Cơ Đan mới được độ kiếp (đã ăn {h}/{n})','需服足 {n} 顆築基丹方可渡劫（已服 {h}/{n}）','需服足 {n} 颗筑基丹方可渡劫（已服 {h}/{n}）'],
+ ['toast.tc.pill','Trúc Cơ Đan: +{n} HP tối đa vĩnh viễn ({a}/{b} viên cho kiếp này)','築基丹：永久 +{n} 最大生命（本次劫 {a}/{b} 顆）','筑基丹：永久 +{n} 最大生命（本次劫 {a}/{b} 颗）'],
+ ['toast.tc.busy','Đang độ kiếp, không thể dùng đan','正在渡劫，無法服丹','正在渡劫，无法服丹'],
+ ['toast.tc.start','Lôi kiếp giáng xuống! Hãy trụ vững 2 phút!','雷劫降臨！堅持兩分鐘！','雷劫降临！坚持两分钟！'],
+ ['toast.tc.up','Đột phá thành công: {name}! Sức mạnh ×{m}','突破成功：{name}！實力 ×{m}','突破成功：{name}！实力 ×{m}'],
+ ['kie.bar','⚡ Lôi kiếp {t} · {d}/{m} HP','⚡ 雷劫 {t} · {d}/{m} 生命','⚡ 雷劫 {t} · {d}/{m} 生命'],
+ ['kie.ok','ĐỘ KIẾP THÀNH CÔNG!<br>{name} · sức mạnh ×{m}<br><small>Ngũ hành về 0, chỉ số giữ nguyên</small>','渡劫成功！<br>{name} · 實力 ×{m}<br><small>五行歸零，屬性保留</small>','渡劫成功！<br>{name} · 实力 ×{m}<br><small>五行归零，属性保留</small>'],
+ ['kie.fail.fate','ĐỘ KIẾP THẤT BẠI<br><small>Đạo tâm chưa vững — trọng thương, cần ăn đủ đan để thử lại</small>','渡劫失敗<br><small>道心未穩——身受重傷，需重新服足丹藥再試</small>','渡劫失败<br><small>道心未稳——身受重伤，需重新服足丹药再试</small>'],
+ ['kie.fail.dead','KHÔNG CHỐNG NỔI LÔI KIẾP<br><small>Cần thêm HP — ăn thêm Trúc Cơ Đan rồi thử lại</small>','未能抵擋雷劫<br><small>需要更多生命——多服築基丹再試</small>','未能抵挡雷劫<br><small>需要更多生命——多服筑基丹再试</small>'],
+ ['tc.h','Đột phá Trúc Cơ','突破築基','突破筑基'],
+ ['tc.pill','Trúc Cơ Đan đã ăn cho kiếp này: {a}/{b}','本次劫已服築基丹：{a}/{b}','本次劫已服筑基丹：{a}/{b}'],
+ ['tc.btn','Độ lôi kiếp Trúc Cơ','渡築基雷劫','渡筑基雷劫'],['tc.btn.on','Đang độ kiếp…','渡劫中…','渡劫中…'],
+ ['tc.rate','Cơ hội thành công lần này: {p}%','本次成功率：{p}%','本次成功率：{p}%'],
+ ['tc.hp','HP tối đa hiện tại: {a} · lôi kiếp giáng tổng {t} HP','目前最大生命：{a} · 雷劫總傷害 {t}','目前最大生命：{a} · 雷劫总伤害 {t}'],
+ ['tc.info','Lôi kiếp kéo dài {m} phút: {s} đạo sét, mỗi đạo ~{e} HP (sát thương thật, không né, không giảm bởi giáp). Hết hạn mà còn sống mới có cơ hội thành công. Thành công: sức mạnh ×{x} (HP, công, thủ, linh lực), ngũ hành về 0/{N} nhưng chỉ số giữ nguyên. Thất bại: trọng thương (HP còn 30%) và phải ăn lại đủ đan.','雷劫持續 {m} 分鐘：{s} 道雷，每道約 {e} 生命（真實傷害，無法閃避，不受護甲減免）。時間到仍存活才有機會成功。成功：實力 ×{x}（生命、攻、防、靈力），五行歸 0/{N} 但屬性保留。失敗：身受重傷（生命剩 30%），需重新服足丹藥。','雷劫持续 {m} 分钟：{s} 道雷，每道约 {e} 生命（真实伤害，无法闪避，不受护甲减免）。时间到仍存活才有机会成功。成功：实力 ×{x}（生命、攻、防、灵力），五行归 0/{N} 但属性保留。失败：身受重伤（生命剩 30%），需重新服足丹药。'],
+ ['tc.up.btn','Đột phá {name}','突破 {name}','突破 {name}'],
+ ['tc.mul','Mỗi tầng Trúc Cơ: sức mạnh ×{m}','每層築基：實力 ×{m}','每层筑基：实力 ×{m}'],
+ ['tc.max','Trúc Cơ hậu kỳ — tạm thời đến đây.','築基後期——暫時到此。','筑基后期——暂时到此。'],
  ['hud.mapt','Bản đồ thế giới','世界地圖','世界地图'],
  ['hud.maph','Thế giới hình tròn: đi mãi một hướng sẽ quay lại. Chạm để đóng.','世界是圓的：一直走會回到原點。點擊關閉。','世界是圆的：一直走会回到原点。点击关闭。'],
  ['mon.t1','Tinh Anh','精英','精英'],['mon.t2','Thủ Lĩnh','首領','首领'],
@@ -408,5 +437,5 @@ MOUNTS.forEach(function(m){var e=EL.filter(function(x){return x.id===m.el;})[0];
       .replace(/\{name\}/g,m.n[k]).replace(/\{el\}/g,e.n[k]).replace(/\{run\}/g,String(m.spd).replace('.',k?'.':',')).replace(/\{fly\}/g,String(m.fspd).replace('.',k?'.':','));}});
 WTIER.forEach(function(t,i){for(var k=0;k<3;k++)add[LG[k]]['wtier.'+(i+1)]=t[k];});
 for(var k=0;k<3;k++)I18N.add(LG[k],add[LG[k]]);
-window.TTData={SKILLS:SKILLS,bySkill:bySkill,bookOf:bookOf,ARMATS:ARMATS,EL:EL,RES:RES,byItem:byItem,byId:byId,PEARL:PEARL,PCAP:PCAP,PFUSE:PFUSE,PT:PT,pearlId:pearlId,byPearl:byPearl,MONS:MONS,SCROLLS:SCROLLS,scrollOf:scrollOf,MOUNTS:MOUNTS,byMount:byMount,OUTFITS:OUTFITS,SLOT:SLOT,STATS:STATS,STU:STU,RAR:RAR,rarOf:rarOf,rollVal:rollVal,PARTN:PARTN,byOutfit:byOutfit,REALM:REALM,WEAPONS:WEAPONS,byWeapon:byWeapon,ICO:ICO,WTIER:WTIER,catOf:catOf,BAG:BAG,AFF:AFF,BASE:BASE,DAN:DAN,RECIPES:RECIPES,NEED:NEED,HITS:HITS,PTS:PTS,RESPAWN:300000,misc:MISC};
+window.TTData={SKILLS:SKILLS,bySkill:bySkill,bookOf:bookOf,ARMATS:ARMATS,EL:EL,RES:RES,byItem:byItem,byId:byId,PEARL:PEARL,PCAP:PCAP,PFUSE:PFUSE,PT:PT,pearlId:pearlId,byPearl:byPearl,MONS:MONS,SCROLLS:SCROLLS,scrollOf:scrollOf,MOUNTS:MOUNTS,byMount:byMount,OUTFITS:OUTFITS,SLOT:SLOT,STATS:STATS,STU:STU,RAR:RAR,rarOf:rarOf,rollVal:rollVal,PARTN:PARTN,byOutfit:byOutfit,REALM:REALM,WEAPONS:WEAPONS,byWeapon:byWeapon,ICO:ICO,WTIER:WTIER,catOf:catOf,BAG:BAG,AFF:AFF,BASE:BASE,DAN:DAN,TC:TC,RECIPES:RECIPES,NEED:NEED,HITS:HITS,PTS:PTS,RESPAWN:300000,misc:MISC};
 })();

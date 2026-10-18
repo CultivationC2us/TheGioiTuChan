@@ -238,10 +238,10 @@ var alcR='',alcI=0;
 function openAlc(rid){alcR=rid;alcI=0;alc.style.display='flex';renderAlc();}
 alc.addEventListener('pointerdown',function(e){if(e.target===alc)closeAlc();});
 function closeAlc(){alc.style.display='none';lastKeys='';refresh();}
-function ingLabel(k){if(k==='@herb1')return T('alc.herb1');if(k.indexOf('@mat:')===0){var p=k.split(':');return T('alc.mat',{el:T('el.'+p[1]),t:p[2]});}return I18N.itemName(k);}
+function ingLabel(k){if(/^@herb\d$/.test(k))return T('alc.herb'+k[5]);if(k.indexOf('@mat:')===0){var p=k.split(':');return T('alc.mat',{el:T('el.'+p[1]),t:p[2]});}return I18N.itemName(k);}
 function ingIcon(k){var d=document.createElement('div');d.className='ic';
   if(k==='lt'){d.innerHTML='<i style="background:radial-gradient(circle at 35% 30%,#fff,#ffd75e 45%,#b8860b);box-shadow:0 0 5px #ffd75e"></i>';return d;}
-  if(k==='@herb1'){d.innerHTML='<i style="background:radial-gradient(circle at 35% 30%,#fff,#8be57a 45%,#2f8a2c);box-shadow:0 0 5px #8be57a"></i>';return d;}
+  if(/^@herb\d$/.test(k)){d.innerHTML='<i style="background:radial-gradient(circle at 35% 30%,#fff,#8be57a 45%,#2f8a2c);box-shadow:0 0 5px #8be57a"></i>';return d;}
   if(k.indexOf('@mat:')===0){var e=elOf(k.split(':')[1]);d.innerHTML='<i style="background:radial-gradient(circle at 35% 30%,#fff,'+e.c+' 45%,'+e.c+'88);box-shadow:0 0 5px '+e.c+'"></i>';return d;}
   var c=G.iconCanvas(k,3);if(c){c.style.cssText='display:block;image-rendering:pixelated';d.appendChild(c);}return d;}
 function renderAlc(){
@@ -253,7 +253,7 @@ function renderAlc(){
   r.ing.forEach(function(g){var have=G.ingHave(g[0]),ok=have>=g[1];
     h+='<div class="ing" data-k="'+esc(g[0])+'"><span class="ph"></span><div class="tx">'+esc(ingLabel(g[0]))+'<div class="pgb"><b style="width:'+Math.min(100,have/g[1]*100)+'%;background:'+(ok?'#59d27a':'#e0584c')+'"></b></div></div><div class="nn" style="color:'+(ok?'#9bf0a8':'#ff9b8a')+'">'+Math.min(have,9999)+' / '+g[1]+'</div></div>';});
   h+='</div>';
-  h+='<div class="sub2">'+esc(wo?T('alc.outw',{name:I18N.itemName(r.out)}):T('alc.out',{name:I18N.itemName(r.out),eff:'+'+G.TD.DAN[r.out].qi+' '+T('realm.exp')}))+'<br>'+esc(T('alc.keep'))+'</div>';
+  h+='<div class="sub2">'+esc(wo?T('alc.outw',{name:I18N.itemName(r.out)}):(G.TD.DAN[r.out].hp?T('alc.out.hp',{name:I18N.itemName(r.out),hp:G.TD.DAN[r.out].hp}):T('alc.out',{name:I18N.itemName(r.out),eff:'+'+G.TD.DAN[r.out].qi+' '+T('realm.exp')})))+'<br>'+esc(T('alc.keep'))+'</div>';
   h+='<div class="eqa"><button type="button" class="eb blue" id="alcX">'+esc(T('bag.close'))+'</button><button type="button" class="eb gold" id="alcM"'+(mx>0?'':' disabled')+'>'+esc(T(forge?'alc.forge':'alc.make'))+'</button><button type="button" class="eb gold" id="alcA"'+(mx>1?'':' disabled')+'>'+esc(T(forge?'alc.forgeall':'alc.makeall',{n:mx}))+'</button></div>';
   $('alcB').innerHTML=h;
   var ic=$('alcIc'),c=G.iconCanvas(r.out,4);if(c)ic.appendChild(c);
@@ -331,8 +331,8 @@ function showInfo(){
 /* ----- Tu Luyện ----- */
 function matCount(el){var n=0;G.TD.RES.forEach(function(g){if(g.el===el)n+=G.loot[g.item]|0;});return n;}
 function renderRoot(force){
-  var C=G.cult,N=G.TD.NEED,sig=G.TD.EL.map(function(e){return C.r[e.id]+':'+matCount(e.id);}).join('|')+(C.aw?'A'+C.rl+':'+G.P.maxHp+':'+G.S.dmg+':'+G.S.spd:G.canAwake()?'C':'-')+I18N.lang;
-  if(!force&&sig===rootSig){var q=$('rootQi');if(q)q.textContent=Math.floor(C.qi);var br=$('rootBr');if(br)br.disabled=!(C.qi>=G.realmNeed(C.rl));var qb=$('rootQb');if(qb&&C.aw&&C.rl<G.TD.REALM.max)qb.style.width=Math.min(100,C.qi/G.realmNeed(C.rl)*100)+'%';return;}
+  var C=G.cult,N=G.TD.NEED,sig=G.TD.EL.map(function(e){return C.r[e.id]+':'+matCount(e.id);}).join('|')+(C.aw?'A'+C.rl+':'+G.P.maxHp+':'+G.S.dmg+':'+G.S.spd:G.canAwake()?'C':'-')+':'+(C.tc|0)+':'+(C.tcn|0)+':'+(G.KIE.on?1:0)+I18N.lang;
+  if(!force&&sig===rootSig){var q=$('rootQi');if(q)q.textContent=Math.floor(C.qi);var br=$('rootBr');if(br)br.disabled=(C.rl>=G.TD.REALM.max&&!C.tc)?(G.KIE.on||(C.tcn|0)<G.TD.TC.need):!(C.qi>=G.qiNeed());var qb=$('rootQb');if(qb&&C.aw&&G.qiNeed()!==Infinity)qb.style.width=Math.min(100,C.qi/G.qiNeed()*100)+'%';return;}
   rootSig=sig;var h='<div class="hint">'+esc(T('cul.hint',{n:N}))+'</div>';
   G.TD.EL.forEach(function(e){
     var v=C.r[e.id],m=matCount(e.id),full=v>=N;
@@ -340,12 +340,17 @@ function renderRoot(force){
        '<button type="button" data-el="'+e.id+'"'+((full||!m)?' disabled':'')+'>'+esc(full?T('cul.full'):T('cul.refine'))+'</button></div>';
   });
   if(C.aw){
-    var nd=G.realmNeed(C.rl),mx=C.rl>=G.TD.REALM.max,pc=mx?100:Math.min(100,C.qi/nd*100),ready=!mx&&C.qi>=nd;
-    h+='<div class="done"><span>'+esc(T('realm.cur'))+'</span><b>'+esc(T('realm.n',{n:C.rl}))+'</b>'+
-      (mx?esc(T('realm.full')):'<div class="bar2" style="margin:8px 30px"><i id="rootQb" style="width:'+pc+'%;background:linear-gradient(#d8f6ff 0 30%,#1f9be0 30% 70%,#1b3a8a 70%)"></i></div><span id="rootQi">'+Math.floor(C.qi)+'</span> / '+nd+' '+esc(T('realm.exp'))+
+    var nd=G.realmNeed(C.rl),mx=C.rl>=G.TD.REALM.max,mx0=mx,tcm=C.tc>0,TC=G.TD.TC,nf=function(x){return String(x).replace('.',I18N.lang==='vi'?',':'.');};
+    if(tcm){nd=G.qiNeed();mx=nd===Infinity;}
+    var pc=mx?100:Math.min(100,C.qi/nd*100),ready=!mx&&C.qi>=nd;
+    h+='<div class="done"><span>'+esc(T('realm.cur'))+'</span><b>'+esc(G.realmName())+'</b>'+
+      (mx?esc(T(tcm?'tc.max':'realm.full')):'<div class="bar2" style="margin:8px 30px"><i id="rootQb" style="width:'+pc+'%;background:linear-gradient(#d8f6ff 0 30%,#1f9be0 30% 70%,#1b3a8a 70%)"></i></div><span id="rootQi">'+Math.floor(C.qi)+'</span> / '+nd+' '+esc(T('realm.exp'))+
         '<br><span style="color:#8a6a2a;font-size:18px">'+esc(T('cul.rate',{n:(I18N.lang==='vi'?G.qiRate().toFixed(2).replace('.',','):G.qiRate().toFixed(2))}))+'</span>')+'</div>';
-    if(!mx)h+='<button type="button" class="aw" id="rootBr"'+(ready?'':' disabled')+'>'+esc(T('act.break',{n:C.rl+1}))+'</button>';
-    h+='<div class="tips"><span style="font-size:18px;color:#6b5a38">'+esc(T('realm.bonus',{m:'1,2'.replace(',',I18N.lang==='vi'?',':'.')}))+'</span></div>';
+    if(!mx)h+='<button type="button" class="aw" id="rootBr"'+(ready?'':' disabled')+'>'+esc(tcm?T('tc.up.btn',{name:T('realm.tc'+(C.tc+1))}):T('act.break',{n:C.rl+1}))+'</button>';
+    h+='<div class="tips"><span style="font-size:18px;color:#6b5a38">'+esc(tcm?T('tc.mul',{m:nf(TC.tier)}):T('realm.bonus',{m:'1,2'.replace(',',I18N.lang==='vi'?',':'.')}))+'</span></div>';
+    if(mx0&&!tcm){var kc=G.KIE.on;   /* Luyện Khí viên mãn → độ lôi kiếp Trúc Cơ */
+      h+='<div class="tips"><h4>⚡ '+esc(T('tc.h'))+'</h4><div style="font-size:19px;line-height:1.55;color:#3a2a10">'+esc(T('tc.pill',{a:C.tcn|0,b:TC.need}))+'<br>'+esc(T('tc.hp',{a:G.P.maxHp,t:TC.total}))+'<br><b>'+esc(T('tc.rate',{p:Math.round(G.kieChance()*100)}))+'</b></div><div style="font-size:16px;color:#6b5a38;margin:6px 0;line-height:1.4">'+esc(T('tc.info',{m:TC.dur/60,s:TC.strikes,e:nf(Math.round(TC.total/TC.strikes*10)/10),x:nf(TC.mul),N:G.TD.NEED}))+'</div></div>'+
+        '<button type="button" class="aw" id="rootBr"'+((kc||(C.tcn|0)<TC.need)?' disabled':'')+'>'+esc(T(kc?'tc.btn.on':'tc.btn'))+'</button>';}
   }
   else h+='<button type="button" class="aw" id="rootAw"'+(G.canAwake()?'':' disabled')+'>'+esc(G.canAwake()?T('cul.awake'):T('cul.need',{n:N}))+'</button>';
   h+='<div class="tips"><h4>? '+esc(T('ui.hint'))+'</h4><ul style="margin:0;padding:0"><li>'+esc(T('ui.h1'))+'</li><li>'+esc(T('ui.h2'))+'</li><li>'+esc(T('ui.h3'))+'</li></ul></div>';
@@ -466,7 +471,7 @@ function updChTop(){
     SLOTS.forEach(function(s){var sd=top.querySelector('.slot[data-k="'+s[0]+'"]'),id=curOf(s[3]);sd.innerHTML='';sd.style.filter='';
       if(id){var c=itemIcon(s[3],id);if(c)sd.appendChild(c);sd.className='slot has';sd.style.filter='drop-shadow(0 0 3px '+(s[3]==='p'||s[3]==='m'?'#e8bb48':glowOf(id))+')';}
       else{sd.appendChild(uimg(s[0]));sd.className='slot ph';}});}
-  $('chName').textContent=C.aw?T('realm.n',{n:C.rl}):T('j.asleep');
+  $('chName').textContent=G.realmName();
   var b=$('chBar'),nd=G.realmNeed(C.rl),mx=C.rl>=G.TD.REALM.max;
   b.firstChild.style.width=(C.aw?(mx?100:Math.min(100,C.qi/nd*100)):0)+'%';
   b.lastChild.textContent=C.aw?(T('realm.exp')+' '+Math.floor(C.qi)+(mx?'':' / '+nd)):T('hud.asleep');
@@ -498,7 +503,7 @@ function renderStats(){
    r2('st_atk',T('st.crit'),N((G.critP()*100).toFixed(1))+'%')+
    r2('st_atk',T('st.cdmg'),'×'+N(G.cdmgV().toFixed(2)))+
    '<h3 class="dt">'+esc(T('ui.detail'))+'</h3>'+
-   row('sx.realm',esc(T('realm.n',{n:C.rl}))+' (×'+N(m.toFixed(2))+')')+
+   row('sx.realm',esc(G.realmName())+' (×'+N(m.toFixed(2))+')')+
    row('sx.dmg',Math.round((7+S.dmg+G.wAtk())*m)+' – '+Math.round((12+S.dmg+G.wAtk())*m))+
    row('sx.bagcap',G.BAG().cap)+
    row('sx.weapon',C.eq.w?esc(I18N.itemName(C.eq.w)):T('sx.noweapon'))+

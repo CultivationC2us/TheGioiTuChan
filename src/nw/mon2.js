@@ -25,14 +25,24 @@ function onWrap(sx,sy){P.x+=sx;P.y+=sy;cam.x+=sx;cam.y+=sy;dog.x+=sx;dog.y+=sy;f
    Tu vi cần để qua tầng n = base·2^(n-1) (gấp đôi mỗi tầng). Mỗi lần đột phá, máu & sát thương nhân thêm ×1,2 (cộng dồn).
    Tu luyện thường chậm (REALM.rate + Thủy châu); thảo dược thô không cho tu vi — phải luyện thành đan (đan phương). */
 const realmNeed=l=>l>=TD.REALM.max?Infinity:TD.REALM.base*Math.pow(2,l-1);
-const realmMul=l=>Math.pow(TD.REALM.mul,(l||cult.rl)-1);
+const tcM=()=>{const t=cult.tc|0;return t<1?1:TD.TC.mul*Math.pow(TD.TC.tier,t-1);};   /* Trúc Cơ: sơ kỳ ×1,6 (so với Luyện Khí 10), mỗi tầng sau ×1,4 */
+const realmMul=l=>l?Math.pow(TD.REALM.mul,l-1):Math.pow(TD.REALM.mul,cult.rl-1)*tcM();
+const qiNeed=()=>(cult.tc|0)>0?((cult.tc|0)>=3?Infinity:TD.TC.qi[(cult.tc|0)-1]):realmNeed(cult.rl);
+const realmName=()=>!cult.aw?T('j.asleep'):(cult.tc|0)>0?T('realm.tc'+cult.tc):T('realm.n',{n:cult.rl});
 const qiRate=()=>TD.REALM.rate+STT.qi;
 function qiTick(dt){
   if(!cult.dpg&&!(loot['dp.tukhi']>0)){loot['dp.tukhi']=1;loot['cg.tuyet_van']=Math.max(1,loot['cg.tuyet_van']|0);cult.dpg=true;lootUI();}   /* tặng đan phương đầu tiên (1 lần) */
-  if(!cult.aw||cult.rl>=TD.REALM.max)return;const nd=realmNeed(cult.rl);if(cult.qi<nd)cult.qi=Math.min(nd,cult.qi+dt*qiRate());
+  if(cult.aw&&cult.rl>=TD.REALM.max&&!cult.dp2){cult.dp2=true;loot['dp.trucco']=Math.max(1,loot['dp.trucco']|0);lootUI();toast(T('toast.tc.recipe'));}   /* Luyện Khí viên mãn: tặng Đan Phương Trúc Cơ Đan (1 lần) */
+  if(!cult.aw)return;const nd=qiNeed();if(nd===Infinity)return;if(cult.qi<nd)cult.qi=Math.min(nd,cult.qi+dt*qiRate());
 }
 function rankStat(){let s=0;for(let l=1;l<cult.rl;l++)s+=realmNeed(l);return{realm:cult.rl|0,qi_total:Math.round(s+(cult.aw?cult.qi:0)),kills:stats.kills|0};}
 function breakthrough(){
+  if(cult.aw&&cult.rl>=TD.REALM.max){
+    if(KIE.on)return false;
+    if(!(cult.tc>0))return kieStart();
+    if(cult.tc>=3||cult.qi<qiNeed()){toast(T('toast.nobreak'));return false;}
+    cult.qi=0;cult.tc++;recalc();P.hp=P.maxHp;P.mp=P.maxMp;toast(T('toast.tc.up',{name:realmName(),m:(Math.round(TD.TC.tier*100)/100).toString().replace('.',',')}));return true;
+  }
   if(!cult.aw||cult.rl>=TD.REALM.max||cult.qi<realmNeed(cult.rl)){toast(T('toast.nobreak'));return false;}
   cult.qi-=realmNeed(cult.rl);cult.rl++;recalc();P.hp=P.maxHp;
   toast(T('toast.break',{n:cult.rl,m:(Math.round(TD.REALM.mul*100)/100).toString().replace('.',',')}));return true;
@@ -40,12 +50,16 @@ function breakthrough(){
 function eatDan(n){
   const d=TD.DAN[n];if(!d||!(loot[n]>0))return false;
   if(!cult.aw){toast(T('toast.dan.asleep'));return false;}
+  if(d.hp){   /* Trúc Cơ Đan: +HP tối đa vĩnh viễn, tính vào số đan cần để độ kiếp */
+    if(KIE.on){toast(T('toast.tc.busy'));return false;}
+    lootDec(n);cult.tcd=(cult.tcd|0)+1;if(!(cult.tc>0))cult.tcn=(cult.tcn|0)+1;recalc();lootUI();
+    toast(T('toast.tc.pill',{n:d.hp,a:cult.tcn|0,b:TD.TC.need}));return true;}
   if(cult.rl>=TD.REALM.max){toast(T('toast.dan.max'));return false;}
   if(cult.qi>=realmNeed(cult.rl)){toast(T('toast.dan.full'));return false;}
   lootDec(n);cult.qi+=d.qi;lootUI();toast(T('toast.dan',{name:I18N.itemName(n),n:d.qi}));return true;
 }
 const matKeys=(el,t)=>TD.RES.filter(g=>g.el===el&&(g.kind==='ore'||g.kind==='tree')&&g.tier>=t).map(g=>g.item);
-const ingKeys=k=>k==='@herb1'?TD.RES.filter(g=>g.kind==='herb'&&g.tier===1).map(g=>g.item):k.indexOf('@mat:')===0?matKeys(k.split(':')[1],+k.split(':')[2]):[k];
+const ingKeys=k=>/^@herb\d$/.test(k)?TD.RES.filter(g=>g.kind==='herb'&&g.tier===+k[5]).map(g=>g.item):k.indexOf('@mat:')===0?matKeys(k.split(':')[1],+k.split(':')[2]):[k];
 const ingHave=k=>ingKeys(k).reduce((a,x)=>a+(loot[x]|0),0);
 function ingTake(k,q){for(const x of ingKeys(k).sort((a,b)=>(loot[b]|0)-(loot[a]|0))){const t=Math.min(q,loot[x]|0);if(t>0){loot[x]-=t;q-=t;if(loot[x]<=0)delete loot[x];}if(q<=0)break;}}
 const recipeOf=(rid,idx)=>{const R=TD.RECIPES[rid];return R&&R.list[idx||0];};
@@ -61,9 +75,9 @@ function recalc(){
   gearStats();
   const sum=el=>cult.pl[el].reduce((a,b)=>a+b,0),pe=TD.PEARL,rd=x=>Math.round(x*1000)/1000;
   STT.dmg=rd(sum('kim')*pe.kim.per);STT.hp=rd(sum('moc')*pe.moc.per);STT.red=Math.min(.6,rd(sum('tho')*pe.tho.per));STT.spd=rd(sum('hoa')*pe.hoa.per);STT.qi=rd(sum('thuy')*pe.thuy.per);
-  if(cult.qi>realmNeed(cult.rl)+TD.DAN['dan.tukhi'].qi)cult.qi=realmNeed(cult.rl);
-  P.maxMp=60+12*((cult.rl|0)-1)+GS.mp;P.mp=Math.min(P.mp,P.maxMp);
-  const mx=Math.round((100+STT.hp+GS.hp)*realmMul()),old=P.maxHp;P.maxHp=mx;P.hp=mx>old?Math.min(mx,P.hp+(mx-old)):Math.min(P.hp,mx);
+  if(cult.qi>qiNeed()+TD.DAN['dan.tukhi'].qi)cult.qi=qiNeed();
+  P.maxMp=Math.round((60+12*((cult.rl|0)-1)+GS.mp)*tcM());P.mp=Math.min(P.mp,P.maxMp);
+  const mx=Math.round((100+STT.hp+GS.hp)*realmMul())+(cult.tcd|0)*TD.TC.hpPer,old=P.maxHp;P.maxHp=mx;P.hp=mx>old?Math.min(mx,P.hp+(mx-old)):Math.min(P.hp,mx);
 }
 /* ---------- DEF · TÚI CÓ DUNG TÍCH ---------- */
 const defVal=()=>Math.round(TD.BASE.def*realmMul())+GS.def+['h','o','g'].reduce((a,k)=>a+((cult.eq[k]&&loot[cult.eq[k]]>0&&TD.byOutfit[cult.eq[k]])?TD.byOutfit[cult.eq[k]].def:0),0);
@@ -85,7 +99,7 @@ const atkCd=()=>470/(1+STT.spd+GS.aspd);
 const GIFT_CODES={tuchan:()=>{
   TD.RES.forEach(g=>{loot[g.item]=(loot[g.item]|0)+40;});
   TD.EL.forEach(e=>{for(let t=1;t<=TD.PT;t++){const id=TD.pearlId(e.id,t);loot[id]=(loot[id]|0)+10;}});
-  loot['dan.tukhi']=(loot['dan.tukhi']|0)+30;loot['lt']=(loot['lt']|0)+5000;addPet('hacmieu');TD.SKILLS.forEach(k=>{if(!skLearned(k.id))loot['sk.'+k.id]=Math.max(1,loot['sk.'+k.id]|0);});
+  loot['dan.tukhi']=(loot['dan.tukhi']|0)+30;loot['dan.trucco']=(loot['dan.trucco']|0)+20;loot['dp.trucco']=Math.max(1,loot['dp.trucco']|0);loot['lt']=(loot['lt']|0)+5000;addPet('hacmieu');TD.SKILLS.forEach(k=>{if(!skLearned(k.id))loot['sk.'+k.id]=Math.max(1,loot['sk.'+k.id]|0);});
   loot['dp.tukhi']=Math.max(1,loot['dp.tukhi']|0);TD.SCROLLS.forEach(s=>{loot[s.id]=Math.max(1,loot[s.id]|0);});
   [...TD.WEAPONS,...TD.OUTFITS].forEach(w=>{if(!Object.keys(loot).some(k=>baseId(k)===w.id&&loot[k]>0))mkGear(w.id);});
   TD.RES.forEach(g=>{if(g.kind==='ore'||g.kind==='tree')loot[g.item]=Math.max(30,loot[g.item]|0);});

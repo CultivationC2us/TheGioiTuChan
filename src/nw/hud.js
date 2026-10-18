@@ -162,9 +162,9 @@ function tick(){
   $('hMp').style.width=Math.max(0,P.mp/P.maxMp*100)+'%';$('hMpT').textContent=T('hud.mp',{a:Math.floor(P.mp),b:P.maxMp});
   var qb=$('hQi'),qt=$('hQiT');
   if(!C.aw){qb.style.width='0%';qt.textContent=T('hud.asleep');}
-  else if(C.rl>=G.TD.REALM.max){qb.style.width='100%';qt.textContent=T('hud.qi.max',{n:Math.floor(C.qi)});}
-  else{var nd=G.realmNeed(C.rl);qb.style.width=Math.min(100,C.qi/nd*100)+'%';qt.textContent=T('hud.qi',{a:Math.floor(C.qi),b:nd});}
-  $('hRl').textContent=C.aw?T('realm.n',{n:C.rl}):T('j.asleep');$('hLv').textContent=C.aw?C.rl:'–';
+  else if(G.qiNeed()===Infinity){qb.style.width='100%';qt.textContent=T('hud.qi.max',{n:Math.floor(C.qi)});}
+  else{var nd=G.qiNeed();qb.style.width=Math.min(100,C.qi/nd*100)+'%';qt.textContent=T('hud.qi',{a:Math.floor(C.qi),b:nd});}
+  $('hRl').textContent=G.realmName();$('hLv').textContent=C.aw?C.rl:'–';
   $('hZn').textContent=zoneName();$('hCo').textContent='('+Math.floor(P.x/16)+', '+Math.floor(P.y/16)+')';
   if(!avDone||avKey!==(G.OF?G.OF.sig():'||'))drawAv();
 }
