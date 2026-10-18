@@ -330,10 +330,11 @@ function showInfo(){
 
 /* ----- Tu Luyện ----- */
 function matCount(el){var n=0;G.TD.RES.forEach(function(g){if(g.el===el)n+=G.loot[g.item]|0;});return n;}
+function tcReady(){var C=G.cult,TC=G.TD.TC;return (C.tcd|0)>=TC.need&&G.TD.EL.every(function(e){return C.r[e.id]>=TC.root[0];});}
 function renderRoot(force){
-  var C=G.cult,N=G.TD.NEED,sig=G.TD.EL.map(function(e){return C.r[e.id]+':'+matCount(e.id);}).join('|')+(C.aw?'A'+C.rl+':'+G.P.maxHp+':'+G.S.dmg+':'+G.S.spd:G.canAwake()?'C':'-')+':'+(C.tc|0)+':'+(C.tcn|0)+':'+(G.KIE.on?1:0)+I18N.lang;
-  if(!force&&sig===rootSig){var q=$('rootQi');if(q)q.textContent=Math.floor(C.qi);var br=$('rootBr');if(br)br.disabled=(C.rl>=G.TD.REALM.max&&!C.tc)?(G.KIE.on||(C.tcn|0)<G.TD.TC.need):!(C.qi>=G.qiNeed());var qb=$('rootQb');if(qb&&C.aw&&G.qiNeed()!==Infinity)qb.style.width=Math.min(100,C.qi/G.qiNeed()*100)+'%';return;}
-  rootSig=sig;var h='<div class="hint">'+esc(T('cul.hint',{n:N}))+'</div>';
+  var C=G.cult,N=G.rNeed(),sig=G.TD.EL.map(function(e){return C.r[e.id]+':'+matCount(e.id);}).join('|')+(C.aw?'A'+C.rl+':'+G.P.maxHp+':'+G.S.dmg+':'+G.S.spd:G.canAwake()?'C':'-')+':'+(C.tc|0)+':'+(C.tcd|0)+':'+(G.KIE.on?1:0)+I18N.lang;
+  if(!force&&sig===rootSig){var q=$('rootQi');if(q)q.textContent=Math.floor(C.qi);var br=$('rootBr');if(br)br.disabled=(C.rl>=G.TD.REALM.max&&!C.tc)?(G.KIE.on||!tcReady()):!(C.qi>=G.qiNeed());var qb=$('rootQb');if(qb&&C.aw&&G.qiNeed()!==Infinity)qb.style.width=Math.min(100,C.qi/G.qiNeed()*100)+'%';return;}
+  rootSig=sig;var h=C.aw?'':'<div class="hint">'+esc(T('cul.hint',{n:N}))+'</div>';
   G.TD.EL.forEach(function(e){
     var v=C.r[e.id],m=matCount(e.id),full=v>=N;
     h+='<div class="er"><div class="el" style="background:'+e.c+';box-shadow:0 0 10px '+e.c+'88">'+esc(T('el.'+e.id))+'</div><div class="mid"><div class="nm"><span>'+esc(T('el.'+e.id))+'</span><span>'+v+' / '+N+'</span></div><div class="bar2"><i style="width:'+Math.min(100,v/N*100)+'%;background:'+e.c+'"></i></div><small>'+esc(T('cul.mat',{n:m}))+'</small></div>'+
@@ -349,8 +350,8 @@ function renderRoot(force){
     if(!mx)h+='<button type="button" class="aw" id="rootBr"'+(ready?'':' disabled')+'>'+esc(tcm?T('tc.up.btn',{name:T('realm.tc'+(C.tc+1))}):T('act.break',{n:C.rl+1}))+'</button>';
     h+='<div class="tips"><span style="font-size:18px;color:#6b5a38">'+esc(tcm?T('tc.mul',{m:nf(TC.tier)}):T('realm.bonus',{m:'1,2'.replace(',',I18N.lang==='vi'?',':'.')}))+'</span></div>';
     if(mx0&&!tcm){var kc=G.KIE.on;   /* Luyện Khí viên mãn → độ lôi kiếp Trúc Cơ */
-      h+='<div class="tips"><h4>⚡ '+esc(T('tc.h'))+'</h4><div style="font-size:19px;line-height:1.55;color:#3a2a10">'+esc(T('tc.pill',{a:C.tcn|0,b:TC.need}))+'<br>'+esc(T('tc.hp',{a:G.P.maxHp,t:TC.total}))+'<br><b>'+esc(T('tc.rate',{p:Math.round(G.kieChance()*100)}))+'</b></div><div style="font-size:16px;color:#6b5a38;margin:6px 0;line-height:1.4">'+esc(T('tc.info',{m:TC.dur/60,s:TC.strikes,e:nf(Math.round(TC.total/TC.strikes*10)/10),x:nf(TC.mul),N:G.TD.NEED}))+'</div></div>'+
-        '<button type="button" class="aw" id="rootBr"'+((kc||(C.tcn|0)<TC.need)?' disabled':'')+'>'+esc(T(kc?'tc.btn.on':'tc.btn'))+'</button>';}
+      h+='<div class="tips"><h4>⚡ '+esc(T('tc.h'))+'</h4><div style="font-size:19px;line-height:1.55;color:#3a2a10">'+esc(T('tc.pill',{a:C.tcd|0,b:TC.need,c:TC.cap}))+'<br>'+esc(T('tc.root',{a:G.TD.EL.filter(function(e){return C.r[e.id]>=TC.root[0];}).length,n:TC.root[0]}))+'</div><div style="font-size:16px;color:#6b5a38;margin:6px 0;line-height:1.4">'+esc(T('tc.info',{x:nf(TC.mul),c:TC.pcap}))+'</div></div>'+
+        '<button type="button" class="aw" id="rootBr"'+((kc||!tcReady())?' disabled':'')+'>'+esc(T(kc?'tc.btn.on':'tc.btn'))+'</button>';}
   }
   else h+='<button type="button" class="aw" id="rootAw"'+(G.canAwake()?'':' disabled')+'>'+esc(G.canAwake()?T('cul.awake'):T('cul.need',{n:N}))+'</button>';
   h+='<div class="tips"><h4>? '+esc(T('ui.hint'))+'</h4><ul style="margin:0;padding:0"><li>'+esc(T('ui.h1'))+'</li><li>'+esc(T('ui.h2'))+'</li><li>'+esc(T('ui.h3'))+'</li></ul></div>';
@@ -488,7 +489,7 @@ function renderStats(){
   function r2(ic,lb,val){return '<div class="row2"><img src="'+PNG(ic)+'"><span class="lb">'+esc(lb)+'</span><span class="vv">'+val+'</span></div>';}
   function rb(ic,lb,txt,pc,col){return '<div class="row2"><img src="'+PNG(ic)+'"><span class="lb">'+esc(lb)+'</span><div class="bw"><em>'+txt+'</em><div class="tr"><i style="width:'+Math.max(0,Math.min(100,pc))+'%;background:'+col+'"></i></div></div></div>';}
   var cd=G.atkCd(),m=G.realmMul(),nd=C.rl>=G.TD.REALM.max?0:G.realmNeed(C.rl);
-  var pl=G.TD.EL.map(function(e){return '<div class="row"><span style="color:'+e.c+'">'+T('el.'+e.id)+'</span><b>'+C.pl[e.id].map(function(n){return n+'/'+G.TD.PCAP;}).join(' · ')+'</b></div>';}).join('');
+  var pl=G.TD.EL.map(function(e){return '<div class="row"><span style="color:'+e.c+'">'+T('el.'+e.id)+'</span><b>'+C.pl[e.id].map(function(n){return n+'/'+G.pcap();}).join(' · ')+'</b></div>';}).join('');
   var pets=G.PETS.length?G.PETS.map(function(id){return esc(T('monster.'+id));}).join(', '):T('sx.none');
   $('bagS').innerHTML='<h3><span style="color:#e8bb48;margin-right:6px">✦</span>'+esc(T('ui.stats'))+'</h3>'+
    rb('st_hp',T('sx.hp'),Math.round(P.hp)+' / '+P.maxHp,P.hp/P.maxHp*100,'linear-gradient(#ff7a58 0 30%,#c02f2c 30% 70%,#6a1418 70%)')+

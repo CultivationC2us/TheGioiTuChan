@@ -60,7 +60,7 @@ var DAN={'dan.tukhi':{qi:100},'dan.trucco':{qi:0,hp:50}};                       
 var RECIPES={'dp.tukhi':{verb:'alc',list:[{out:'dan.tukhi',ing:[['@herb1',3],['lt',1]]}]},'dp.trucco':{verb:'alc',list:[{out:'dan.trucco',ing:[['@herb2',5],['@herb3',2],['lt',30]]}]}};
 /* TRÚC CƠ: cần ăn đủ need viên Trúc Cơ Đan (mỗi viên +hpPer HP tối đa vĩnh viễn) → độ lôi kiếp dur giây, strikes đạo sét, tổng total HP sát thương thật.
    Thành công p (lần đầu pFirst). Sau đột phá: sức mạnh ×mul (sơ kỳ), mỗi tầng sau ×tier; ngũ hành reset 0, chỉ số giữ. qi = tu vi cần sơ→trung, trung→hậu. */
-var TC={need:5,hpPer:50,dur:120,strikes:40,total:1500,pFirst:.01,p:.5,mul:1.6,tier:1.4,qi:[40000,80000]};   /* '@herb1' = thảo dược bậc 1 bất kỳ */
+var TC={need:5,hpPer:50,dur:120,strikes:40,total:1500,pFirst:.01,p:.5,mul:1.6,tier:1.4,qi:[40000,80000],cap:30,root:[300,900],pcap:20};   /* '@herb1' = thảo dược bậc 1 bất kỳ */
 /* RECIPES.cg.vukhi gán sau khi có FORGE */
 var AFF=[['moc','thuy'],['hoa','tho','kim'],['kim','tho','hoa'],null,null,null,['hoa','tho','kim'],['thuy','moc'],['kim','thuy'],['moc','thuy']];   /* hệ ưa thích theo địa hình: cỏ(0) · cát(1) · đá(2) */  /* đan phương: không mất khi dùng */
 var WATK={1:4,2:9,3:16}, WLS={1:8,2:25,3:60};   /* sát thương cộng thêm và Linh Thạch khi rã, theo phẩm */
@@ -295,25 +295,25 @@ var S=[ /* chuỗi giao diện mới: [vi, zh-Hant, zh-Hans] */
  ['item.dp.trucco','Đan Phương: Trúc Cơ Đan','丹方：築基丹','丹方：筑基丹'],
  ['itemdesc.dp.trucco','Công thức luyện Trúc Cơ Đan (5 thảo dược bậc 2 bất kỳ + 2 thảo dược bậc 3 bất kỳ + 30 Linh Thạch). Bấm Sử dụng để mở lò luyện. Không mất sau khi dùng.','築基丹的煉製丹方（任意 5 株二階草藥 + 2 株三階草藥 + 30 靈石）。點擊使用開爐煉丹。使用後不會消失。','筑基丹的炼制丹方（任意 5 株二阶草药 + 2 株三阶草药 + 30 灵石）。点击使用开炉炼丹。使用后不会消失。'],
  ['item.dan.trucco','Trúc Cơ Đan','築基丹','筑基丹'],
- ['itemdesc.dan.trucco','Đan để đột phá Trúc Cơ: cần ăn đủ 5 viên mới được độ lôi kiếp. Sử dụng: +50 HP tối đa vĩnh viễn (ăn càng nhiều càng dễ chống đỡ thiên kiếp). Rã: 30 Linh Thạch.','突破築基之丹：需服足 5 顆方可渡雷劫。使用：永久 +50 最大生命（服越多越能抵擋天劫）。分解：靈石 30。','突破筑基之丹：需服足 5 颗方可渡雷劫。使用：永久 +50 最大生命（服越多越能抵挡天劫）。分解：灵石 30。'],
  ['alc.herb2','Thảo dược bậc 2 (bất kỳ)','二階草藥（任意）','二阶草药（任意）'],['alc.herb3','Thảo dược bậc 3 (bất kỳ)','三階草藥（任意）','三阶草药（任意）'],
  ['alc.out.hp','{name}: +{hp} HP tối đa vĩnh viễn','{name}：永久 +{hp} 最大生命','{name}：永久 +{hp} 最大生命'],
  ['toast.tc.recipe','Luyện Khí viên mãn! Bạn nhận được Đan Phương Trúc Cơ Đan','練氣圓滿！獲得築基丹丹方','练气圆满！获得筑基丹丹方'],
- ['toast.tc.need','Cần ăn đủ {n} Trúc Cơ Đan mới được độ kiếp (đã ăn {h}/{n})','需服足 {n} 顆築基丹方可渡劫（已服 {h}/{n}）','需服足 {n} 颗筑基丹方可渡劫（已服 {h}/{n}）'],
- ['toast.tc.pill','Trúc Cơ Đan: +{n} HP tối đa vĩnh viễn ({a}/{b} viên cho kiếp này)','築基丹：永久 +{n} 最大生命（本次劫 {a}/{b} 顆）','筑基丹：永久 +{n} 最大生命（本次劫 {a}/{b} 颗）'],
  ['toast.tc.busy','Đang độ kiếp, không thể dùng đan','正在渡劫，無法服丹','正在渡劫，无法服丹'],
- ['toast.tc.start','Lôi kiếp giáng xuống! Hãy trụ vững 2 phút!','雷劫降臨！堅持兩分鐘！','雷劫降临！坚持两分钟！'],
  ['toast.tc.up','Đột phá thành công: {name}! Sức mạnh ×{m}','突破成功：{name}！實力 ×{m}','突破成功：{name}！实力 ×{m}'],
- ['kie.bar','⚡ Lôi kiếp {t} · {d}/{m} HP','⚡ 雷劫 {t} · {d}/{m} 生命','⚡ 雷劫 {t} · {d}/{m} 生命'],
  ['kie.ok','ĐỘ KIẾP THÀNH CÔNG!<br>{name} · sức mạnh ×{m}<br><small>Ngũ hành về 0, chỉ số giữ nguyên</small>','渡劫成功！<br>{name} · 實力 ×{m}<br><small>五行歸零，屬性保留</small>','渡劫成功！<br>{name} · 实力 ×{m}<br><small>五行归零，属性保留</small>'],
  ['kie.fail.fate','ĐỘ KIẾP THẤT BẠI<br><small>Đạo tâm chưa vững — trọng thương, cần ăn đủ đan để thử lại</small>','渡劫失敗<br><small>道心未穩——身受重傷，需重新服足丹藥再試</small>','渡劫失败<br><small>道心未稳——身受重伤，需重新服足丹药再试</small>'],
  ['kie.fail.dead','KHÔNG CHỐNG NỔI LÔI KIẾP<br><small>Cần thêm HP — ăn thêm Trúc Cơ Đan rồi thử lại</small>','未能抵擋雷劫<br><small>需要更多生命——多服築基丹再試</small>','未能抵挡雷劫<br><small>需要更多生命——多服筑基丹再试</small>'],
  ['tc.h','Đột phá Trúc Cơ','突破築基','突破筑基'],
- ['tc.pill','Trúc Cơ Đan đã ăn cho kiếp này: {a}/{b}','本次劫已服築基丹：{a}/{b}','本次劫已服筑基丹：{a}/{b}'],
+ ['itemdesc.dan.trucco','Đan để đột phá Trúc Cơ: cần ăn đủ 5 viên mới được độ lôi kiếp. Sử dụng: +50 HP tối đa vĩnh viễn (ăn càng nhiều càng chống đỡ thiên kiếp tốt). Mỗi người chỉ ăn tối đa 30 viên. Rã: 30 Linh Thạch.','突破築基之丹：需服足 5 顆方可渡雷劫。使用：永久 +50 最大生命（服越多越能抵擋天劫）。每人最多服 30 顆。分解：靈石 30。','突破筑基之丹：需服足 5 颗方可渡雷劫。使用：永久 +50 最大生命（服越多越能抵挡天劫）。每人最多服 30 颗。分解：灵石 30。'],
+ ['toast.tc.cap','Mỗi người chỉ được ăn tối đa {n} Trúc Cơ Đan','每人最多只能服 {n} 顆築基丹','每人最多只能服 {n} 颗筑基丹'],
+ ['toast.tc.need','Cần ăn đủ {n} Trúc Cơ Đan mới được độ kiếp (đã ăn {h}/{n})','需服足 {n} 顆築基丹方可渡劫（已服 {h}/{n}）','需服足 {n} 颗筑基丹方可渡劫（已服 {h}/{n}）'],
+ ['toast.tc.root','Cần đủ 5 hệ linh căn đạt {n} mới được độ kiếp','五行靈根需各達 {n} 方可渡劫','五行灵根需各达 {n} 方可渡劫'],
+ ['toast.tc.pill','Trúc Cơ Đan: +{n} HP tối đa vĩnh viễn (đã ăn {a}/{b})','築基丹：永久 +{n} 最大生命（已服 {a}/{b}）','筑基丹：永久 +{n} 最大生命（已服 {a}/{b}）'],
+ ['toast.tc.start','Lôi kiếp giáng xuống!','雷劫降臨！','雷劫降临！'],
+ ['tc.pill','Trúc Cơ Đan đã ăn: {a} (cần tối thiểu {b}, tối đa {c})','已服築基丹：{a}（至少 {b}，最多 {c}）','已服筑基丹：{a}（至少 {b}，最多 {c}）'],
+ ['tc.root','Linh căn: {a}/5 hệ đạt {n}','靈根：{a}/5 系達 {n}','灵根：{a}/5 系达 {n}'],
+ ['tc.info','Thiên kiếp khó lường, thành bại do trời. Sét giáng là sát thương thật; người, linh thú và quái ở gần chịu sát thương gấp 10 lần người độ kiếp — hãy tránh xa mọi người. Thành công: sức mạnh ×{x} (HP, công, thủ, linh lực); châu đã nuốt về 0/{c} nhưng chỉ số giữ nguyên để cộng dồn. Thất bại: trọng thương (HP còn 30%).','天劫難測，成敗由天。雷擊為真實傷害；附近的人、靈獸與怪物承受十倍傷害——請遠離他人。成功：實力 ×{x}（生命、攻、防、靈力）；已吞靈珠歸 0/{c}，屬性保留並可累加。失敗：身受重傷（生命剩 30%）。','天劫难测，成败由天。雷击为真实伤害；附近的人、灵兽与怪物承受十倍伤害——请远离他人。成功：实力 ×{x}（生命、攻、防、灵力）；已吞灵珠归 0/{c}，属性保留并可累加。失败：身受重伤（生命剩 30%）。'],
  ['tc.btn','Độ lôi kiếp Trúc Cơ','渡築基雷劫','渡筑基雷劫'],['tc.btn.on','Đang độ kiếp…','渡劫中…','渡劫中…'],
- ['tc.rate','Cơ hội thành công lần này: {p}%','本次成功率：{p}%','本次成功率：{p}%'],
- ['tc.hp','HP tối đa hiện tại: {a} · lôi kiếp giáng tổng {t} HP','目前最大生命：{a} · 雷劫總傷害 {t}','目前最大生命：{a} · 雷劫总伤害 {t}'],
- ['tc.info','Lôi kiếp kéo dài {m} phút: {s} đạo sét, mỗi đạo ~{e} HP (sát thương thật, không né, không giảm bởi giáp). Hết hạn mà còn sống mới có cơ hội thành công. Thành công: sức mạnh ×{x} (HP, công, thủ, linh lực), ngũ hành về 0/{N} nhưng chỉ số giữ nguyên. Thất bại: trọng thương (HP còn 30%) và phải ăn lại đủ đan.','雷劫持續 {m} 分鐘：{s} 道雷，每道約 {e} 生命（真實傷害，無法閃避，不受護甲減免）。時間到仍存活才有機會成功。成功：實力 ×{x}（生命、攻、防、靈力），五行歸 0/{N} 但屬性保留。失敗：身受重傷（生命剩 30%），需重新服足丹藥。','雷劫持续 {m} 分钟：{s} 道雷，每道约 {e} 生命（真实伤害，无法闪避，不受护甲减免）。时间到仍存活才有机会成功。成功：实力 ×{x}（生命、攻、防、灵力），五行归 0/{N} 但属性保留。失败：身受重伤（生命剩 30%），需重新服足丹药。'],
  ['tc.up.btn','Đột phá {name}','突破 {name}','突破 {name}'],
  ['tc.mul','Mỗi tầng Trúc Cơ: sức mạnh ×{m}','每層築基：實力 ×{m}','每层筑基：实力 ×{m}'],
  ['tc.max','Trúc Cơ hậu kỳ — tạm thời đến đây.','築基後期——暫時到此。','筑基后期——暂时到此。'],

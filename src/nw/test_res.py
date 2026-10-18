@@ -109,7 +109,7 @@ def run3():
         pg.click('#bagStage .it[data-n="lt"]',force=True); pg.wait_for_timeout(200)
         ok(pg.is_disabled('#biDec') and pg.is_disabled('#biUse'),'Linh Thạch: chưa rã/dùng được')
         pg.evaluate("TTBag.close()")
-        pg.evaluate("G.cult.r.moc=100;G.loot['nl.cay_coi']=1;G.lootUI()"); pg.evaluate("document.getElementById('bagBtn').click()"); pg.evaluate("TTBag.openTab('T')"); pg.wait_for_timeout(300)
+        pg.evaluate("G.cult.r.moc=G.rNeed();G.loot['nl.cay_coi']=1;G.lootUI()"); pg.evaluate("document.getElementById('bagBtn').click()"); pg.evaluate("TTBag.openTab('T')"); pg.wait_for_timeout(300)
         pg.click('#bagStage .it[data-n="nl.cay_coi"]',force=True); pg.click('#biUse'); pg.wait_for_timeout(200)
         ok(pg.evaluate("G.loot['nl.cay_coi']")==1 and 'đã đầy' in pg.inner_text('#toast'),'hệ đã đầy → không tiêu nguyên liệu')
         pg.evaluate("TTBag.close()")

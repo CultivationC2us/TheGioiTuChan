@@ -314,7 +314,7 @@ var DAN={'dan.tukhi':{qi:100},'dan.trucco':{qi:0,hp:50}};                       
 var RECIPES={'dp.tukhi':{verb:'alc',list:[{out:'dan.tukhi',ing:[['@herb1',3],['lt',1]]}]},'dp.trucco':{verb:'alc',list:[{out:'dan.trucco',ing:[['@herb2',5],['@herb3',2],['lt',30]]}]}};
 /* TRÚC CƠ: cần ăn đủ need viên Trúc Cơ Đan (mỗi viên +hpPer HP tối đa vĩnh viễn) → độ lôi kiếp dur giây, strikes đạo sét, tổng total HP sát thương thật.
    Thành công p (lần đầu pFirst). Sau đột phá: sức mạnh ×mul (sơ kỳ), mỗi tầng sau ×tier; ngũ hành reset 0, chỉ số giữ. qi = tu vi cần sơ→trung, trung→hậu. */
-var TC={need:5,hpPer:50,dur:120,strikes:40,total:1500,pFirst:.01,p:.5,mul:1.6,tier:1.4,qi:[40000,80000]};   /* '@herb1' = thảo dược bậc 1 bất kỳ */
+var TC={need:5,hpPer:50,dur:120,strikes:40,total:1500,pFirst:.01,p:.5,mul:1.6,tier:1.4,qi:[40000,80000],cap:30,root:[300,900],pcap:20};   /* '@herb1' = thảo dược bậc 1 bất kỳ */
 /* RECIPES.cg.vukhi gán sau khi có FORGE */
 var AFF=[['moc','thuy'],['hoa','tho','kim'],['kim','tho','hoa'],null,null,null,['hoa','tho','kim'],['thuy','moc'],['kim','thuy'],['moc','thuy']];   /* hệ ưa thích theo địa hình: cỏ(0) · cát(1) · đá(2) */  /* đan phương: không mất khi dùng */
 var WATK={1:4,2:9,3:16}, WLS={1:8,2:25,3:60};   /* sát thương cộng thêm và Linh Thạch khi rã, theo phẩm */
@@ -549,25 +549,25 @@ var S=[ /* chuỗi giao diện mới: [vi, zh-Hant, zh-Hans] */
  ['item.dp.trucco','Đan Phương: Trúc Cơ Đan','丹方：築基丹','丹方：筑基丹'],
  ['itemdesc.dp.trucco','Công thức luyện Trúc Cơ Đan (5 thảo dược bậc 2 bất kỳ + 2 thảo dược bậc 3 bất kỳ + 30 Linh Thạch). Bấm Sử dụng để mở lò luyện. Không mất sau khi dùng.','築基丹的煉製丹方（任意 5 株二階草藥 + 2 株三階草藥 + 30 靈石）。點擊使用開爐煉丹。使用後不會消失。','筑基丹的炼制丹方（任意 5 株二阶草药 + 2 株三阶草药 + 30 灵石）。点击使用开炉炼丹。使用后不会消失。'],
  ['item.dan.trucco','Trúc Cơ Đan','築基丹','筑基丹'],
- ['itemdesc.dan.trucco','Đan để đột phá Trúc Cơ: cần ăn đủ 5 viên mới được độ lôi kiếp. Sử dụng: +50 HP tối đa vĩnh viễn (ăn càng nhiều càng dễ chống đỡ thiên kiếp). Rã: 30 Linh Thạch.','突破築基之丹：需服足 5 顆方可渡雷劫。使用：永久 +50 最大生命（服越多越能抵擋天劫）。分解：靈石 30。','突破筑基之丹：需服足 5 颗方可渡雷劫。使用：永久 +50 最大生命（服越多越能抵挡天劫）。分解：灵石 30。'],
  ['alc.herb2','Thảo dược bậc 2 (bất kỳ)','二階草藥（任意）','二阶草药（任意）'],['alc.herb3','Thảo dược bậc 3 (bất kỳ)','三階草藥（任意）','三阶草药（任意）'],
  ['alc.out.hp','{name}: +{hp} HP tối đa vĩnh viễn','{name}：永久 +{hp} 最大生命','{name}：永久 +{hp} 最大生命'],
  ['toast.tc.recipe','Luyện Khí viên mãn! Bạn nhận được Đan Phương Trúc Cơ Đan','練氣圓滿！獲得築基丹丹方','练气圆满！获得筑基丹丹方'],
- ['toast.tc.need','Cần ăn đủ {n} Trúc Cơ Đan mới được độ kiếp (đã ăn {h}/{n})','需服足 {n} 顆築基丹方可渡劫（已服 {h}/{n}）','需服足 {n} 颗筑基丹方可渡劫（已服 {h}/{n}）'],
- ['toast.tc.pill','Trúc Cơ Đan: +{n} HP tối đa vĩnh viễn ({a}/{b} viên cho kiếp này)','築基丹：永久 +{n} 最大生命（本次劫 {a}/{b} 顆）','筑基丹：永久 +{n} 最大生命（本次劫 {a}/{b} 颗）'],
  ['toast.tc.busy','Đang độ kiếp, không thể dùng đan','正在渡劫，無法服丹','正在渡劫，无法服丹'],
- ['toast.tc.start','Lôi kiếp giáng xuống! Hãy trụ vững 2 phút!','雷劫降臨！堅持兩分鐘！','雷劫降临！坚持两分钟！'],
  ['toast.tc.up','Đột phá thành công: {name}! Sức mạnh ×{m}','突破成功：{name}！實力 ×{m}','突破成功：{name}！实力 ×{m}'],
- ['kie.bar','⚡ Lôi kiếp {t} · {d}/{m} HP','⚡ 雷劫 {t} · {d}/{m} 生命','⚡ 雷劫 {t} · {d}/{m} 生命'],
  ['kie.ok','ĐỘ KIẾP THÀNH CÔNG!<br>{name} · sức mạnh ×{m}<br><small>Ngũ hành về 0, chỉ số giữ nguyên</small>','渡劫成功！<br>{name} · 實力 ×{m}<br><small>五行歸零，屬性保留</small>','渡劫成功！<br>{name} · 实力 ×{m}<br><small>五行归零，属性保留</small>'],
  ['kie.fail.fate','ĐỘ KIẾP THẤT BẠI<br><small>Đạo tâm chưa vững — trọng thương, cần ăn đủ đan để thử lại</small>','渡劫失敗<br><small>道心未穩——身受重傷，需重新服足丹藥再試</small>','渡劫失败<br><small>道心未稳——身受重伤，需重新服足丹药再试</small>'],
  ['kie.fail.dead','KHÔNG CHỐNG NỔI LÔI KIẾP<br><small>Cần thêm HP — ăn thêm Trúc Cơ Đan rồi thử lại</small>','未能抵擋雷劫<br><small>需要更多生命——多服築基丹再試</small>','未能抵挡雷劫<br><small>需要更多生命——多服筑基丹再试</small>'],
  ['tc.h','Đột phá Trúc Cơ','突破築基','突破筑基'],
- ['tc.pill','Trúc Cơ Đan đã ăn cho kiếp này: {a}/{b}','本次劫已服築基丹：{a}/{b}','本次劫已服筑基丹：{a}/{b}'],
+ ['itemdesc.dan.trucco','Đan để đột phá Trúc Cơ: cần ăn đủ 5 viên mới được độ lôi kiếp. Sử dụng: +50 HP tối đa vĩnh viễn (ăn càng nhiều càng chống đỡ thiên kiếp tốt). Mỗi người chỉ ăn tối đa 30 viên. Rã: 30 Linh Thạch.','突破築基之丹：需服足 5 顆方可渡雷劫。使用：永久 +50 最大生命（服越多越能抵擋天劫）。每人最多服 30 顆。分解：靈石 30。','突破筑基之丹：需服足 5 颗方可渡雷劫。使用：永久 +50 最大生命（服越多越能抵挡天劫）。每人最多服 30 颗。分解：灵石 30。'],
+ ['toast.tc.cap','Mỗi người chỉ được ăn tối đa {n} Trúc Cơ Đan','每人最多只能服 {n} 顆築基丹','每人最多只能服 {n} 颗筑基丹'],
+ ['toast.tc.need','Cần ăn đủ {n} Trúc Cơ Đan mới được độ kiếp (đã ăn {h}/{n})','需服足 {n} 顆築基丹方可渡劫（已服 {h}/{n}）','需服足 {n} 颗筑基丹方可渡劫（已服 {h}/{n}）'],
+ ['toast.tc.root','Cần đủ 5 hệ linh căn đạt {n} mới được độ kiếp','五行靈根需各達 {n} 方可渡劫','五行灵根需各达 {n} 方可渡劫'],
+ ['toast.tc.pill','Trúc Cơ Đan: +{n} HP tối đa vĩnh viễn (đã ăn {a}/{b})','築基丹：永久 +{n} 最大生命（已服 {a}/{b}）','筑基丹：永久 +{n} 最大生命（已服 {a}/{b}）'],
+ ['toast.tc.start','Lôi kiếp giáng xuống!','雷劫降臨！','雷劫降临！'],
+ ['tc.pill','Trúc Cơ Đan đã ăn: {a} (cần tối thiểu {b}, tối đa {c})','已服築基丹：{a}（至少 {b}，最多 {c}）','已服筑基丹：{a}（至少 {b}，最多 {c}）'],
+ ['tc.root','Linh căn: {a}/5 hệ đạt {n}','靈根：{a}/5 系達 {n}','灵根：{a}/5 系达 {n}'],
+ ['tc.info','Thiên kiếp khó lường, thành bại do trời. Sét giáng là sát thương thật; người, linh thú và quái ở gần chịu sát thương gấp 10 lần người độ kiếp — hãy tránh xa mọi người. Thành công: sức mạnh ×{x} (HP, công, thủ, linh lực); châu đã nuốt về 0/{c} nhưng chỉ số giữ nguyên để cộng dồn. Thất bại: trọng thương (HP còn 30%).','天劫難測，成敗由天。雷擊為真實傷害；附近的人、靈獸與怪物承受十倍傷害——請遠離他人。成功：實力 ×{x}（生命、攻、防、靈力）；已吞靈珠歸 0/{c}，屬性保留並可累加。失敗：身受重傷（生命剩 30%）。','天劫难测，成败由天。雷击为真实伤害；附近的人、灵兽与怪物承受十倍伤害——请远离他人。成功：实力 ×{x}（生命、攻、防、灵力）；已吞灵珠归 0/{c}，属性保留并可累加。失败：身受重伤（生命剩 30%）。'],
  ['tc.btn','Độ lôi kiếp Trúc Cơ','渡築基雷劫','渡筑基雷劫'],['tc.btn.on','Đang độ kiếp…','渡劫中…','渡劫中…'],
- ['tc.rate','Cơ hội thành công lần này: {p}%','本次成功率：{p}%','本次成功率：{p}%'],
- ['tc.hp','HP tối đa hiện tại: {a} · lôi kiếp giáng tổng {t} HP','目前最大生命：{a} · 雷劫總傷害 {t}','目前最大生命：{a} · 雷劫总伤害 {t}'],
- ['tc.info','Lôi kiếp kéo dài {m} phút: {s} đạo sét, mỗi đạo ~{e} HP (sát thương thật, không né, không giảm bởi giáp). Hết hạn mà còn sống mới có cơ hội thành công. Thành công: sức mạnh ×{x} (HP, công, thủ, linh lực), ngũ hành về 0/{N} nhưng chỉ số giữ nguyên. Thất bại: trọng thương (HP còn 30%) và phải ăn lại đủ đan.','雷劫持續 {m} 分鐘：{s} 道雷，每道約 {e} 生命（真實傷害，無法閃避，不受護甲減免）。時間到仍存活才有機會成功。成功：實力 ×{x}（生命、攻、防、靈力），五行歸 0/{N} 但屬性保留。失敗：身受重傷（生命剩 30%），需重新服足丹藥。','雷劫持续 {m} 分钟：{s} 道雷，每道约 {e} 生命（真实伤害，无法闪避，不受护甲减免）。时间到仍存活才有机会成功。成功：实力 ×{x}（生命、攻、防、灵力），五行归 0/{N} 但属性保留。失败：身受重伤（生命剩 30%），需重新服足丹药。'],
  ['tc.up.btn','Đột phá {name}','突破 {name}','突破 {name}'],
  ['tc.mul','Mỗi tầng Trúc Cơ: sức mạnh ×{m}','每層築基：實力 ×{m}','每层筑基：实力 ×{m}'],
  ['tc.max','Trúc Cơ hậu kỳ — tạm thời đến đây.','築基後期——暫時到此。','筑基后期——暂时到此。'],
@@ -847,7 +847,7 @@ function lootUI(){const e=document.getElementById('loot');const k=Object.keys(lo
 
 /* ---------- TÀI NGUYÊN · NGŨ HÀNH · LINH CĂN ---------- */
 const TD=window.TTData,RMETA={"cay_coi":[[45,0,46,50,-23.0,-50],[0,0,44,51,-21.7,-51],[32,52,34,37,-15.2,-37],[318,149,26,18,-13.0,-18]],"cay_cao":[[92,0,46,50,-22.7,-50],[210,0,44,48,-21.4,-48],[0,91,31,29,-13.4,-29],[262,149,24,19,-12.0,-19]],"tre":[[139,0,34,50,-16.7,-50],[174,0,35,50,-16.4,-50],[67,52,29,34,-13.6,-34],[242,149,19,20,-9.5,-20]],"go_dac_biet":[[302,0,42,39,-20.1,-39],[255,0,46,42,-23.6,-42],[56,149,29,24,-14.0,-24],[225,121,27,26,-13.5,-26]],"da_linh":[[121,52,37,34,-18.3,-34],[0,52,31,38,-15.9,-38],[253,121,31,26,-16.3,-26],[183,149,27,22,-13.5,-22]],"thuoc_hiem":[[97,52,23,34,-11.2,-34],[317,52,23,30,-11.1,-30],[202,121,22,26,-8.7,-26],[164,149,18,22,-9.0,-22]],"co_linh_chi":[[170,121,31,26,-15.9,-26],[52,121,31,27,-15.3,-27],[159,52,28,32,-13.8,-32],[144,149,19,22,-9.5,-22]],"hoa_linh":[[285,52,31,30,-16.0,-30],[188,52,31,31,-16.8,-31],[116,91,26,29,-12.1,-29],[143,91,18,29,-9.0,-29]],"linh_thach":[[220,52,34,30,-16.8,-30],[84,121,32,26,-15.6,-26],[287,149,30,19,-15.4,-19],[86,149,24,23,-12.0,-23]],"thao_quy":[[314,91,28,27,-13.4,-27],[255,52,29,30,-13.2,-30],[0,121,27,27,-12.2,-27],[28,121,23,27,-11.5,-27]],"thao_duoc":[[32,91,31,29,-14.4,-29],[64,91,28,29,-16.1,-29],[117,121,24,26,-12.6,-26],[93,91,22,29,-11.0,-29]],"da":[[162,91,39,27,-19.4,-27],[202,91,38,27,-19.2,-27],[111,149,32,22,-14.9,-22],[0,149,31,24,-15.5,-24]],"quang_kim":[[241,91,36,27,-18.4,-27],[278,91,35,27,-16.7,-27],[211,149,30,21,-16.1,-21],[0,174,25,18,-12.5,-18]],"nam_linh_chi":[[142,121,27,26,-12.5,-26],[285,121,25,25,-11.7,-25],[32,149,23,24,-11.0,-24],[311,121,17,25,-8.5,-25]],"thanh_linh_moc":[[24,193,28,34,-13.6,-34],[53,193,23,34,-11.7,-34],[0,193,23,36,-10.5,-36],[165,263,20,31,-10.0,-31]],"thuy_tinh_thao":[[197,193,25,33,-11.9,-33],[77,193,23,34,-10.6,-34],[223,193,22,33,-10.2,-33],[186,263,21,31,-10.5,-31]],"han_bang_thao":[[246,193,26,33,-10.9,-33],[101,193,23,34,-11.7,-34],[152,230,22,32,-10.0,-32],[0,327,20,29,-10.0,-29]],"dia_tam_thao":[[329,263,26,31,-12.2,-31],[315,230,24,32,-11.2,-32],[125,193,24,34,-11.2,-34],[0,295,20,31,-10.0,-31]],"tuyet_lien":[[126,230,25,32,-12.4,-32],[150,193,24,33,-11.6,-33],[175,193,21,33,-9.0,-33],[333,295,20,29,-10.0,-29]],"thuy_linh_thach":[[208,263,22,31,-10.6,-31],[175,230,21,32,-9.7,-32],[273,193,22,33,-9.1,-33],[232,327,19,28,-9.5,-28]],"hoa_linh_chi":[[255,263,27,31,-13.1,-31],[116,295,25,30,-11.1,-30],[296,193,23,33,-10.1,-33],[84,357,21,24,-10.5,-24]],"kim_ngan_hoa":[[320,193,23,32,-10.5,-32],[0,263,23,31,-11.2,-31],[24,263,21,31,-10.1,-31],[111,327,21,28,-10.5,-28]],"bach_kim_thao":[[0,230,26,32,-12.4,-32],[46,263,21,31,-10.3,-31],[69,295,24,30,-11.4,-30],[323,327,20,27,-10.0,-27]],"huyen_thiet_thao":[[27,230,24,32,-12.0,-32],[94,295,21,30,-9.9,-30],[68,263,21,31,-10.1,-31],[0,357,20,27,-10.0,-27]],"tinh_kim_thach":[[90,263,22,31,-10.2,-31],[52,230,20,32,-8.6,-32],[73,230,23,32,-11.2,-32],[263,295,21,29,-10.5,-29]],"cuu_diep_linh_chi":[[97,230,28,32,-12.7,-32],[113,263,25,31,-12.0,-31],[139,263,25,31,-11.9,-31],[106,357,20,20,-10.0,-20]],"hoa_lien":[[252,327,26,28,-12.4,-28],[197,230,24,32,-11.1,-32],[231,263,23,31,-9.9,-31],[279,327,21,28,-10.5,-28]],"huyet_linh_thao":[[222,230,22,32,-10.8,-32],[245,230,23,32,-11.1,-32],[283,263,22,31,-10.7,-31],[42,357,20,27,-10.0,-27]],"hoa_tinh_thach":[[142,295,24,30,-11.3,-30],[167,295,22,30,-10.0,-30],[269,230,21,32,-10.0,-32],[21,327,21,29,-10.5,-29]],"hoang_tinh_thao":[[291,230,23,32,-10.1,-32],[306,263,22,31,-10.4,-31],[301,327,21,28,-9.5,-28],[43,327,19,29,-9.5,-29]],"tho_linh_chi":[[190,295,26,30,-11.3,-30],[63,327,25,29,-11.5,-29],[21,295,23,31,-9.8,-31],[127,357,23,20,-11.5,-20]],"hoang_tho_thach":[[217,295,23,30,-11.7,-30],[241,295,21,30,-10.7,-30],[45,295,23,31,-10.8,-31],[89,327,21,29,-10.5,-29]],"ngoc_linh_thao":[[203,327,28,28,-13.5,-28],[285,295,25,29,-12.2,-29],[311,295,21,29,-9.6,-29],[21,357,20,27,-10.0,-27]],"thanh_tam_thao":[[133,327,24,28,-11.5,-28],[158,327,22,28,-10.1,-28],[181,327,21,28,-9.8,-28],[63,357,20,26,-10.0,-26]]};
-const cult={r:{kim:0,moc:0,thuy:0,hoa:0,tho:0},pl:{kim:[0,0,0],moc:[0,0,0],thuy:[0,0,0],hoa:[0,0,0],tho:[0,0,0]},aw:false,qi:0,rl:1,dpg:false,tc:0,tcn:0,tcd:0,tka:0,dp2:false,eq:{w:null,o:null,h:null,g:null,r:null,l:null,p:'bach_khuyen'},ins:{},bc:0,codes:0};
+const cult={r:{kim:0,moc:0,thuy:0,hoa:0,tho:0},pl:{kim:[0,0,0],moc:[0,0,0],thuy:[0,0,0],hoa:[0,0,0],tho:[0,0,0]},aw:false,qi:0,rl:1,dpg:false,tc:0,tcd:0,tka:0,dp2:false,pb:{kim:0,moc:0,thuy:0,hoa:0,tho:0},eq:{w:null,o:null,h:null,g:null,r:null,l:null,p:'bach_khuyen'},ins:{},bc:0,codes:0};
 const nodes=[],nodeCell=new Map(),respawnQ=[];   /* node: {g,x,y,h,gone,shk}; chia ô 4x4 để tìm nhanh */
 const ckey=n=>(n.x/TILE>>2)+','+(n.y/TILE>>2);
 function cellAdd(n){const k=ckey(n);let a=nodeCell.get(k);if(!a)nodeCell.set(k,a=[]);a.push(n);}
@@ -908,7 +908,7 @@ function harvest(t){ /* trả về true nếu trúng một nguồn tài nguyên 
 function refineEl(el){ /* nguyên liệu hệ el → điểm hệ el (tối đa NEED); trả về số điểm cộng */
   let gain=0;
   const list=TD.RES.filter(g=>g.el===el).sort((a,b)=>b.pts-a.pts);   /* dùng loại quý trước */
-  for(const g of list){while((loot[g.item]|0)>0&&cult.r[el]<TD.NEED){loot[g.item]--;if(!loot[g.item])delete loot[g.item];const add=Math.min(g.pts,TD.NEED-cult.r[el]);cult.r[el]+=add;gain+=add;}}
+  for(const g of list){while((loot[g.item]|0)>0&&cult.r[el]<rNeed()){loot[g.item]--;if(!loot[g.item])delete loot[g.item];const add=Math.min(g.pts,rNeed()-cult.r[el]);cult.r[el]+=add;gain+=add;}}
   if(gain){lootUI();toast(T('toast.refine',{n:gain,el:T('el.'+el)}));}else toast(T('toast.refine0',{el:T('el.'+el)}));
   return gain;
 }
@@ -916,8 +916,8 @@ function lootDec(n){loot[n]--;if(!(loot[n]>0)){delete loot[n];if(cult.eq.w===n){
 function itemInfo(n){const g=TD.byItem[n],m=TD.misc[n],p=pearlInfo(n);return {use:!!g||!!(p&&p.can)||!!TD.RECIPES[n]||!!TD.DAN[n]||!!TD.byWeapon[n]||!!TD.byOutfit[n]||!!TD.byMount[n]||!!TD.bookOf[n],dec:g?g.ls:(m?m.dec:0),pearl:p,fuse:!!(p&&p.next),keep:!!(m&&m.keep),recipe:!!TD.RECIPES[n],weapon:!!TD.byWeapon[n]||!!TD.byOutfit[n],outfit:!!TD.byOutfit[n],equipped:['w','o','h','g','r','l'].some(k=>cult.eq[k]===n),mount:!!TD.byMount[n],mounted:P.mt===n};}
 function useItem(n){ /* nguyên liệu: luyện hóa 1 cái vào hệ của nó */
   const g=TD.byItem[n];if(!g)return TD.byPearl[n]?swallow(n):TD.DAN[n]?eatDan(n):(TD.byWeapon[n]||TD.byOutfit[n])?equipToggle(n):TD.byMount[n]?rideToggle(n):TD.bookOf[n]?learnBook(n):TD.RECIPES[n]?true:false;if(!(loot[n]>0))return false;
-  if(cult.r[g.el]>=TD.NEED){toast(T('toast.full',{el:T('el.'+g.el)}));return false;}
-  const add=Math.min(g.pts,TD.NEED-cult.r[g.el]);cult.r[g.el]+=add;lootDec(n);lootUI();toast(T('toast.refine',{n:add,el:T('el.'+g.el)}));return true;}
+  if(cult.r[g.el]>=rNeed()){toast(T('toast.full',{el:T('el.'+g.el)}));return false;}
+  const add=Math.min(g.pts,rNeed()-cult.r[g.el]);cult.r[g.el]+=add;lootDec(n);lootUI();toast(T('toast.refine',{n:add,el:T('el.'+g.el)}));return true;}
 function decompose(n){const v=itemInfo(n).dec;if(!(loot[n]>0)||!(v>0))return false;lootDec(n);loot.lt=(loot.lt|0)+v;lootUI();toast(T('toast.dec',{name:I18N.itemName(n),n:v}));return true;}
 function dropItem(n){if(!(loot[n]>0)||(TD.misc[n]&&TD.misc[n].keep))return false;lootDec(n);const g=TD.byItem[n],t=now();
   drops.push({x:P.x+P.f*40,y:P.y-2,t0:t,n,ic:g?g.id:undefined,pa:t+1800,exp:t+60000});lootUI();toast(T('toast.drop',{name:I18N.itemName(n)}));return true;}
@@ -1075,6 +1075,9 @@ const realmNeed=l=>l>=TD.REALM.max?Infinity:TD.REALM.base*Math.pow(2,l-1);
 const tcM=()=>{const t=cult.tc|0;return t<1?1:TD.TC.mul*Math.pow(TD.TC.tier,t-1);};   /* Trúc Cơ: sơ kỳ ×1,6 (so với Luyện Khí 10), mỗi tầng sau ×1,4 */
 const realmMul=l=>l?Math.pow(TD.REALM.mul,l-1):Math.pow(TD.REALM.mul,cult.rl-1)*tcM();
 const qiNeed=()=>(cult.tc|0)>0?((cult.tc|0)>=3?Infinity:TD.TC.qi[(cult.tc|0)-1]):realmNeed(cult.rl);
+/* linh căn: chưa thức tỉnh 100/hệ → sau thức tỉnh 300 (điều kiện độ kiếp Trúc Cơ) → sau Trúc Cơ 900 (chuẩn bị Kết Đan) */
+const rNeed=()=>!cult.aw?TD.NEED:(cult.tc|0)>0?TD.TC.root[1]:TD.TC.root[0];
+const pcap=()=>(cult.tc|0)>0?TD.TC.pcap:TD.PCAP;   /* trần nuốt châu mỗi bậc: 10 → 20 sau Trúc Cơ */
 const realmName=()=>!cult.aw?T('j.asleep'):(cult.tc|0)>0?T('realm.tc'+cult.tc):T('realm.n',{n:cult.rl});
 const qiRate=()=>TD.REALM.rate+STT.qi;
 function qiTick(dt){
@@ -1099,8 +1102,9 @@ function eatDan(n){
   if(!cult.aw){toast(T('toast.dan.asleep'));return false;}
   if(d.hp){   /* Trúc Cơ Đan: +HP tối đa vĩnh viễn, tính vào số đan cần để độ kiếp */
     if(KIE.on){toast(T('toast.tc.busy'));return false;}
-    lootDec(n);cult.tcd=(cult.tcd|0)+1;if(!(cult.tc>0))cult.tcn=(cult.tcn|0)+1;recalc();lootUI();
-    toast(T('toast.tc.pill',{n:d.hp,a:cult.tcn|0,b:TD.TC.need}));return true;}
+    if((cult.tcd|0)>=TD.TC.cap){toast(T('toast.tc.cap',{n:TD.TC.cap}));return false;}   /* trần 30 viên/người: chống ăn vô hạn để phình HP */
+    lootDec(n);cult.tcd=(cult.tcd|0)+1;recalc();lootUI();
+    toast(T('toast.tc.pill',{n:d.hp,a:cult.tcd,b:TD.TC.cap}));return true;}
   if(cult.rl>=TD.REALM.max){toast(T('toast.dan.max'));return false;}
   if(cult.qi>=realmNeed(cult.rl)){toast(T('toast.dan.full'));return false;}
   lootDec(n);cult.qi+=d.qi;lootUI();toast(T('toast.dan',{name:I18N.itemName(n),n:d.qi}));return true;
@@ -1120,7 +1124,7 @@ function craft(rid,n,idx){
 
 function recalc(){
   gearStats();
-  const sum=el=>cult.pl[el].reduce((a,b)=>a+b,0),pe=TD.PEARL,rd=x=>Math.round(x*1000)/1000;
+  const sum=el=>cult.pl[el].reduce((a,b)=>a+b,0)+(cult.pb[el]|0),pe=TD.PEARL,rd=x=>Math.round(x*1000)/1000;
   STT.dmg=rd(sum('kim')*pe.kim.per);STT.hp=rd(sum('moc')*pe.moc.per);STT.red=Math.min(.6,rd(sum('tho')*pe.tho.per));STT.spd=rd(sum('hoa')*pe.hoa.per);STT.qi=rd(sum('thuy')*pe.thuy.per);
   if(cult.qi>qiNeed()+TD.DAN['dan.tukhi'].qi)cult.qi=qiNeed();
   P.maxMp=Math.round((60+12*((cult.rl|0)-1)+GS.mp)*tcM());P.mp=Math.min(P.mp,P.maxMp);
@@ -1258,9 +1262,9 @@ function drawHeld(t,atking,row,fr){
 function pearlInfo(item){
   const p=TD.byPearl[item];if(!p)return null;
   const arr=cult.pl[p.el],t=p.tier,done=arr[t-1];let can=true,reason='';
-  if(t>1&&arr[t-2]<TD.PCAP){can=false;reason='lock';}
-  else if(done>=TD.PCAP){can=false;reason=t<TD.PT?'cap':'max';}
-  return{el:p.el,tier:t,done,cap:TD.PCAP,can,reason,next:t<TD.PT?TD.pearlId(p.el,t+1):null};
+  if(t>1&&arr[t-2]<pcap()){can=false;reason='lock';}
+  else if(done>=pcap()){can=false;reason=t<TD.PT?'cap':'max';}
+  return{el:p.el,tier:t,done,cap:pcap(),can,reason,next:t<TD.PT?TD.pearlId(p.el,t+1):null};
 }
 function swallow(item){
   const i=pearlInfo(item);if(!i||!i.can||!(loot[item]>0))return false;
@@ -2323,7 +2327,10 @@ function learnBook(n){
 /* ---------- LÔI KIẾP · ĐỘT PHÁ TRÚC CƠ ----------
    Bấm "Độ lôi kiếp" (cần ăn đủ TC.need Trúc Cơ Đan) → mây kiếp kéo tới, TC.strikes đạo sét giáng đều trong TC.dur giây,
    tổng đúng TC.total HP sát thương thật (37/38 HP mỗi đạo). Sống sót + qua phép thử may rủi (lần đầu 1%, sau 50%) → lên Trúc Cơ.
+   Điều kiện: ăn đủ TC.need đan (tối đa TC.cap) + 5 hệ linh căn đạt TC.root[0]. Thông tin kiếp (thời gian, tổng sát thương) là bí mật thiên đạo — không hiện cho người chơi.
+   Sét giáng gây sát thương gấp 10 lần cho quái / NPC / linh thú trong phạm vi quanh người độ kiếp.
    Hình ảnh: mây (hàng 1), sét giật (2), sét lan (3), vòng lôi điện (4) — từ ảnh người dùng, đã xoá nền (kie/extract.py). */
+const KIE_R=110;   /* bán kính sét lan (px thế giới) */
 const KIE={on:false,t0:0,fate:false,i:0,dealt:0,fx:[],flash:0,endT:-1e9};
 const kieChance=()=>(cult.tka|0)?TD.TC.p:TD.TC.pFirst;
 const kieDmg=i=>Math.round(TD.TC.total*(i+1)/TD.TC.strikes)-Math.round(TD.TC.total*i/TD.TC.strikes);   /* tổng các đạo = đúng total */
@@ -2331,12 +2338,10 @@ const kieDom=(()=>{
   const st=document.createElement('style');st.textContent=
    '#kieVeil{position:fixed;inset:0;z-index:18;pointer-events:none;background:radial-gradient(ellipse at 50% 45%,#0a0c2a55,#05061ccc);opacity:0;transition:opacity 1.2s}#kieVeil.on{opacity:1}'+
    '#kieFlash{position:fixed;inset:0;z-index:19;pointer-events:none;background:#dfe8ff;opacity:0;transition:opacity .45s}'+
-   '#kieBar{position:fixed;z-index:45;left:50%;top:calc(env(safe-area-inset-top,0px) + 152px);transform:translateX(-50%);min-width:250px;padding:5px 12px 7px;border:2px solid #b9c8ff;border-radius:10px;background:#0b0f33dd;color:#e6edff;font:900 15px/1.2 system-ui,sans-serif;text-align:center;display:none;pointer-events:none;box-shadow:0 0 14px #6c86ff99}'+
-   '#kieBar i{display:block;height:7px;margin-top:5px;border-radius:4px;background:#1a2260;overflow:hidden}#kieBar i b{display:block;height:100%;width:0;background:linear-gradient(90deg,#7fa6ff,#fff)}'+
    '#kieBan{position:fixed;z-index:60;left:50%;top:38%;transform:translate(-50%,-50%) scale(.9);max-width:86vw;text-align:center;font:900 28px/1.35 system-ui,sans-serif;color:#fff;text-shadow:0 0 12px #6c86ff,0 2px 3px #000;opacity:0;transition:opacity .6s,transform .6s;pointer-events:none}#kieBan.on{opacity:1;transform:translate(-50%,-50%) scale(1)}#kieBan small{display:block;font-size:15px;font-weight:700;color:#d6defd;margin-top:6px}#kieBan.bad{color:#ffb4b4}';
   document.head.appendChild(st);
   const mk=(id)=>{const d=document.createElement('div');d.id=id;document.body.appendChild(d);return d;};
-  return{veil:mk('kieVeil'),flash:mk('kieFlash'),bar:mk('kieBar'),ban:mk('kieBan')};
+  return{veil:mk('kieVeil'),flash:mk('kieFlash'),ban:mk('kieBan')};
 })();
 let kieBanT=0;
 function kieBanner(ok,why){
@@ -2346,15 +2351,18 @@ function kieBanner(ok,why){
 }
 function kieStart(){
   if(KIE.on||!cult.aw||cult.rl<TD.REALM.max||cult.tc>0||P.dead)return false;
-  if((cult.tcn|0)<TD.TC.need){toast(T('toast.tc.need',{n:TD.TC.need,h:cult.tcn|0}));return false;}
+  if((cult.tcd|0)<TD.TC.need){toast(T('toast.tc.need',{n:TD.TC.need,h:cult.tcd|0}));return false;}
+  if(!TD.EL.every(e=>cult.r[e.id]>=TD.TC.root[0])){toast(T('toast.tc.root',{n:TD.TC.root[0]}));return false;}
   if(AUTO.on){AUTO.on=false;autoLabel();}
   Object.assign(KIE,{on:true,t0:now(),fate:Math.random()<kieChance(),i:0,dealt:0,fx:[],flash:0});
-  cult.tka=(cult.tka|0)+1;cult.tcn=0;      /* đan đã dùng cho lần độ kiếp này; đóng trang giữa chừng cũng tính một lần thử */
-  kieDom.veil.classList.add('on');kieDom.bar.style.display='block';toast(T('toast.tc.start'));return true;
+  cult.tka=(cult.tka|0)+1;      /* đóng trang giữa chừng cũng tính một lần thử */
+  kieDom.veil.classList.add('on');toast(T('toast.tc.start'));return true;
 }
 function kieEnd(ok,why){
-  KIE.on=false;KIE.endT=now();kieDom.veil.classList.remove('on');kieDom.bar.style.display='none';
-  if(ok){cult.tc=1;cult.qi=0;cult.tcn=0;TD.EL.forEach(e=>{cult.r[e.id]=0;});recalc();P.hp=P.maxHp;P.mp=P.maxMp;}
+  KIE.on=false;KIE.endT=now();kieDom.veil.classList.remove('on');
+  if(ok){cult.tc=1;cult.qi=0;
+    TD.EL.forEach(e=>{cult.pb[e.id]=(cult.pb[e.id]|0)+cult.pl[e.id].reduce((a,b)=>a+b,0);cult.pl[e.id]=[0,0,0];});   /* châu đã nuốt về 0/20 nhưng chỉ số giữ lại (cộng dồn); linh căn giữ nguyên, trần lên 900 */
+    recalc();P.hp=P.maxHp;P.mp=P.maxMp;}
   else if(!P.dead){P.hp=Math.max(1,Math.round(P.maxHp*.3));}
   kieBanner(ok,why);
 }
@@ -2362,7 +2370,11 @@ function kieStrike(d){
   const t=now();
   P.hp-=d;KIE.dealt+=d;P.hurtT=t;floaters.push({x:P.x,y:P.y-34,t0:t,s:'⚡-'+d,c:'#cfe0ff'});
   KIE.fx.push({k:'b',x:P.x,y:P.y+4,t0:t,dur:640,sc:.95},{k:'s',x:P.x,y:P.y+6,t0:t,dur:560,sc:.85});
-  for(let j=0;j<2;j++){const a=Math.random()*6.283,r=55+Math.random()*70;KIE.fx.push({k:'b',x:P.x+Math.cos(a)*r,y:P.y+Math.sin(a)*r*.55,t0:t+Math.random()*160,dur:600,sc:.55+Math.random()*.3});}
+  const d10=d*10,R=KIE_R,hit=(x,y)=>Math.hypot(x-P.x,(y-P.y)*1.4)<R;   /* ai đứng gần chịu gấp 10 lần: quái, NPC, linh thú */
+  for(const m of mons2)if(monAlive(m)&&hit(m.x,m.y))monHit(m,d10);
+  for(const n of NPCS)if(n.st!=='dead'&&hit(n.x,n.y)){n.hp=Math.max(0,n.hp-d10);n.flash=t;floaters.push({x:n.x,y:n.y-34,t0:t,s:'⚡'+d10,c:'#cfe0ff'});if(n.hp<=0)npcDie(n,'sky');}
+  for(const o of petObjs.concat([dog]))if(hit(o.x,o.y)){o.hurtT=t;floaters.push({x:o.x,y:o.y-24,t0:t,s:'⚡'+d10,c:'#e6c8ff'});}
+  for(let j=0;j<2;j++){const a=Math.random()*6.283,r=30+Math.random()*70;KIE.fx.push({k:'b',x:P.x+Math.cos(a)*r,y:P.y+Math.sin(a)*r*.55,t0:t+Math.random()*160,dur:600,sc:.55+Math.random()*.3});}
   kieDom.flash.style.transition='none';kieDom.flash.style.opacity=.5;requestAnimationFrame(()=>{kieDom.flash.style.transition='opacity .45s';kieDom.flash.style.opacity=0;});
   if(P.hp<=0){P.hp=1;kieEnd(false,'dead');}
 }
@@ -2372,8 +2384,6 @@ function kieUpdate(dt){
   if(P.dead){kieEnd(false,'dead');return;}
   while(KIE.on&&KIE.i<C.strikes&&el>=iv*KIE.i+iv/2){const d=kieDmg(KIE.i);KIE.i++;kieStrike(d);}
   if(!KIE.on)return;
-  const left=Math.max(0,C.dur*1000-el),s=Math.ceil(left/1000);
-  kieDom.bar.innerHTML=T('kie.bar',{t:Math.floor(s/60)+':'+String(s%60).padStart(2,'0'),d:KIE.dealt,m:C.total})+'<i><b style="width:'+Math.min(100,el/(C.dur*10))+'%"></b></i>';
   if(el>=C.dur*1000)kieEnd(KIE.fate,'fate');
 }
 function drawKie(t){
@@ -2647,7 +2657,7 @@ function loop(n){const dt=Math.min(.05,(n-last)/1000);last=n;if(window.__pause){
 requestAnimationFrame(loop);
 function catIcon(s){const f=CATM['idle_1'],c=document.createElement('canvas');c.width=f[2]*s/3|0||16;c.height=f[3]*s/3|0||16;const x=c.getContext('2d');x.imageSmoothingEnabled=true;if(IMG.cat&&IMG.cat.complete)x.drawImage(IMG.cat,f[0],f[1],f[2],f[3],0,0,c.width,c.height);return c;}
 function dogIcon(s){const c=document.createElement('canvas');c.width=26*s/3|0||26;c.height=24*s/3|0||24;const x=c.getContext('2d');x.imageSmoothingEnabled=true;if(IMG.dog&&IMG.dog.complete)x.drawImage(IMG.dog,0,0,64,59,0,0,c.width,c.height);return c;}
-window.G={realmName,KIE,kieChance,qiNeed,BIO,TRIBES,LAIRS,DECO,tdist,isCliff,hitNpcs,npcHurt,catIcon,critP,cdmgV,castSkill,skFx,skCd,MMETA,UIA:window.UIA,rankStat,npcRank,DRG,withDr,NPCS,npcShop,dogIcon,GS,setEq,awakenGear,awakeCost,gearRec,gearBase,lineText,saveEq,loadEq,atkCd,regIns,mkGear,baseId,OF,rideToggle,dismount,flyToggle,dashGo,MTM,P,M:M0,dog,fx:()=>fxs,drops,update,draw,tiles,cam,now,attack,setSt,mHit,DR,loot,SPAWN,LAKE,HOME,toast,keys,joy,lootUI,stats,cult,nodes,IMG,redeem,breakthrough,craft,ingHave,equipToggle,wAtk,bagUsed,bagFree,itemSize,defVal,BAG:()=>({cap:TD.BAG.cap+(cult.bc|0)+GS.bag}),craftMax,realmNeed,realmMul,qiRate,respawnQ,S:STT,recalc,pearlInfo,swallow,fuse,mons2,MD,petObjs,PETS,addPet,setPets,tameRoll,AUTO,setAuto,monHit,fx2,projs,setTameP:v=>{TAME_P=v;},useItem,decompose,dropItem,itemInfo,RES:TD.RES,TD,RMETA,harvest,refineEl,awaken,canAwake,iconCanvas,nodesNear};
+window.G={rNeed,pcap,realmName,KIE,kieChance,qiNeed,BIO,TRIBES,LAIRS,DECO,tdist,isCliff,hitNpcs,npcHurt,catIcon,critP,cdmgV,castSkill,skFx,skCd,MMETA,UIA:window.UIA,rankStat,npcRank,DRG,withDr,NPCS,npcShop,dogIcon,GS,setEq,awakenGear,awakeCost,gearRec,gearBase,lineText,saveEq,loadEq,atkCd,regIns,mkGear,baseId,OF,rideToggle,dismount,flyToggle,dashGo,MTM,P,M:M0,dog,fx:()=>fxs,drops,update,draw,tiles,cam,now,attack,setSt,mHit,DR,loot,SPAWN,LAKE,HOME,toast,keys,joy,lootUI,stats,cult,nodes,IMG,redeem,breakthrough,craft,ingHave,equipToggle,wAtk,bagUsed,bagFree,itemSize,defVal,BAG:()=>({cap:TD.BAG.cap+(cult.bc|0)+GS.bag}),craftMax,realmNeed,realmMul,qiRate,respawnQ,S:STT,recalc,pearlInfo,swallow,fuse,mons2,MD,petObjs,PETS,addPet,setPets,tameRoll,AUTO,setAuto,monHit,fx2,projs,setTameP:v=>{TAME_P=v;},useItem,decompose,dropItem,itemInfo,RES:TD.RES,TD,RMETA,harvest,refineEl,awaken,canAwake,iconCanvas,nodesNear};
 toast(T('toast.welcome'));
 })();
 </script>
@@ -2984,10 +2994,11 @@ function showInfo(){
 
 /* ----- Tu Luyện ----- */
 function matCount(el){var n=0;G.TD.RES.forEach(function(g){if(g.el===el)n+=G.loot[g.item]|0;});return n;}
+function tcReady(){var C=G.cult,TC=G.TD.TC;return (C.tcd|0)>=TC.need&&G.TD.EL.every(function(e){return C.r[e.id]>=TC.root[0];});}
 function renderRoot(force){
-  var C=G.cult,N=G.TD.NEED,sig=G.TD.EL.map(function(e){return C.r[e.id]+':'+matCount(e.id);}).join('|')+(C.aw?'A'+C.rl+':'+G.P.maxHp+':'+G.S.dmg+':'+G.S.spd:G.canAwake()?'C':'-')+':'+(C.tc|0)+':'+(C.tcn|0)+':'+(G.KIE.on?1:0)+I18N.lang;
-  if(!force&&sig===rootSig){var q=$('rootQi');if(q)q.textContent=Math.floor(C.qi);var br=$('rootBr');if(br)br.disabled=(C.rl>=G.TD.REALM.max&&!C.tc)?(G.KIE.on||(C.tcn|0)<G.TD.TC.need):!(C.qi>=G.qiNeed());var qb=$('rootQb');if(qb&&C.aw&&G.qiNeed()!==Infinity)qb.style.width=Math.min(100,C.qi/G.qiNeed()*100)+'%';return;}
-  rootSig=sig;var h='<div class="hint">'+esc(T('cul.hint',{n:N}))+'</div>';
+  var C=G.cult,N=G.rNeed(),sig=G.TD.EL.map(function(e){return C.r[e.id]+':'+matCount(e.id);}).join('|')+(C.aw?'A'+C.rl+':'+G.P.maxHp+':'+G.S.dmg+':'+G.S.spd:G.canAwake()?'C':'-')+':'+(C.tc|0)+':'+(C.tcd|0)+':'+(G.KIE.on?1:0)+I18N.lang;
+  if(!force&&sig===rootSig){var q=$('rootQi');if(q)q.textContent=Math.floor(C.qi);var br=$('rootBr');if(br)br.disabled=(C.rl>=G.TD.REALM.max&&!C.tc)?(G.KIE.on||!tcReady()):!(C.qi>=G.qiNeed());var qb=$('rootQb');if(qb&&C.aw&&G.qiNeed()!==Infinity)qb.style.width=Math.min(100,C.qi/G.qiNeed()*100)+'%';return;}
+  rootSig=sig;var h=C.aw?'':'<div class="hint">'+esc(T('cul.hint',{n:N}))+'</div>';
   G.TD.EL.forEach(function(e){
     var v=C.r[e.id],m=matCount(e.id),full=v>=N;
     h+='<div class="er"><div class="el" style="background:'+e.c+';box-shadow:0 0 10px '+e.c+'88">'+esc(T('el.'+e.id))+'</div><div class="mid"><div class="nm"><span>'+esc(T('el.'+e.id))+'</span><span>'+v+' / '+N+'</span></div><div class="bar2"><i style="width:'+Math.min(100,v/N*100)+'%;background:'+e.c+'"></i></div><small>'+esc(T('cul.mat',{n:m}))+'</small></div>'+
@@ -3003,8 +3014,8 @@ function renderRoot(force){
     if(!mx)h+='<button type="button" class="aw" id="rootBr"'+(ready?'':' disabled')+'>'+esc(tcm?T('tc.up.btn',{name:T('realm.tc'+(C.tc+1))}):T('act.break',{n:C.rl+1}))+'</button>';
     h+='<div class="tips"><span style="font-size:18px;color:#6b5a38">'+esc(tcm?T('tc.mul',{m:nf(TC.tier)}):T('realm.bonus',{m:'1,2'.replace(',',I18N.lang==='vi'?',':'.')}))+'</span></div>';
     if(mx0&&!tcm){var kc=G.KIE.on;   /* Luyện Khí viên mãn → độ lôi kiếp Trúc Cơ */
-      h+='<div class="tips"><h4>⚡ '+esc(T('tc.h'))+'</h4><div style="font-size:19px;line-height:1.55;color:#3a2a10">'+esc(T('tc.pill',{a:C.tcn|0,b:TC.need}))+'<br>'+esc(T('tc.hp',{a:G.P.maxHp,t:TC.total}))+'<br><b>'+esc(T('tc.rate',{p:Math.round(G.kieChance()*100)}))+'</b></div><div style="font-size:16px;color:#6b5a38;margin:6px 0;line-height:1.4">'+esc(T('tc.info',{m:TC.dur/60,s:TC.strikes,e:nf(Math.round(TC.total/TC.strikes*10)/10),x:nf(TC.mul),N:G.TD.NEED}))+'</div></div>'+
-        '<button type="button" class="aw" id="rootBr"'+((kc||(C.tcn|0)<TC.need)?' disabled':'')+'>'+esc(T(kc?'tc.btn.on':'tc.btn'))+'</button>';}
+      h+='<div class="tips"><h4>⚡ '+esc(T('tc.h'))+'</h4><div style="font-size:19px;line-height:1.55;color:#3a2a10">'+esc(T('tc.pill',{a:C.tcd|0,b:TC.need,c:TC.cap}))+'<br>'+esc(T('tc.root',{a:G.TD.EL.filter(function(e){return C.r[e.id]>=TC.root[0];}).length,n:TC.root[0]}))+'</div><div style="font-size:16px;color:#6b5a38;margin:6px 0;line-height:1.4">'+esc(T('tc.info',{x:nf(TC.mul),c:TC.pcap}))+'</div></div>'+
+        '<button type="button" class="aw" id="rootBr"'+((kc||!tcReady())?' disabled':'')+'>'+esc(T(kc?'tc.btn.on':'tc.btn'))+'</button>';}
   }
   else h+='<button type="button" class="aw" id="rootAw"'+(G.canAwake()?'':' disabled')+'>'+esc(G.canAwake()?T('cul.awake'):T('cul.need',{n:N}))+'</button>';
   h+='<div class="tips"><h4>? '+esc(T('ui.hint'))+'</h4><ul style="margin:0;padding:0"><li>'+esc(T('ui.h1'))+'</li><li>'+esc(T('ui.h2'))+'</li><li>'+esc(T('ui.h3'))+'</li></ul></div>';
@@ -3142,7 +3153,7 @@ function renderStats(){
   function r2(ic,lb,val){return '<div class="row2"><img src="'+PNG(ic)+'"><span class="lb">'+esc(lb)+'</span><span class="vv">'+val+'</span></div>';}
   function rb(ic,lb,txt,pc,col){return '<div class="row2"><img src="'+PNG(ic)+'"><span class="lb">'+esc(lb)+'</span><div class="bw"><em>'+txt+'</em><div class="tr"><i style="width:'+Math.max(0,Math.min(100,pc))+'%;background:'+col+'"></i></div></div></div>';}
   var cd=G.atkCd(),m=G.realmMul(),nd=C.rl>=G.TD.REALM.max?0:G.realmNeed(C.rl);
-  var pl=G.TD.EL.map(function(e){return '<div class="row"><span style="color:'+e.c+'">'+T('el.'+e.id)+'</span><b>'+C.pl[e.id].map(function(n){return n+'/'+G.TD.PCAP;}).join(' · ')+'</b></div>';}).join('');
+  var pl=G.TD.EL.map(function(e){return '<div class="row"><span style="color:'+e.c+'">'+T('el.'+e.id)+'</span><b>'+C.pl[e.id].map(function(n){return n+'/'+G.pcap();}).join(' · ')+'</b></div>';}).join('');
   var pets=G.PETS.length?G.PETS.map(function(id){return esc(T('monster.'+id));}).join(', '):T('sx.none');
   $('bagS').innerHTML='<h3><span style="color:#e8bb48;margin-right:6px">✦</span>'+esc(T('ui.stats'))+'</h3>'+
    rb('st_hp',T('sx.hp'),Math.round(P.hp)+' / '+P.maxHp,P.hp/P.maxHp*100,'linear-gradient(#ff7a58 0 30%,#c02f2c 30% 70%,#6a1418 70%)')+
@@ -3246,7 +3257,7 @@ pn.innerHTML=
 '<div class="box"><div class="hd"><span id="setIc"></span><h2 data-i18n="set.title"></h2><button id="setX" type="button" data-i18n="bag.close"></button></div>'+
 '<h3 data-i18n="set.lang"></h3><div class="langs" id="setL"></div><div class="note" data-i18n="set.langnote"></div>'+
 '<h3 data-i18n="set.code"></h3><div class="codeRow"><input id="setCode" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false"><button id="setCodeGo" type="button" data-i18n="set.code.go"></button></div><div class="note" id="setCodeMsg"></div>'+
-'<h3 data-i18n="set.account"></h3><div id="setA"></div><div class="note" style="text-align:center;margin-top:14px">v1019.0531</div></div>';
+'<h3 data-i18n="set.account"></h3><div id="setA"></div><div class="note" style="text-align:center;margin-top:14px">v1019.0601</div></div>';
 document.body.appendChild(pn);
 $('setIc').appendChild(gear(2));
 
@@ -3577,7 +3588,7 @@ function ensure(){
 /* ---------- dữ liệu save ---------- */
 function collect(){
   var P=G.P,l={};for(var k in G.loot)l[k]=G.loot[k];
-  var st=G.stats;return{v:SAVE_V,x:+P.x.toFixed(1),y:+P.y.toFixed(1),f:P.f,hp:Math.round(P.hp),loot:l,stats:{kills:st.kills|0,steps:Math.round(st.steps),sec:Math.round(st.sec)},set:{lang:I18N.lang},cul:{r:{kim:G.cult.r.kim|0,moc:G.cult.r.moc|0,thuy:G.cult.r.thuy|0,hoa:G.cult.r.hoa|0,tho:G.cult.r.tho|0},pl:plCopy(),aw:G.cult.aw?1:0,qi:+G.cult.qi.toFixed(1),rl:G.cult.rl|0,dpg:G.cult.dpg?1:0,tc:G.cult.tc|0,tcn:G.cult.tcn|0,tcd:G.cult.tcd|0,tka:G.cult.tka|0,dp2:G.cult.dp2?1:0,bc:G.cult.bc|0,codes:G.cult.codes|0,eqs:G.saveEq()},pets:G.PETS.slice()};
+  var st=G.stats;return{v:SAVE_V,x:+P.x.toFixed(1),y:+P.y.toFixed(1),f:P.f,hp:Math.round(P.hp),loot:l,stats:{kills:st.kills|0,steps:Math.round(st.steps),sec:Math.round(st.sec)},set:{lang:I18N.lang},cul:{r:{kim:G.cult.r.kim|0,moc:G.cult.r.moc|0,thuy:G.cult.r.thuy|0,hoa:G.cult.r.hoa|0,tho:G.cult.r.tho|0},pl:plCopy(),aw:G.cult.aw?1:0,qi:+G.cult.qi.toFixed(1),rl:G.cult.rl|0,dpg:G.cult.dpg?1:0,tc:G.cult.tc|0,pb:{kim:G.cult.pb.kim|0,moc:G.cult.pb.moc|0,thuy:G.cult.pb.thuy|0,hoa:G.cult.pb.hoa|0,tho:G.cult.pb.tho|0},tcd:G.cult.tcd|0,tka:G.cult.tka|0,dp2:G.cult.dp2?1:0,bc:G.cult.bc|0,codes:G.cult.codes|0,eqs:G.saveEq()},pets:G.PETS.slice()};
 }
 function plCopy(){var o={};['kim','moc','thuy','hoa','tho'].forEach(function(e){o[e]=G.cult.pl[e].map(function(x){return x|0;});});return o;}
 function migrate(d){/* d.v cũ → mới. Hiện mới có v=1 nên chưa cần. */return d;}
@@ -3587,8 +3598,8 @@ function apply(d){
   if(isFinite(d.x)&&isFinite(d.y)){P.x=d.x;P.y=d.y;G.cam.x=P.x;G.cam.y=P.y;G.dog.x=P.x-18;G.dog.y=P.y+4;}
   if(d.f===1||d.f===-1)P.f=d.f;
   {var cc=G.cult,u=(d.cul&&typeof d.cul==='object')?d.cul:{},ur=u.r||{},up=u.pl||{};
-   ['kim','moc','thuy','hoa','tho'].forEach(function(e){cc.r[e]=Math.max(0,Math.min(100,+ur[e]||0));var a=Array.isArray(up[e])?up[e]:[];cc.pl[e]=[0,1,2].map(function(i){return Math.max(0,Math.min(10,a[i]|0));});});
-   cc.aw=u.aw===1||u.aw===true;cc.qi=Math.max(0,+u.qi||0);cc.rl=Math.max(1,Math.min(10,u.rl|0||1));cc.dpg=u.dpg===1||u.dpg===true;cc.tc=Math.max(0,Math.min(3,u.tc|0));cc.tcn=Math.max(0,Math.min(99,u.tcn|0));cc.tcd=Math.max(0,Math.min(9999,u.tcd|0));cc.tka=Math.max(0,Math.min(999,u.tka|0));cc.dp2=u.dp2===1||u.dp2===true;
+   ['kim','moc','thuy','hoa','tho'].forEach(function(e){cc.r[e]=Math.max(0,Math.min(900,+ur[e]||0));var a=Array.isArray(up[e])?up[e]:[];cc.pl[e]=[0,1,2].map(function(i){return Math.max(0,Math.min(20,a[i]|0));});});
+   cc.aw=u.aw===1||u.aw===true;cc.qi=Math.max(0,+u.qi||0);cc.rl=Math.max(1,Math.min(10,u.rl|0||1));cc.dpg=u.dpg===1||u.dpg===true;cc.tc=Math.max(0,Math.min(3,u.tc|0));cc.tcd=Math.max(0,Math.min(30,u.tcd|0));var ub=u.pb||{};['kim','moc','thuy','hoa','tho'].forEach(function(e){cc.pb[e]=Math.max(0,Math.min(99999,ub[e]|0));});cc.tka=Math.max(0,Math.min(999,u.tka|0));cc.dp2=u.dp2===1||u.dp2===true;
   P.hp=(isFinite(d.hp)&&d.hp>0)?Math.min(P.maxHp,d.hp):P.maxHp;
   if(d.set&&d.set.lang)I18N.set(d.set.lang,true),markLang();
   if(d.stats&&typeof d.stats==='object'){var st=G.stats;st.kills=+d.stats.kills||0;st.steps=+d.stats.steps||0;st.sec=+d.stats.sec||0;}
@@ -3687,7 +3698,7 @@ ov.innerHTML=
 '<div class="err" id="aErr"></div>'+
 '<button class="go" id="aGo" type="submit"></button>'+
 '<div class="note" data-i18n-html="auth.note"></div>'+
-'<div class="note" style="opacity:.7">v1019.0531</div>'+
+'<div class="note" style="opacity:.7">v1019.0601</div>'+
 '</form>';
 document.body.appendChild(ov);
 var acc=document.createElement('div');acc.id='acc';acc.innerHTML='<span id="accN"></span> · <span id="accS"></span>';

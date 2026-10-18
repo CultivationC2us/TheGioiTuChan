@@ -28,6 +28,9 @@ const realmNeed=l=>l>=TD.REALM.max?Infinity:TD.REALM.base*Math.pow(2,l-1);
 const tcM=()=>{const t=cult.tc|0;return t<1?1:TD.TC.mul*Math.pow(TD.TC.tier,t-1);};   /* Trúc Cơ: sơ kỳ ×1,6 (so với Luyện Khí 10), mỗi tầng sau ×1,4 */
 const realmMul=l=>l?Math.pow(TD.REALM.mul,l-1):Math.pow(TD.REALM.mul,cult.rl-1)*tcM();
 const qiNeed=()=>(cult.tc|0)>0?((cult.tc|0)>=3?Infinity:TD.TC.qi[(cult.tc|0)-1]):realmNeed(cult.rl);
+/* linh căn: chưa thức tỉnh 100/hệ → sau thức tỉnh 300 (điều kiện độ kiếp Trúc Cơ) → sau Trúc Cơ 900 (chuẩn bị Kết Đan) */
+const rNeed=()=>!cult.aw?TD.NEED:(cult.tc|0)>0?TD.TC.root[1]:TD.TC.root[0];
+const pcap=()=>(cult.tc|0)>0?TD.TC.pcap:TD.PCAP;   /* trần nuốt châu mỗi bậc: 10 → 20 sau Trúc Cơ */
 const realmName=()=>!cult.aw?T('j.asleep'):(cult.tc|0)>0?T('realm.tc'+cult.tc):T('realm.n',{n:cult.rl});
 const qiRate=()=>TD.REALM.rate+STT.qi;
 function qiTick(dt){
@@ -52,8 +55,9 @@ function eatDan(n){
   if(!cult.aw){toast(T('toast.dan.asleep'));return false;}
   if(d.hp){   /* Trúc Cơ Đan: +HP tối đa vĩnh viễn, tính vào số đan cần để độ kiếp */
     if(KIE.on){toast(T('toast.tc.busy'));return false;}
-    lootDec(n);cult.tcd=(cult.tcd|0)+1;if(!(cult.tc>0))cult.tcn=(cult.tcn|0)+1;recalc();lootUI();
-    toast(T('toast.tc.pill',{n:d.hp,a:cult.tcn|0,b:TD.TC.need}));return true;}
+    if((cult.tcd|0)>=TD.TC.cap){toast(T('toast.tc.cap',{n:TD.TC.cap}));return false;}   /* trần 30 viên/người: chống ăn vô hạn để phình HP */
+    lootDec(n);cult.tcd=(cult.tcd|0)+1;recalc();lootUI();
+    toast(T('toast.tc.pill',{n:d.hp,a:cult.tcd,b:TD.TC.cap}));return true;}
   if(cult.rl>=TD.REALM.max){toast(T('toast.dan.max'));return false;}
   if(cult.qi>=realmNeed(cult.rl)){toast(T('toast.dan.full'));return false;}
   lootDec(n);cult.qi+=d.qi;lootUI();toast(T('toast.dan',{name:I18N.itemName(n),n:d.qi}));return true;
@@ -73,7 +77,7 @@ function craft(rid,n,idx){
 
 function recalc(){
   gearStats();
-  const sum=el=>cult.pl[el].reduce((a,b)=>a+b,0),pe=TD.PEARL,rd=x=>Math.round(x*1000)/1000;
+  const sum=el=>cult.pl[el].reduce((a,b)=>a+b,0)+(cult.pb[el]|0),pe=TD.PEARL,rd=x=>Math.round(x*1000)/1000;
   STT.dmg=rd(sum('kim')*pe.kim.per);STT.hp=rd(sum('moc')*pe.moc.per);STT.red=Math.min(.6,rd(sum('tho')*pe.tho.per));STT.spd=rd(sum('hoa')*pe.hoa.per);STT.qi=rd(sum('thuy')*pe.thuy.per);
   if(cult.qi>qiNeed()+TD.DAN['dan.tukhi'].qi)cult.qi=qiNeed();
   P.maxMp=Math.round((60+12*((cult.rl|0)-1)+GS.mp)*tcM());P.mp=Math.min(P.mp,P.maxMp);
@@ -211,9 +215,9 @@ function drawHeld(t,atking,row,fr){
 function pearlInfo(item){
   const p=TD.byPearl[item];if(!p)return null;
   const arr=cult.pl[p.el],t=p.tier,done=arr[t-1];let can=true,reason='';
-  if(t>1&&arr[t-2]<TD.PCAP){can=false;reason='lock';}
-  else if(done>=TD.PCAP){can=false;reason=t<TD.PT?'cap':'max';}
-  return{el:p.el,tier:t,done,cap:TD.PCAP,can,reason,next:t<TD.PT?TD.pearlId(p.el,t+1):null};
+  if(t>1&&arr[t-2]<pcap()){can=false;reason='lock';}
+  else if(done>=pcap()){can=false;reason=t<TD.PT?'cap':'max';}
+  return{el:p.el,tier:t,done,cap:pcap(),can,reason,next:t<TD.PT?TD.pearlId(p.el,t+1):null};
 }
 function swallow(item){
   const i=pearlInfo(item);if(!i||!i.can||!(loot[item]>0))return false;

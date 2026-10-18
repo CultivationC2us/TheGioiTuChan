@@ -178,7 +178,7 @@ function lootUI(){const e=document.getElementById('loot');const k=Object.keys(lo
 
 /* ---------- TÀI NGUYÊN · NGŨ HÀNH · LINH CĂN ---------- */
 const TD=window.TTData,RMETA={{RESMETA}};
-const cult={r:{kim:0,moc:0,thuy:0,hoa:0,tho:0},pl:{kim:[0,0,0],moc:[0,0,0],thuy:[0,0,0],hoa:[0,0,0],tho:[0,0,0]},aw:false,qi:0,rl:1,dpg:false,tc:0,tcn:0,tcd:0,tka:0,dp2:false,eq:{w:null,o:null,h:null,g:null,r:null,l:null,p:'bach_khuyen'},ins:{},bc:0,codes:0};
+const cult={r:{kim:0,moc:0,thuy:0,hoa:0,tho:0},pl:{kim:[0,0,0],moc:[0,0,0],thuy:[0,0,0],hoa:[0,0,0],tho:[0,0,0]},aw:false,qi:0,rl:1,dpg:false,tc:0,tcd:0,tka:0,dp2:false,pb:{kim:0,moc:0,thuy:0,hoa:0,tho:0},eq:{w:null,o:null,h:null,g:null,r:null,l:null,p:'bach_khuyen'},ins:{},bc:0,codes:0};
 const nodes=[],nodeCell=new Map(),respawnQ=[];   /* node: {g,x,y,h,gone,shk}; chia ô 4x4 để tìm nhanh */
 const ckey=n=>(n.x/TILE>>2)+','+(n.y/TILE>>2);
 function cellAdd(n){const k=ckey(n);let a=nodeCell.get(k);if(!a)nodeCell.set(k,a=[]);a.push(n);}
@@ -239,7 +239,7 @@ function harvest(t){ /* trả về true nếu trúng một nguồn tài nguyên 
 function refineEl(el){ /* nguyên liệu hệ el → điểm hệ el (tối đa NEED); trả về số điểm cộng */
   let gain=0;
   const list=TD.RES.filter(g=>g.el===el).sort((a,b)=>b.pts-a.pts);   /* dùng loại quý trước */
-  for(const g of list){while((loot[g.item]|0)>0&&cult.r[el]<TD.NEED){loot[g.item]--;if(!loot[g.item])delete loot[g.item];const add=Math.min(g.pts,TD.NEED-cult.r[el]);cult.r[el]+=add;gain+=add;}}
+  for(const g of list){while((loot[g.item]|0)>0&&cult.r[el]<rNeed()){loot[g.item]--;if(!loot[g.item])delete loot[g.item];const add=Math.min(g.pts,rNeed()-cult.r[el]);cult.r[el]+=add;gain+=add;}}
   if(gain){lootUI();toast(T('toast.refine',{n:gain,el:T('el.'+el)}));}else toast(T('toast.refine0',{el:T('el.'+el)}));
   return gain;
 }
@@ -247,8 +247,8 @@ function lootDec(n){loot[n]--;if(!(loot[n]>0)){delete loot[n];if(cult.eq.w===n){
 function itemInfo(n){const g=TD.byItem[n],m=TD.misc[n],p=pearlInfo(n);return {use:!!g||!!(p&&p.can)||!!TD.RECIPES[n]||!!TD.DAN[n]||!!TD.byWeapon[n]||!!TD.byOutfit[n]||!!TD.byMount[n]||!!TD.bookOf[n],dec:g?g.ls:(m?m.dec:0),pearl:p,fuse:!!(p&&p.next),keep:!!(m&&m.keep),recipe:!!TD.RECIPES[n],weapon:!!TD.byWeapon[n]||!!TD.byOutfit[n],outfit:!!TD.byOutfit[n],equipped:['w','o','h','g','r','l'].some(k=>cult.eq[k]===n),mount:!!TD.byMount[n],mounted:P.mt===n};}
 function useItem(n){ /* nguyên liệu: luyện hóa 1 cái vào hệ của nó */
   const g=TD.byItem[n];if(!g)return TD.byPearl[n]?swallow(n):TD.DAN[n]?eatDan(n):(TD.byWeapon[n]||TD.byOutfit[n])?equipToggle(n):TD.byMount[n]?rideToggle(n):TD.bookOf[n]?learnBook(n):TD.RECIPES[n]?true:false;if(!(loot[n]>0))return false;
-  if(cult.r[g.el]>=TD.NEED){toast(T('toast.full',{el:T('el.'+g.el)}));return false;}
-  const add=Math.min(g.pts,TD.NEED-cult.r[g.el]);cult.r[g.el]+=add;lootDec(n);lootUI();toast(T('toast.refine',{n:add,el:T('el.'+g.el)}));return true;}
+  if(cult.r[g.el]>=rNeed()){toast(T('toast.full',{el:T('el.'+g.el)}));return false;}
+  const add=Math.min(g.pts,rNeed()-cult.r[g.el]);cult.r[g.el]+=add;lootDec(n);lootUI();toast(T('toast.refine',{n:add,el:T('el.'+g.el)}));return true;}
 function decompose(n){const v=itemInfo(n).dec;if(!(loot[n]>0)||!(v>0))return false;lootDec(n);loot.lt=(loot.lt|0)+v;lootUI();toast(T('toast.dec',{name:I18N.itemName(n),n:v}));return true;}
 function dropItem(n){if(!(loot[n]>0)||(TD.misc[n]&&TD.misc[n].keep))return false;lootDec(n);const g=TD.byItem[n],t=now();
   drops.push({x:P.x+P.f*40,y:P.y-2,t0:t,n,ic:g?g.id:undefined,pa:t+1800,exp:t+60000});lootUI();toast(T('toast.drop',{name:I18N.itemName(n)}));return true;}
@@ -634,7 +634,7 @@ function loop(n){const dt=Math.min(.05,(n-last)/1000);last=n;if(window.__pause){
 requestAnimationFrame(loop);
 function catIcon(s){const f=CATM['idle_1'],c=document.createElement('canvas');c.width=f[2]*s/3|0||16;c.height=f[3]*s/3|0||16;const x=c.getContext('2d');x.imageSmoothingEnabled=true;if(IMG.cat&&IMG.cat.complete)x.drawImage(IMG.cat,f[0],f[1],f[2],f[3],0,0,c.width,c.height);return c;}
 function dogIcon(s){const c=document.createElement('canvas');c.width=26*s/3|0||26;c.height=24*s/3|0||24;const x=c.getContext('2d');x.imageSmoothingEnabled=true;if(IMG.dog&&IMG.dog.complete)x.drawImage(IMG.dog,0,0,64,59,0,0,c.width,c.height);return c;}
-window.G={realmName,KIE,kieChance,qiNeed,BIO,TRIBES,LAIRS,DECO,tdist,isCliff,hitNpcs,npcHurt,catIcon,critP,cdmgV,castSkill,skFx,skCd,MMETA,UIA:window.UIA,rankStat,npcRank,DRG,withDr,NPCS,npcShop,dogIcon,GS,setEq,awakenGear,awakeCost,gearRec,gearBase,lineText,saveEq,loadEq,atkCd,regIns,mkGear,baseId,OF,rideToggle,dismount,flyToggle,dashGo,MTM,P,M:M0,dog,fx:()=>fxs,drops,update,draw,tiles,cam,now,attack,setSt,mHit,DR,loot,SPAWN,LAKE,HOME,toast,keys,joy,lootUI,stats,cult,nodes,IMG,redeem,breakthrough,craft,ingHave,equipToggle,wAtk,bagUsed,bagFree,itemSize,defVal,BAG:()=>({cap:TD.BAG.cap+(cult.bc|0)+GS.bag}),craftMax,realmNeed,realmMul,qiRate,respawnQ,S:STT,recalc,pearlInfo,swallow,fuse,mons2,MD,petObjs,PETS,addPet,setPets,tameRoll,AUTO,setAuto,monHit,fx2,projs,setTameP:v=>{TAME_P=v;},useItem,decompose,dropItem,itemInfo,RES:TD.RES,TD,RMETA,harvest,refineEl,awaken,canAwake,iconCanvas,nodesNear};
+window.G={rNeed,pcap,realmName,KIE,kieChance,qiNeed,BIO,TRIBES,LAIRS,DECO,tdist,isCliff,hitNpcs,npcHurt,catIcon,critP,cdmgV,castSkill,skFx,skCd,MMETA,UIA:window.UIA,rankStat,npcRank,DRG,withDr,NPCS,npcShop,dogIcon,GS,setEq,awakenGear,awakeCost,gearRec,gearBase,lineText,saveEq,loadEq,atkCd,regIns,mkGear,baseId,OF,rideToggle,dismount,flyToggle,dashGo,MTM,P,M:M0,dog,fx:()=>fxs,drops,update,draw,tiles,cam,now,attack,setSt,mHit,DR,loot,SPAWN,LAKE,HOME,toast,keys,joy,lootUI,stats,cult,nodes,IMG,redeem,breakthrough,craft,ingHave,equipToggle,wAtk,bagUsed,bagFree,itemSize,defVal,BAG:()=>({cap:TD.BAG.cap+(cult.bc|0)+GS.bag}),craftMax,realmNeed,realmMul,qiRate,respawnQ,S:STT,recalc,pearlInfo,swallow,fuse,mons2,MD,petObjs,PETS,addPet,setPets,tameRoll,AUTO,setAuto,monHit,fx2,projs,setTameP:v=>{TAME_P=v;},useItem,decompose,dropItem,itemInfo,RES:TD.RES,TD,RMETA,harvest,refineEl,awaken,canAwake,iconCanvas,nodesNear};
 toast(T('toast.welcome'));
 })();
 </script>
