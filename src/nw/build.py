@@ -17,7 +17,7 @@ rep={'{{UIPIECES}}':json.dumps(UIP,separators=(',',':')),'{{OF_JS}}':open('nw/ou
  '{{CATATLAS}}':b64('nw/lib/out/cat_atlas.webp'),'{{CATMETA}}':open('nw/lib/out/cat_meta.json').read(),'{{SKATLAS}}':b64('nw/lib/out/skill_hd.webp'),'{{SKMETA}}':open('nw/lib/out/skill_meta.json').read(),'{{SK_JS}}':open('nw/skill.js',encoding='utf-8').read(),
  '{{BAG_JS}}':open('nw/bag.js',encoding='utf-8').read(),
  '{{AUTH_JS}}':open('nw/auth.js',encoding='utf-8').read(),'{{HUD_JS}}':open('nw/hud.js',encoding='utf-8').read(),'{{UIBTN}}':b64('nw/it/ui_btn.webp'),
- '{{T_GRASS}}':b64('nw/assets/tile_grass.webp'),'{{T_T4}}':b64('nw/assets/tile_t4.webp'),'{{T_T3}}':b64('nw/assets/tile_t3.webp'),'{{T_T2}}':b64('nw/assets/tile_t2.webp'),'{{T_T16}}':b64('nw/assets/tile_t16.webp'),'{{T_T5}}':b64('nw/assets/tile_t5.webp')}
+ '{{T_GRASS}}':b64('nw/assets/tile_grass.webp'),'{{T_T4}}':b64('nw/assets/tile_t4.webp'),'{{T_T3}}':b64('nw/assets/tile_t3.webp'),'{{T_T2}}':b64('nw/assets/tile_t2.webp'),'{{T_T16}}':b64('nw/assets/tile_t16.webp'),'{{T_T5}}':b64('nw/assets/tile_t5.webp'),'{{T_SAND}}':b64('nw/assets/tile_sand.webp'),'{{T_SNOW}}':b64('nw/assets/tile_snow.webp'),'{{T_FOREST}}':b64('nw/assets/tile_forest.webp'),'{{T_MUD}}':b64('nw/assets/tile_mud.webp'),'{{T_CLIFF}}':b64('nw/assets/tile_cliff.webp')}
 for k,v in rep.items():
     assert k in s,k
     s=s.replace(k,v)

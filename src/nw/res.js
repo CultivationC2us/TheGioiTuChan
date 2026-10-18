@@ -59,7 +59,7 @@ var REALM={max:10,base:100,mul:1.2,rate:.2};  /* tu vi cần để qua tầng n 
 var DAN={'dan.tukhi':{qi:100}};                          /* đan -> tu vi cộng thêm */
 var RECIPES={'dp.tukhi':{verb:'alc',list:[{out:'dan.tukhi',ing:[['@herb1',3],['lt',1]]}]}};   /* '@herb1' = thảo dược bậc 1 bất kỳ */
 /* RECIPES.cg.vukhi gán sau khi có FORGE */
-var AFF=[['moc','thuy'],['hoa','tho','kim'],['kim','tho','hoa']];   /* hệ ưa thích theo địa hình: cỏ(0) · cát(1) · đá(2) */  /* đan phương: không mất khi dùng */
+var AFF=[['moc','thuy'],['hoa','tho','kim'],['kim','tho','hoa'],null,null,null,['hoa','tho','kim'],['thuy','moc'],['kim','thuy'],['moc','thuy']];   /* hệ ưa thích theo địa hình: cỏ(0) · cát(1) · đá(2) */  /* đan phương: không mất khi dùng */
 var WATK={1:4,2:9,3:16}, WLS={1:8,2:25,3:60};   /* sát thương cộng thêm và Linh Thạch khi rã, theo phẩm */
 var WTIER=[['Phàm Khí','凡器','凡器'],['Linh Khí','靈器','灵器'],['Bảo Khí','寶器','宝器']];
 var WEAPONS=[ /* vũ khí: id, ô ảnh trong it/atlas, hệ, phẩm (1-3), tên */
@@ -219,7 +219,7 @@ var S=[ /* chuỗi giao diện mới: [vi, zh-Hant, zh-Hans] */
  ['cul.done','Linh Căn đã thức tỉnh','靈根已覺醒','灵根已觉醒'],
  ['cul.qi','Linh khí','靈氣','灵气'],
  ['cul.rate','Tu luyện thường {n} tu vi/giây — muốn nhanh hơn phải dùng đan dược','平時修煉每秒 {n} 修為——想更快須服用丹藥','平时修炼每秒 {n} 修为——想更快须服用丹药'],
- ['npc.bt','Đột phá Luyện Khí tầng {n}!','突破練氣第 {n} 層！','突破练气第 {n} 层！'],['npc.sell','Bán đồ +{n} Linh Thạch','賣材料 +{n} 靈石','卖材料 +{n} 灵石'],['npc.buy','Mua {name}!','購入{name}！','购入{name}！'],['npc.kill','Hạ được một con!','斬殺一隻！','斩杀一只！'],['realm.n','Luyện Khí tầng {n}','練氣第 {n} 層','练气第 {n} 层'],
+ ['npc.rage','Dám ra tay với ta sao!','你敢動手？','你敢动手？'],['npc.slain','Bạn đã hạ {name}!','你擊敗了 {name}！','你击败了 {name}！'],['npc.bt','Đột phá Luyện Khí tầng {n}!','突破練氣第 {n} 層！','突破练气第 {n} 层！'],['npc.sell','Bán đồ +{n} Linh Thạch','賣材料 +{n} 靈石','卖材料 +{n} 灵石'],['npc.buy','Mua {name}!','購入{name}！','购入{name}！'],['npc.kill','Hạ được một con!','斬殺一隻！','斩杀一只！'],['realm.n','Luyện Khí tầng {n}','練氣第 {n} 層','练气第 {n} 层'],
  ['realm.full','Luyện Khí viên mãn — cần đan dược để vào cảnh giới sau','練氣圓滿——需丹藥方能進入下一境界','练气圆满——需丹药方能进入下一境界'],
  ['realm.cur','Cảnh giới','境界','境界'],['realm.mul','Hệ số cảnh giới','境界倍率','境界倍率'],
  ['realm.exp','Tu vi','修為','修为'],
@@ -290,7 +290,9 @@ var S=[ /* chuỗi giao diện mới: [vi, zh-Hant, zh-Hans] */
  ['hud.qi.max','Tu vi {n} · viên mãn','修為 {n} · 圓滿','修为 {n} · 圆满'],
  ['hud.mapt','Bản đồ thế giới','世界地圖','世界地图'],
  ['hud.maph','Thế giới hình tròn: đi mãi một hướng sẽ quay lại. Chạm để đóng.','世界是圓的：一直走會回到原點。點擊關閉。','世界是圆的：一直走会回到原点。点击关闭。'],
+ ['mon.t1','Tinh Anh','精英','精英'],['mon.t2','Thủ Lĩnh','首領','首领'],
  ['zone.c','Thanh Vân Thôn','青雲村','青云村'],
+ ['zone.sa','Sa Mạc','沙漠','沙漠'],['zone.dam','Đầm Lầy','沼澤','沼泽'],['zone.tuyet','Tuyết Sơn','雪山','雪山'],['zone.rung','Rừng Thẳm','幽林','幽林'],['zone.nui','Núi Đá','岩山','岩山'],
  ['zone.n','Bắc Nguyên','北原','北原'],
  ['zone.ne','Thổ Dực Sơn','土翼山','土翼山'],
  ['zone.e','Đông Vực','東域','东域'],
@@ -352,7 +354,7 @@ var S=[ /* chuỗi giao diện mới: [vi, zh-Hant, zh-Hans] */
  ['toast.tame','Thuần hóa thành công! {name} đã theo bạn.','馴服成功！{name}已跟隨你。','驯服成功！{name}已跟随你。'],
  ['toast.pearl','Nhận được {name}','獲得{name}','获得{name}'],
  ['auto.btn','TỰ ĐỘNG','自動','自动'],['auto.btn.on','ĐANG CHẠY','運行中','运行中'],
- ['toast.auto.on','Tự động săn trong vùng quanh đây ({r} ô).','自動狩獵此處周圍（{r} 格）。','自动狩猎此处周围（{r} 格）。'],
+ ['toast.auto.on','Tự động: gặp gì gần là săn, không giới hạn vùng.','自動：附近有目標就打，不限範圍。','自动：附近有目标就打，不限范围。'],
  ['toast.auto.off','Đã tắt tự động.','已關閉自動。','已关闭自动。'],
  ['toast.auto.low','Máu thấp — tự động đã tắt.','生命過低，已關閉自動。','生命过低，已关闭自动。'],
  ['itemdesc.nl','{name}: nguyên liệu hệ {el}. Sử dụng: luyện hóa +{pts} điểm {el} cho Linh Căn. Rã: nhận {ls} Linh Thạch.','{name}：{el}系材料。使用：煉化 +{pts} 點{el}行。分解：得 {ls} 靈石。','{name}：{el}系材料。使用：炼化 +{pts} 点{el}行。分解：得 {ls} 灵石。']

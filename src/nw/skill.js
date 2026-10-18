@@ -17,8 +17,9 @@ const skLearned=id=>cult.sk.indexOf(id)>=0;
 function skHitArea(f){
   const cfg=SKCFG[f.id],sk=TD.bySkill[f.id];let any=false;
   for(const m of mons2){if(!monAlive(m))continue;
-    if(Math.hypot(m.x-f.x,(m.y-f.y)*1.4)<f.r+m.d.sc*8){monHit(m,dmgRoll(sk.mult));any=true;}}
+    if(Math.hypot(m.x-f.x,(m.y-f.y)*1.4)<f.r+m.sc*8){monHit(m,dmgRoll(sk.mult));any=true;}}
   for(const d of DRG){withDr(d,()=>{if(mTargetable()&&M.st!=='die'&&Math.hypot(M.x-f.x,(M.y-f.y)*1.4)<f.r+22){mHit(dmgRoll(sk.mult));any=true;}});}
+  for(const n of NPCS){if(n.st==='dead')continue;if(Math.hypot(n.x-f.x,(n.y-f.y)*1.4)<f.r+10){npcHurt(n,dmgRoll(sk.mult),'player');any=true;}}
   f.n++;return any;
 }
 function skTarget(){

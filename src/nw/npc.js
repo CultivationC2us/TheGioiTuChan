@@ -4,7 +4,7 @@
    Tiến độ lưu ở máy (localStorage) và được tính bù khi quay lại (tối đa 8 giờ).
    Dùng chung biến của game: P, cult, tiles, nodes, mons2, ctx, floaters, TD, T, now().
    ============================================================ */
-const NPC_NAMES=[['Lăng Phong','凌風','凌风'],['Mộ Dung Tuyết','慕容雪','慕容雪'],['Tiêu Viêm Tử','蕭炎子','萧炎子'],['Liễu Như Yên','柳如煙','柳如烟'],['Cố Trường Ca','顧長歌','顾长歌'],['Dạ Thanh Vân','夜青雲','夜青云']];
+const NPC_NAMES=[['Luna','Luna','Luna'],['Kaito','Kaito','Kaito'],['Raven','Raven','Raven'],['Ember','Ember','Ember'],['Orion','Orion','Orion'],['Nyx','Nyx','Nyx'],['Jasper','Jasper','Jasper'],['Mira','Mira','Mira'],['Zephyr','Zephyr','Zephyr'],['Atlas','Atlas','Atlas'],['Sable','Sable','Sable'],['Vesper','Vesper','Vesper'],['Rowan','Rowan','Rowan'],['Lyra','Lyra','Lyra'],['Dax','Dax','Dax'],['Ivy','Ivy','Ivy'],['Onyx','Onyx','Onyx'],['Seren','Seren','Seren'],['Thorne','Thorne','Thorne'],['Willow','Willow','Willow'],['Cass','Cass','Cass'],['Finn','Finn','Finn'],['Rhea','Rhea','Rhea'],['Knox','Knox','Knox'],['Echo','Echo','Echo'],['Juno','Juno','Juno']];   /* tên kiểu người chơi: tiếng Anh, không dấu, không cách */
 const NPC_KEY='tc_npc_v1',NPC_PLAZA=[100*TILE,100*TILE];
 const npcLang=()=>({vi:0,'zh-Hant':1,'zh-Hans':2}[I18N.lang]||0);
 const npcNeed=l=>l>=TD.REALM.max?Infinity:TD.REALM.base*Math.pow(2,l-1);
@@ -25,7 +25,7 @@ function npcMk(i){
   }
   if(!sp){const a=Math.random()*6.283,r=30+Math.random()*60;sp={x:NPC_PLAZA[0]+Math.cos(a)*r,y:NPC_PLAZA[1]+Math.sin(a)*r};}
   return{i,x:sp.x,y:sp.y,f:1,rl:1+Math.floor(Math.random()*3),qi:0,lt:[700,1500,400,2200,900,300][i%6],
-    inv:{},eq:{w:null,h:null,o:null,g:null,r:null,l:null,p:null,m:null},path:null,pg:null,bl:{},lx:0,ly:0,lt0:0,stuck:0,hp:100,mhp:100,st:'idle',t0:0,tgt:null,atkT:-999,mv:false,ph:Math.random()*4000,say:null,sayT:0,want:6+Math.floor(Math.random()*5),cdA:0,kills:0};
+    inv:{},eq:{w:null,h:null,o:null,g:null,r:null,l:null,p:null,m:null},path:null,pg:null,bl:{},lx:0,ly:0,lt0:0,stuck:0,hp:100,mhp:100,st:'idle',t0:0,tgt:null,atkT:-999,mv:false,ph:Math.random()*4000,foe:null,foeT:0,deadAt:0,say:null,sayT:0,want:6+Math.floor(Math.random()*5),cdA:0,kills:0};
 }
 function npcSave(){try{localStorage.setItem(NPC_KEY,JSON.stringify({ts:Date.now(),n:NPCS.map(n=>({rl:n.rl,qi:n.qi,lt:n.lt,eq:n.eq,inv:n.inv,kills:n.kills|0}))}));}catch(e){}}
 function npcLoad(){
@@ -63,7 +63,7 @@ function npcMove(n,tx,ty,spd,dt){
   const dx=tx-n.x,dy=ty-n.y,d=Math.hypot(dx,dy);if(d<2){n.mv=false;return true;}
   const base=Math.atan2(dy,dx);n.mv=false;
   for(const da of[0,.9,-.9,1.8,-1.8]){const a=base+da,nx=n.x+Math.cos(a)*spd*dt,ny=n.y+Math.sin(a)*spd*dt;
-    if(nx<48||ny<48||nx>MW*TILE-48||ny>MH*TILE-48||isWater(nx,ny+4))continue;n.x=nx;n.y=ny;n.mv=true;if(Math.abs(Math.cos(a))>.2)n.f=Math.cos(a)>0?1:-1;break;}
+    if(nx<48||ny<48||nx>MW*TILE-48||ny>MH*TILE-48||isWater(nx,ny+4)||isCliff(nx,ny+4))continue;n.x=nx;n.y=ny;n.mv=true;if(Math.abs(Math.cos(a))>.2)n.f=Math.cos(a)>0?1:-1;break;}
   return d<(spd*dt+1);
 }
 /* tìm đường BFS trên lưới ô (tránh nước) — NPC vòng qua sông/hồ thay vì đứng đờ ra */
@@ -71,13 +71,13 @@ const NPV=new Int32Array(MW*MH),NPP=new Int32Array(MW*MH),NPQ=new Int32Array(MW*
 function npcPath(sx,sy,tx,ty){
   const s0=(Math.floor(sy/TILE)*MW+Math.floor(sx/TILE)),g0=(Math.floor(ty/TILE)*MW+Math.floor(tx/TILE));
   if(g0<0||g0>=MW*MH||s0<0||s0>=MW*MH)return null;
-  if(tiles[Math.floor(ty/TILE)][Math.floor(tx/TILE)]===W)return null;
+  {const gq=tiles[Math.floor(ty/TILE)][Math.floor(tx/TILE)];if(gq===W||gq===T_CLF)return null;}
   if(s0===g0)return[];
   npStamp++;let qh=0,qt=0;NPQ[qt++]=s0;NPV[s0]=npStamp;NPP[s0]=-1;let found=false;
   const D=[[1,0],[-1,0],[0,1],[0,-1],[1,1],[1,-1],[-1,1],[-1,-1]];
   while(qh<qt&&!found){const c=NPQ[qh++],cx=c%MW,cy=(c/MW)|0;
     for(const[dx,dy]of D){const x=cx+dx,y=cy+dy;if(x<2||y<2||x>=MW-2||y>=MH-2)continue;const k=y*MW+x;if(NPV[k]===npStamp)continue;
-      if(tiles[y][x]===W)continue;if(dx&&dy&&(tiles[cy][x]===W||tiles[y][cx]===W))continue;
+      const bq=tiles[y][x];if(bq===W||bq===T_CLF)continue;if(dx&&dy&&(tiles[cy][x]===W||tiles[y][cx]===W||tiles[cy][x]===T_CLF||tiles[y][cx]===T_CLF))continue;
       NPV[k]=npStamp;NPP[k]=c;NPQ[qt++]=k;if(k===g0){found=true;break;}}}
   if(!found)return null;
   const pts=[];for(let c=g0;c!==-1&&c!==s0;c=NPP[c])pts.push([(c%MW)*TILE+8,((c/MW)|0)*TILE+8]);
@@ -93,9 +93,51 @@ function npcGo(n,tx,ty,spd,dt,t){
   if(Math.hypot(n.x-px,n.y-py)<.05){n.stuck+=dt;if(n.stuck>1.2){n.pg=null;n.path=null;n.stuck=0;if(++n.lt0>3){n.lt0=0;return -1;}}}else n.stuck=0;
   return(arrived&&!n.path.length)?1:0;
 }
+/* ---------- ĐÁNH NHAU Ở MỌI NƠI: người chơi ⇄ NPC ⇄ NPC (không có vùng an toàn) ---------- */
+const NPC_REVIVE=25000;
+function npcHurt(n,dmg,src){
+  if(n.st==='dead')return false;const t=now();
+  dmg=Math.max(1,Math.round(dmg*Math.max(.35,1-npcDef(n)*.04)));n.hp=Math.max(0,n.hp-dmg);n.flash=t;
+  floaters.push({x:n.x,y:n.y-34,t0:t,s:String(dmg)+(typeof CRIT!=='undefined'&&CRIT&&src==='player'?'!':''),c:src==='player'?'#ffd0d0':'#9fd8ff'});if(src==='player')CRIT=0;
+  if(src==='player'){n.foe='p';n.foeT=t+25000;if(n.st!=='fight'){n.st='fight';n.t0=t;n.tgt=null;n.path=null;n.pg=null;npcSay(n,T('npc.rage'));}}
+  else if(src&&src.i!==undefined&&n.st!=='fight'&&n.st!=='rest'){n.foe=src;n.foeT=t+15000;n.st='fight';n.t0=t;n.path=null;n.pg=null;}
+  if(n.hp<=0){npcDie(n,src);return true;}return true;
+}
+function npcDie(n,src){
+  const t=now();n.st='dead';n.deadAt=t;n.mv=false;n.foe=null;n.tgt=null;n.path=null;
+  const items=Object.keys(n.inv);
+  if(src==='player'){stats.kills++;
+    const nl=Math.min(6,2+Math.floor(n.lt/150));for(let i=0;i<nl;i++)drops.push({x:n.x+(i-nl/2)*6+(Math.random()-.5)*4,y:n.y-4,t0:t,n:'lt'});
+    for(const k of items.slice(0,3))drops.push({x:n.x+(Math.random()-.5)*20,y:n.y-6,t0:t,n:k,ic:(TD.byItem[k]||{}).id});
+    n.lt=Math.floor(n.lt*.7);n.inv={};toast(T('npc.slain',{name:NPC_NAMES[n.i][0]}));}
+  else{if(src&&src.i!==undefined){src.kills++;src.lt+=Math.floor(n.lt*.3);n.lt=Math.floor(n.lt*.7);npcSay(src,T('npc.kill'));}n.inv={};}
+}
+function npcAtkDmg(n){return Math.round((7+Math.floor(Math.random()*6)+npcPow(n))*Math.pow(TD.REALM.mul,n.rl-1)*.8);}
+function hitNpcs(dmg){
+  let best=null,bd=1e9;for(const n of NPCS){if(n.st==='dead')continue;const dx=(n.x-P.x)*P.f,d=Math.hypot(n.x-P.x,n.y-12-(P.y-6));if(dx>-10&&d<54&&d<bd){best=n;bd=d;}}
+  if(!best)return false;npcHurt(best,dmg,'player');return true;
+}
+function npcFoeAlive(n){const f=n.foe;if(!f)return false;if(f==='p')return !P.dead;return f.st!=='dead';}
+function npcFoePos(n){return n.foe==='p'?{x:P.x,y:P.y}:{x:n.foe.x,y:n.foe.y};}
+function npcFight(n,dt,t,spd){
+  if(!npcFoeAlive(n)||t>n.foeT||n.hp<n.mhp*.35){n.foe=null;n.st=n.hp<n.mhp*.35?'rest':'idle';n.t0=t;n.mv=false;return;}
+  const fp=npcFoePos(n),d=Math.hypot(fp.x-n.x,fp.y-n.y);
+  if(d>300){n.foe=null;n.st='idle';n.t0=t;n.mv=false;return;}
+  if(d>34){npcMove(n,fp.x-(fp.x>n.x?20:-20),fp.y,spd*1.15,dt);return;}
+  n.mv=false;n.f=fp.x>=n.x?1:-1;
+  if(t>=n.cdA){n.cdA=t+Math.max(520,1000-n.rl*30);n.atkT=t;const dm=npcAtkDmg(n);
+    if(n.foe==='p')hurtPlayer(dm,n.x,n.y);else npcHurt(n.foe,dm,n);}
+}
+function npcAggroScan(n,t){
+  /* thỉnh thoảng gây sự với người/NPC đứng gần — không có nơi nào an toàn */
+  if(Math.random()<.16&&!P.dead&&Math.hypot(P.x-n.x,P.y-n.y)<110){n.foe='p';n.foeT=t+12000;n.st='fight';n.t0=t;n.path=null;n.pg=null;return true;}
+  if(Math.random()<.08){for(const o of NPCS){if(o===n||o.st==='dead')continue;if(Math.hypot(o.x-n.x,o.y-n.y)<80){n.foe=o;n.foeT=t+12000;n.st='fight';n.t0=t;n.path=null;n.pg=null;return true;}}}
+  return false;
+}
 function npcPick(n){
   const t=now();
   if(n.hp<n.mhp*.35){n.st='rest';n.t0=t;n.tgt=null;return;}
+  if(npcAggroScan(n,t))return;
   const tot=Object.values(n.inv).reduce((a,b)=>a+b,0);
   if(tot>=n.want){n.st='shop';n.t0=t;n.tgt=null;return;}
   if(n.rl>=3&&npcPow(n)>=6&&Math.random()<.35){
@@ -106,12 +148,14 @@ function npcPick(n){
   n.st='wander';n.t0=t;n.path=null;n.pg=null;const a=Math.random()*6.283;n.tgt={x:n.x+Math.cos(a)*140,y:n.y+Math.sin(a)*140};
 }
 function npcStep(n,dt,t){
+  if(n.st==='dead'){if(t-n.deadAt>NPC_REVIVE){n.hp=n.mhp;n.st='idle';n.t0=t;n.x=NPC_PLAZA[0]+(Math.random()-.5)*80;n.y=NPC_PLAZA[1]+(Math.random()-.5)*60;n.path=null;n.pg=null;}return;}
   n.hp=Math.min(n.mhp,n.hp+dt*n.mhp*(n.st==='rest'?.08:.01));
   n.qi+=dt*.5*(1+.1*n.rl)*(n.st==='rest'?2.5:1);if(n.qi>=npcNeed(n.rl))npcBreak(n);
   const spd=(50+n.rl*1.5)*(n.eq.m?1.7:1);
   switch(n.st){
    case'idle':n.mv=false;if(t-n.t0>600+n.ph%900)npcPick(n);break;
    case'wander':{const r=npcGo(n,n.tgt.x,n.tgt.y,spd*.6,dt,t);if(r!==0||t-n.t0>6000){n.st='idle';n.t0=t;n.mv=false;}break;}
+   case'fight':npcFight(n,dt,t,spd);break;
    case'rest':n.mv=false;if(n.hp>=n.mhp*.85||t-n.t0>20000){n.st='idle';n.t0=t;}break;
    case'shop':{const r=npcGo(n,NPC_PLAZA[0]+((n.i%3)-1)*34,NPC_PLAZA[1]+34+(n.i>2?18:0),spd,dt,t);if(r!==0){npcShop(n);npcSave();n.st='idle';n.t0=t;n.mv=false;}break;}
    case'farm':{const o=n.tgt;if(!o||o.gone){n.st='idle';n.t0=t;break;}
@@ -126,7 +170,7 @@ function npcStep(n,dt,t){
      n.mv=false;n.f=m.x>=n.x?1:-1;
      if(t>=n.cdA){n.cdA=t+Math.max(450,950-n.rl*30);n.atkT=t;
        const dmg=Math.round((7+Math.floor(Math.random()*6)+npcPow(n))*Math.pow(TD.REALM.mul,n.rl-1));
-       m.hp=Math.max(0,m.hp-dmg);m.flash=.12;floaters.push({x:m.x,y:m.y-m.d.sc*38,t0:t,s:String(dmg),c:'#9fd8ff'});
+       m.hp=Math.max(0,m.hp-dmg);m.flash=.12;floaters.push({x:m.x,y:m.y-m.sc*38,t0:t,s:String(dmg),c:'#9fd8ff'});
        n.hp-=(3+Math.random()*7)*Math.max(.35,1-npcDef(n)*.04);
        if(m.hp<=0){m.st='die';m.t0=t;m.sk=null;m.dieMs=m.d.die?m.d.die.length*260+500:1000;n.lt+=12+Math.floor(Math.random()*10);n.qi+=25;n.kills++;
          npcSay(n,T('npc.kill'));n.st='idle';n.t0=t;}
@@ -141,6 +185,7 @@ function npcUpdate(dt,t){
   if(t-npcSaveT>15000){npcSaveT=t;npcSave();}
 }
 function drawNpc(n,t){
+  if(n.st==='dead')return;
   const atking=t-n.atkT<430;let row,fr;
   if(atking){row=NC.rows.atk;fr=Math.min(7,Math.floor((t-n.atkT)/430*8));}
   else if(n.mv){row=NC.rows.walk;fr=Math.floor((t+n.ph)/95)%8;}
@@ -169,5 +214,5 @@ function npcTag(n,t,lift){
 }
 /* dữ liệu cho bảng xếp hạng: NPC là người chơi có tiến trình thật (đang chạy trên máy này) */
 function npcTotalQi(n){let s=0;for(let l=1;l<n.rl;l++)s+=npcNeed(l);return Math.round(s+n.qi);}
-function npcRank(){return NPCS.map(n=>({name:NPC_NAMES[n.i][npcLang()],pid:'TC-'+['7A3F9C','B21E58','4D90A7','E6C413','19F8B2','C57D06'][n.i%6],realm:n.rl,qi_total:npcTotalQi(n),kills:n.kills|0,npc:1}));}
+function npcRank(){return NPCS.map(n=>({name:NPC_NAMES[n.i][npcLang()],pid:'TC-'+(n.i<6?['7A3F9C','B21E58','4D90A7','E6C413','19F8B2','C57D06'][n.i]:((hash(n.i*7+3,11)*16777216)>>>0).toString(16).toUpperCase().padStart(6,'0')),realm:n.rl,qi_total:npcTotalQi(n),kills:n.kills|0,npc:1}));}
 npcLoad();

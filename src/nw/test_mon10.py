@@ -16,12 +16,11 @@ with sync_playwright() as p:
       for(const f of fr)if(!G.MMETA[id][f])bad.push(id+':'+f);}return bad;})()"""%NEW)
     chk('mọi khung hình của 10 quái mới tồn tại',not bad,bad)
     cnt=pg.evaluate("(()=>{const o={};for(const m of G.mons2)o[m.id]=(o[m.id]||0)+1;return o;})()")
-    chk('mỗi quái mới 8 con, quái cũ 10',all(cnt.get(i)==8 for i in NEW) and all(cnt.get(i)==10 for i in ['hoa','tho','kim','moc']),cnt)
+    chk('mỗi loài 5 ổ x 7 con',all(cnt.get(i)==35 for i in NEW+['hoa','tho','kim','moc']),cnt)
     info=pg.evaluate("G.mons2.filter(m=>['dalinh','satrung','hoamoc'].includes(m.id)).slice(0,24).map(m=>m.id+':'+m.rl+':'+m.maxHp+':'+Math.round(m.x/16)+','+Math.round(m.y/16)).join(' ')")
-    print(info)
     # tu vi: mới < cùng hệ
     rl=pg.evaluate("(()=>{const o={};for(const m of G.mons2)o[m.id]=m.rl;return o;})()")
-    chk('quái mới yếu hơn quái cùng hệ 1 cảnh giới (hoa/tho/kim/moc)',rl['hoamoc']==rl['hoa']-1 and rl['thachnhan']==rl['tho']-1 and rl['phapkhi']==rl['kim']-1 and rl['nhanhoa']==rl['moc']-1 and rl['dalinh']==8,rl)
+    chk('mỗi bầy: thường + tinh anh + thủ lĩnh, tu vi khác nhau, quái nhỏ 1/2',pg.evaluate("(()=>{for(const id of Object.keys(G.MD)){const a=G.mons2.filter(m=>m.id===id);const t=new Set(a.map(m=>m.tier));if(!(t.has(0)&&t.has(1)&&t.has(2)))return id+' thiếu bậc';const lead=a.find(m=>m.tier===2),nor=a.find(m=>m.tier===0);if(!(lead.rl>nor.rl||lead.rl===10))return id+' thủ lĩnh không mạnh hơn';if(!(nor.sc<=G.MD[id].sc*.5+.001))return id+' chưa thu nhỏ';}return 'ok'})()")=='ok',pg.evaluate("1"))
     # giáp/giày: giết 1 con -> rơi nguyên liệu
     pg.evaluate("Math.random=()=>.1")
     r=pg.evaluate("(()=>{const m=G.mons2.find(m=>m.id==='hoamoc');const n0=G.drops.length;G.monHit(m,99999);return G.drops.map(d=>d.n);})()")

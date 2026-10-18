@@ -11,7 +11,7 @@ function UPS(n){return 'data:image/png;base64,'+window.UIP[n];}
 function UP(n){return 'url('+UPS(n)+')';}
 function $(id){return document.getElementById(id);}
 function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
-var WW=200*16,MWT=200;
+var WW=500*16,MWT=500;
 function wd(a,b,n){return ((b-a+n/2)%n+n)%n-n/2;}   /* hiệu vòng a→b */
 
 var css=document.createElement('style');
@@ -106,12 +106,13 @@ $('hUp').onclick=function(){window.TTBag&&TTBag.openTab('R');};
 function zoneName(){
   var sp=G.SPAWN,px=G.P.x/16,py=G.P.y/16,dx=wd(sp.x,px,MWT),dy=wd(sp.y,py,MWT);
   if(Math.hypot(dx,dy)<18)return T('zone.c');
+  var b=G.tiles[Math.floor(G.P.y/16)%MWT][Math.floor(G.P.x/16)%MWT],bn={6:'zone.sa',7:'zone.dam',8:'zone.tuyet',9:'zone.rung',10:'zone.nui'}[b];if(bn)return T(bn);
   var s=Math.round(Math.atan2(dy,dx)/(Math.PI/4));s=((s%8)+8)%8;
   return T('zone.'+['e','se','s','sw','w','nw','n','ne'][s]);
 }
 
 /* ----- bản đồ: cache 1 điểm/ô, lặp 3x3 để cuộn vòng ----- */
-var COL={0:[90,154,60],1:[201,168,106],2:[138,141,146],3:[160,160,164],4:[184,154,106],5:[63,143,181]};
+var COL={0:[90,154,60],1:[201,168,106],2:[138,141,146],3:[160,160,164],4:[184,154,106],5:[63,143,181],6:[226,196,112],7:[84,92,52],8:[236,242,248],9:[44,96,58],10:[70,66,78]};
 var cache=null;
 function buildCache(){
   var T0=G.tiles;if(!T0||!T0.length)return null;

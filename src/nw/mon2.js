@@ -275,7 +275,7 @@ const mons2=[],fx2=[],projs=[];
 function findLand(tx,ty){
   for(let r=0;r<45;r++)for(let dy=-r;dy<=r;dy++)for(let dx=-r;dx<=r;dx++){
     if(Math.max(Math.abs(dx),Math.abs(dy))!==r)continue;const x=tx+dx,y=ty+dy;if(x<4||y<4||x>=MW-4||y>=MH-4)continue;
-    let ok=true;for(let a=-2;a<=2&&ok;a++)for(let b=-2;b<=2;b++){const q=tiles[y+b][x+a];if(q!==G&&q!==D&&q!==R){ok=false;break;}}
+    let ok=true;for(let a=-2;a<=2&&ok;a++)for(let b=-2;b<=2;b++){const q=tiles[y+b][x+a];if(!isLandT(q)){ok=false;break;}}
     if(ok)return{x:x*TILE+8,y:y*TILE+8};
   }return{x:tx*TILE+8,y:ty*TILE+8};
 }
@@ -283,19 +283,36 @@ function findLand(tx,ty){
 /* ---- TU VI QUÁI: mỗi loài có cảnh giới riêng, mạnh hơn người cùng cảnh giới (quái chỉ có bản thân làm trang bị) + 1 sở trường theo hệ ----
    hp gốc 220×mul, sát thương skill ×mul×1.25 (mul = 1,2^(tầng-1) như người chơi). Sở trường: Kim=công ×1.7 · Mộc=máu ×1.9 · Thổ=giảm sát thương 40% · Hỏa=nhanh (chạy ×1.4, chiêu hồi ×0.65) · Thủy=hồi máu 2%/giây */
 const MREALM={hoa:3,tho:4,kim:5,moc:6,thuylong:9,hoakhuyen:2,hoamoc:2,thachnhan:3,satrung:3,phapkhi:4,bangtinh:4,nhanhoa:5,namlinh:5,dalinh:8,cotxa:8};   /* quái mới = quái cùng hệ − 1 cảnh giới */
-function monStats(id,el){const rl=MREALM[id]||1,mul=Math.pow(TD.REALM.mul,rl-1);
+function monStats(id,el,rlo){const rl=rlo||MREALM[id]||1,mul=Math.pow(TD.REALM.mul,rl-1);
   const o={rl,hp:Math.round(220*mul),dm:mul*1.25,red:0,spm:1,cdm:1,regen:0};
   if(el==='kim')o.dm*=1.7;else if(el==='moc')o.hp=Math.round(o.hp*1.9);else if(el==='tho')o.red=.4;else if(el==='hoa'){o.spm=1.4;o.cdm=.65;}else if(el==='thuy')o.regen=.02;
   return o;}
 for(const d of DRG)Object.assign(d,monStats('thuylong','thuy'),{maxHp:monStats('thuylong','thuy').hp,hp:monStats('thuylong','thuy').hp});
-const PACK_N=10;
+/* ---- SINH QUÁI TRÊN BẢN ĐỒ 500x500: mỗi loài có nhiều ổ rải theo vùng hợp hệ; mỗi ổ là 1 bầy gồm thủ lĩnh + tinh anh + quái thường (tu vi khác nhau, càng xa làng càng mạnh) ---- */
+const MON_SCALE=.5;                       /* tất cả quái thu nhỏ còn 1/2 */
+const MBIO={hoa:[1,3],tho:[1,3,0],kim:[3,5],moc:[4,0,2],thuy:[2,5]};   /* mã vùng ưa thích theo hệ: 0 cỏ · 1 cát · 2 đầm · 3 núi · 4 rừng · 5 tuyết */
+const MTIER=[{n:0,sm:1,rb:0},{n:1,sm:1.22,rb:1},{n:2,sm:1.5,rb:2}];   /* thường · tinh anh · thủ lĩnh */
+const PACK_COMP=[2,1,1,0,0,0,0],LAIRS_PER=5,LAIRS=[];
+function pickLair(id,d,k){
+  const pref=MBIO[d.el]||[0],minD=Math.min(130,40+((MREALM[id]||1)-1)*10);
+  for(let a=0;a<500;a++){
+    const tx=Math.floor(hash(id.length*131+k*977+a*13,a*7+k*31+id.charCodeAt(0))*(MW-24))+12,ty=Math.floor(hash(a*19+k*53+id.charCodeAt(1),id.length*71+k*29+a)*(MH-24))+12;
+    if(!pref.includes(BIO[ty*MW+tx])||tdist(tx,ty,SPAWN.x,SPAWN.y)<minD)continue;
+    if(LAIRS.some(o=>tdist(o.x,o.y,tx,ty)<(o.id===id?60:22)))continue;
+    if(TRIBES.some(o=>tdist(o.x,o.y,tx,ty)<16))continue;
+    let ok=true;for(let i=-3;i<=3&&ok;i++)for(let j=-3;j<=3;j++)if(!isLandT(tiles[ty+j][tx+i])){ok=false;break;}
+    if(ok)return{x:tx,y:ty};}
+  return null;}
 for(const id in MD){const d=MD[id];
-  for(let i=0;i<(d.pack||PACK_N);i++){const a=i*2.399+(id.charCodeAt(0)%7),rr=i===0?0:1.5+Math.sqrt(i)*1.55;
-    const h=findLand(Math.round(d.lair[0]+Math.cos(a)*rr),Math.round(d.lair[1]+Math.sin(a)*rr));
-    const ms=monStats(id,d.el),mh=ms.hp;
-    mons2.push({id,d,rl:ms.rl,dm:ms.dm,red:ms.red,spm:ms.spm,cdm:ms.cdm,regen:ms.regen,x:h.x,y:h.y,hx:h.x,hy:h.y,f:i%2?1:-1,hp:mh,maxHp:mh,st:'idle',t0:0,cd:[0,0],sk:null,flash:0,hold:i*150,deadAt:0,dieMs:900,tx:0,ty:0});}}
+  for(let k=0;k<LAIRS_PER;k++){
+    const lp=pickLair(id,d,k)||(k===0?{x:d.lair[0],y:d.lair[1]}:null);if(!lp)continue;LAIRS.push({id,x:lp.x,y:lp.y});
+    const db=Math.floor(tdist(lp.x,lp.y,SPAWN.x,SPAWN.y)/100);
+    for(let i=0;i<PACK_COMP.length;i++){const tier=PACK_COMP[i],tm=MTIER[tier],a=i*2.399+k,rr=i===0?0:1.5+Math.sqrt(i)*1.5;
+      const h=findLand(Math.round(lp.x+Math.cos(a)*rr),Math.round(lp.y+Math.sin(a)*rr));
+      const rlv=Math.max(1,Math.min(TD.REALM.max,(MREALM[id]||1)+db+tm.rb)),ms=monStats(id,d.el,rlv),mh=ms.hp*(tier===2?1.5:1);
+      mons2.push({id,d,tier,sc:d.sc*MON_SCALE*tm.sm,rl:ms.rl,dm:ms.dm*(tier===2?1.25:1),red:ms.red,spm:ms.spm,cdm:ms.cdm,regen:ms.regen,x:h.x,y:h.y,hx:h.x,hy:h.y,f:i%2?1:-1,hp:mh,maxHp:mh,st:'idle',t0:0,cd:[0,0],sk:null,flash:0,hold:i*150,deadAt:0,dieMs:900,tx:0,ty:0});}}}
 function packSpot(m){for(let k=0;k<12;k++){const a=Math.random()*6.283,r=14+Math.random()*50,x=m.hx+Math.cos(a)*r,y=m.hy+Math.sin(a)*r;
-  if(!isWater(x,y)&&!isWater(x,y+8)&&tiles[y/TILE|0]&&[G,D,R].includes(tiles[y/TILE|0][x/TILE|0]))return{x,y};}return{x:m.hx,y:m.hy};}
+  if(!isWater(x,y)&&!isWater(x,y+8)&&tiles[y/TILE|0]&&isLandT(tiles[y/TILE|0][x/TILE|0]))return{x,y};}return{x:m.hx,y:m.hy};}
 const monAlive=m=>m.dr?withDr(m,()=>mTargetable()&&M.st!=='die'):(m.st!=='dead'&&m.st!=='die');
 const pearlOf=el=>TD.pearlId(el,1);
 
@@ -357,14 +374,14 @@ function endSkill(m,t){m.st='chase';m.sk=null;m.t0=t;m.hold=t+250;}
 function skillStep(m,t,dt){
   const s=m.sk,e=t-m.t0,d=m.d;
   if(s.k==='cone'){const wt=s.wind.length*s.wms,ft=s.fxms.reduce((a,b)=>a+b,0);
-    if(!m.done&&e>=wt){m.done=true;fx2.push({k:'cone',id:m.id,mx:m.x+m.f*s.ox*d.sc,my:m.y+s.oy*d.sc,f:m.f,frames:s.fx,fxms:s.fxms,t0:t,dur:ft,len:s.len,hw:s.hw,dmg:s.dmg*m.dm,hitT:s.hit,hit:false,sc:d.sc});}
+    if(!m.done&&e>=wt){m.done=true;fx2.push({k:'cone',id:m.id,mx:m.x+m.f*s.ox*m.sc,my:m.y+s.oy*m.sc,f:m.f,frames:s.fx,fxms:s.fxms,t0:t,dur:ft,len:s.len,hw:s.hw,dmg:s.dmg*m.dm,hitT:s.hit,hit:false,sc:m.sc});}
     if(e>wt+ft+300)endSkill(m,t);
   }else if(s.k==='proj'){const wt=s.wind.length*s.wms;
-    if(!m.done&&e>=wt){m.done=true;const mx=m.x+m.f*s.ox*d.sc,my=m.y+s.oy*d.sc+(d.fly?-16:0),a=Math.atan2(P.y-12-my,P.x-mx);
-      projs.push({x:mx,y:my,vx:Math.cos(a)*s.speed,vy:Math.sin(a)*s.speed,t0:t,life:s.life,r:s.r,dmg:s.dmg*m.dm,frames:s.fx,sc:d.sc,id:m.id});}
+    if(!m.done&&e>=wt){m.done=true;const mx=m.x+m.f*s.ox*m.sc,my=m.y+s.oy*m.sc+(d.fly?-16:0),a=Math.atan2(P.y-12-my,P.x-mx);
+      projs.push({x:mx,y:my,vx:Math.cos(a)*s.speed,vy:Math.sin(a)*s.speed,t0:t,life:s.life,r:s.r,dmg:s.dmg*m.dm,frames:s.fx,sc:m.sc,id:m.id});}
     if(e>wt+400)endSkill(m,t);
   }else if(s.k==='aoe'){
-    if(!m.done&&e>=s.tele){m.done=true;fx2.push({k:'aoe',id:m.id,x:m.tx,y:m.ty,frames:s.fx,fxms:s.fxms,t0:t,dur:s.fx.length*s.fxms+120,hitT:s.fxms,hit:false,r:s.r,dmg:s.dmg*m.dm,sc:d.sc});}
+    if(!m.done&&e>=s.tele){m.done=true;fx2.push({k:'aoe',id:m.id,x:m.tx,y:m.ty,frames:s.fx,fxms:s.fxms,t0:t,dur:s.fx.length*s.fxms+120,hitT:s.fxms,hit:false,r:s.r,dmg:s.dmg*m.dm,sc:m.sc});}
     if(e>s.tele+s.fx.length*s.fxms+300)endSkill(m,t);
   }else if(s.k==='charge'){const wt=s.wind.length*s.wms,dtm=s.dist/s.speed*1000;
     if(e>=wt&&e<wt+dtm){
@@ -379,11 +396,12 @@ function stepMon(m,dt,t){
   if(m.regen&&m.st!=='die'&&m.st!=='dead'&&m.hp<m.maxHp)m.hp=Math.min(m.maxHp,m.hp+dt*m.maxHp*m.regen);
   if(m.st==='dead'){if(t-m.deadAt>MON_RESPAWN){const s=packSpot(m);m.hp=m.maxHp;m.x=s.x;m.y=s.y;m.st='idle';m.t0=t;m.hold=t+600;}return;}
   if(m.st==='die'){if(t-m.t0>m.dieMs){m.st='dead';m.deadAt=t;}return;}
+  if(m.st==='idle'&&(Math.abs(P.x-m.x)>1100||Math.abs(P.y-m.y)>900))return;   /* ở xa người chơi: đứng yên cho nhẹ máy */
   const pd=Math.hypot(P.x-m.x,P.y-m.y),hd=Math.hypot(m.hx-m.x,m.hy-m.y);
   switch(m.st){
    case'idle':
      if(m.hp<m.maxHp)m.hp=Math.min(m.maxHp,m.hp+dt*m.maxHp*.05);
-     if(!P.dead&&t>m.hold&&(pd<d.aggro||mons2.some(o=>o!==m&&o.id===m.id&&o.st==='chase'&&Math.hypot(o.x-m.x,o.y-m.y)<120&&pd<d.aggro*2))){m.st='chase';m.t0=t;}
+     if(!P.dead&&t>m.hold&&(pd<d.aggro||(pd<d.aggro*2&&mons2.some(o=>o!==m&&o.id===m.id&&o.st==='chase'&&Math.hypot(o.x-m.x,o.y-m.y)<120)))){m.st='chase';m.t0=t;}
      break;
    case'chase':{
      if(P.dead||hd>d.leash){m.st='return';m.t0=t;break;}
@@ -402,7 +420,7 @@ function stepMon(m,dt,t){
 function monHit(m,dmg){
   if(m.dr){withDr(m,()=>mHit(dmg));return;}
   if(!monAlive(m))return;const t=now();dmg=Math.max(1,Math.round(dmg*(1-(m.red||0))));
-  m.hp=Math.max(0,m.hp-dmg);m.flash=.12;floaters.push({x:m.x,y:m.y-m.d.sc*38,t0:t,s:String(dmg)+(CRIT?'!':''),c:CRIT?'#ffd93a':'#fff',cr:CRIT});CRIT=0;
+  m.hp=Math.max(0,m.hp-dmg);m.flash=.12;floaters.push({x:m.x,y:m.y-m.sc*38,t0:t,s:String(dmg)+(CRIT?'!':''),c:CRIT?'#ffd93a':'#fff',cr:CRIT});CRIT=0;
   if(m.st==='idle'||m.st==='return'){m.st='chase';m.t0=t;m.hold=t;}
   if(m.hp<=0){
     stats.kills++;m.st='die';m.t0=t;m.sk=null;m.dieMs=m.d.die?m.d.die.length*260+500:1000;
@@ -415,7 +433,7 @@ function monHit(m,dmg){
 }
 function hitMons2(dmg){
   let best=null,bd=1e9;
-  for(const m of mons2){if(!monAlive(m))continue;const dx=(m.x-P.x)*P.f,d=Math.hypot(m.x-P.x,m.y-14-(P.y-6));if(dx>-10&&d<54+m.d.sc*8&&d<bd){best=m;bd=d;}}
+  for(const m of mons2){if(!monAlive(m))continue;const dx=(m.x-P.x)*P.f,d=Math.hypot(m.x-P.x,m.y-14-(P.y-6));if(dx>-10&&d<54+m.sc*8&&d<bd){best=m;bd=d;}}
   if(!best)return false;monHit(best,dmg);return true;
 }
 function mon2Update(dt,t){
@@ -450,12 +468,12 @@ function monFrame(m,t){
 }
 function drawMon2(m,t){
   if(m.st==='dead')return;const d=m.d,img=MIMG[m.id],meta=MMETA[m.id],name=monFrame(m,t),hover=d.fly?-16+Math.sin(t/240)*3:0;
-  ctx.save();ctx.globalAlpha=.3;ctx.fillStyle='#000';ctx.beginPath();ctx.ellipse(m.x,m.y+1,d.shw,d.shw*.28,0,0,7);ctx.fill();ctx.restore();
+  ctx.save();ctx.globalAlpha=.3;ctx.fillStyle='#000';ctx.beginPath();ctx.ellipse(m.x,m.y+1,d.shw*m.sc/d.sc,d.shw*m.sc/d.sc*.28,0,0,7);ctx.fill();ctx.restore();
   let al=1;if(m.st==='die'){const k=(t-m.t0)/m.dieMs;al=d.die?(k>.7?Math.max(0,1-(k-.7)/.3):1):Math.max(0,1-k);}
-  spr1(img,meta,name,m.x,m.y+hover,d.sc,m.f,al);
-  if(m.flash>0){ctx.save();ctx.globalCompositeOperation='lighter';spr1(img,meta,name,m.x,m.y+hover,d.sc,m.f,al*.55);ctx.restore();}
-  if(m.st!=='die'){const f=meta[name],by=m.y+hover+(f?f[5]*d.sc:-50)-10;
-    tagBox(Math.round(m.x),Math.round(by),34,m.hp/m.maxHp,T('monster.'+m.id)+' - '+T('realm.n',{n:m.rl}),null,TD.PEARL[d.el].col);}
+  spr1(img,meta,name,m.x,m.y+hover,m.sc,m.f,al);
+  if(m.flash>0){ctx.save();ctx.globalCompositeOperation='lighter';spr1(img,meta,name,m.x,m.y+hover,m.sc,m.f,al*.55);ctx.restore();}
+  if(m.st!=='die'){const f=meta[name],by=m.y+hover+(f?f[5]*m.sc:-50)-10;
+    tagBox(Math.round(m.x),Math.round(by),m.tier?38:34,m.hp/m.maxHp,(m.tier?T('mon.t'+m.tier)+' ':'')+T('monster.'+m.id)+' - '+T('realm.n',{n:m.rl}),null,m.tier===2?'#ff7a6b':m.tier===1?'#ffd24a':TD.PEARL[d.el].col);}
 }
 function drawPet(o,t){
   const bob=Math.sin(t/200+o.x)*(o.run?1.4:.6);
@@ -483,14 +501,14 @@ function drawMonFx(t){
 }
 
 /* ---------- TỰ ĐỘNG SĂN (trong vùng quanh chỗ bật) ---------- */
-const AUTO={on:false,ax:0,ay:0,R:224,tgt:null,pt:0};
+const AUTO={on:false,ax:0,ay:0,R:760,tgt:null,pt:0,hd:0,ht:0};   /* không còn khoá vùng: tìm mục tiêu quanh chỗ đang đứng, hết thì tự dạo đi tìm */
 const autoBtn=document.createElement('button');autoBtn.id='autoBtn';autoBtn.type='button';
 {const st=document.createElement('style');st.textContent='#autoBtn{position:fixed;right:calc(env(safe-area-inset-right,0px) + 26px);bottom:calc(env(safe-area-inset-bottom,0px) + 126px);min-width:74px;height:34px;padding:0 10px;border-radius:17px;border:1px solid #fff7;background:#1a2f42cc;color:#fff;font-size:12px;font-weight:800;letter-spacing:.5px;display:none;-webkit-user-select:none;user-select:none}#autoBtn.on{background:#d98a1ecc;border-color:#ffe58f;box-shadow:0 0 12px #ffb34799}';document.head.appendChild(st);}
 document.body.appendChild(autoBtn);
 function autoLabel(){autoBtn.textContent=T(AUTO.on?'auto.btn.on':'auto.btn');autoBtn.classList.toggle('on',AUTO.on);}
 function setAuto(v,why){
   if(!!v===AUTO.on)return;AUTO.on=!!v;AUTO.tgt=null;
-  if(v){AUTO.ax=P.x;AUTO.ay=P.y;toast(T('toast.auto.on',{r:Math.round(AUTO.R/TILE)}));}
+  if(v){AUTO.ax=P.x;AUTO.ay=P.y;toast(T('toast.auto.on'));}
   else toast(T(why==='low'?'toast.auto.low':'toast.auto.off'));
   autoLabel();
 }
@@ -498,7 +516,7 @@ autoBtn.addEventListener('pointerdown',e=>{setAuto(!AUTO.on);e.preventDefault();
 autoBtn.addEventListener('click',e=>e.stopPropagation());
 I18N.on(autoLabel);autoLabel();
 function pickTarget(t){
-  const inR=(x,y)=>Math.hypot(x-AUTO.ax,y-AUTO.ay)<=AUTO.R;let best=null,bd=1e9;
+  AUTO.ax=P.x;AUTO.ay=P.y;const inR=(x,y)=>Math.hypot(x-P.x,y-P.y)<=AUTO.R;let best=null,bd=1e9;
   for(const d of drops){if(d.exp||!inR(d.x,d.y))continue;const dd=Math.hypot(d.x-P.x,d.y-P.y);if(dd<bd){bd=dd;best={k:'drop',ref:d,x:d.x,y:d.y,reach:5};}}
   if(best)return best;
   for(const m of mons2.concat(DRG)){if(!monAlive(m)||!inR(m.x,m.y))continue;const dd=Math.hypot(m.x-P.x,m.y-P.y);if(dd<bd){bd=dd;best={k:'mon',ref:m,x:m.x,y:m.y-14,reach:38};}}
@@ -512,11 +530,11 @@ function autoThink(t){
   if(P.hp<P.maxHp*.3){setAuto(false,'low');return{x:0,y:0};}
   if(!AUTO.tgt||t-AUTO.pt>300||!validTarget(AUTO.tgt)){AUTO.tgt=pickTarget(t);AUTO.pt=t;}
   const g=AUTO.tgt;
-  if(!g){const dx=AUTO.ax-P.x,dy=AUTO.ay-P.y,d=Math.hypot(dx,dy);return d>30?{x:dx/d,y:dy/d}:{x:0,y:0};}
+  if(!g){if(t>AUTO.ht){AUTO.hd=Math.random()*6.2832;AUTO.ht=t+4000+Math.random()*3000;}return{x:Math.cos(AUTO.hd),y:Math.sin(AUTO.hd)};}   /* hết mục tiêu → dạo theo hướng ngẫu nhiên đi tìm */
   if(g.k==='mon'){g.x=g.ref.x;g.y=g.ref.y-14;}
   const dx=g.x-P.x,dy=g.y-(P.y-6),d=Math.hypot(dx,dy);
   if(d<=g.reach&&g.k!=='drop'){P.f=dx>=0?1:-1;attack();return{x:0,y:0};}
   return d>1?{x:dx/d,y:dy/d}:{x:0,y:0};
 }
-function drawAutoRing(t){if(!AUTO.on)return;ctx.save();ctx.strokeStyle='rgba(255,229,143,.35)';ctx.lineWidth=1;ctx.setLineDash([8,8]);ctx.beginPath();ctx.arc(AUTO.ax,AUTO.ay,AUTO.R,0,7);ctx.stroke();ctx.restore();}
+function drawAutoRing(t){}
 recalc();

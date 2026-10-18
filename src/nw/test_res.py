@@ -12,11 +12,11 @@ def run3():
         pg.click('#tReg'); pg.fill('#aName','res_test'); pg.fill('#aPw','abcdef'); pg.fill('#aPw2','abcdef'); pg.click('#aGo'); pg.wait_for_timeout(900)
         # ---- bản đồ ----
         info=pg.evaluate("""(()=>{const n=G.nodes,T=G.tiles,bad=[],tc={1:0,2:0,3:0},el={};let near=0,minD=1e9;
-          for(const o of n){const tx=o.x/16|0,ty=o.y/16|0;const t=T[ty][tx];if(t>2)bad.push([tx,ty,t]);tc[o.g.tier]++;el[o.g.el]=(el[o.g.el]||0)+1;
+          for(const o of n){const tx=o.x/16|0,ty=o.y/16|0;const t=T[ty][tx];if(t===5||t===3||t===4||t===10)bad.push([tx,ty,t]);tc[o.g.tier]++;el[o.g.el]=(el[o.g.el]||0)+1;
             const d=Math.hypot(tx-100,ty-100);minD=Math.min(minD,d);if(d<25)near++;}
           return {n:n.length,bad:bad.length,tc,el,near,minD}})()""")
         print(info)
-        ok(250<=info['n']<=900,f"số nguồn tài nguyên hợp lý: {info['n']}")
+        ok(2500<=info['n']<=6000,f"số nguồn tài nguyên hợp lý: {info['n']}")
         ok(info['bad']==0,'không nguồn nào trên nước/gạch/đường')
         ok(info['minD']>=9,f"chừa quảng trường (gần nhất {info['minD']:.1f} ô)")
         ok(all(info['tc'][k]>0 for k in ('1','2','3')) if isinstance(list(info['tc'].keys())[0],str) else all(info['tc'][k]>0 for k in (1,2,3)),f"đủ 3 bậc: {info['tc']}")

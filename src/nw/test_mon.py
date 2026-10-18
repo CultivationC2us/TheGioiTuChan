@@ -13,9 +13,8 @@ def run4():
         ok(pg.is_visible('#autoBtn') and 'TỰ ĐỘNG' in pg.inner_text('#autoBtn'),'nút TỰ ĐỘNG hiện sau đăng nhập')
         # ---- quái ----
         info=pg.evaluate("G.mons2.filter(m=>['hoa','tho','kim','moc'].includes(m.id)).map(m=>({id:m.id,tx:m.x/16|0,ty:m.y/16|0,t:G.tiles[m.y/16|0][m.x/16|0],d:Math.hypot(m.x/16-100,m.y/16-100),hp:m.hp}))")
-        print(info)
-        ok(len(info)==40 and {i['id'] for i in info}=={'hoa','tho','kim','moc'},'có 4 loại quái Hỏa/Thổ/Kim/Mộc, mỗi loại 10 con')
-        ok(all(i['t']<=2 for i in info),'cả 4 đứng trên đất liền')
+        ok(len(info)==140 and {i['id'] for i in info}=={'hoa','tho','kim','moc'},'có 4 loại quái Hỏa/Thổ/Kim/Mộc, mỗi loại 35 con')
+        ok(all(i['t']!=5 and i['t']!=10 for i in info),'cả 4 đứng trên đất liền')
         ok(all(i['d']>45 for i in info),'xa điểm xuất phát (>45 ô)')
         pg.evaluate("G.P.maxHp=1e6;G.P.hp=1e6;G.setTameP(0)")
         for k in ('hoa','tho','kim','moc'):
@@ -103,7 +102,7 @@ def run4():
         pg.wait_for_timeout(9000)
         ok(pg.evaluate("__an.gone")==True or pg.evaluate("Object.keys(G.loot).some(k=>k.startsWith('nl.'))"),'tự động: tự đi tới và khai thác tài nguyên')
         ok(pg.evaluate("Object.keys(G.loot).some(k=>k.startsWith('nl.'))"),'tự động: tự nhặt vật phẩm rơi')
-        ok(pg.evaluate("Math.hypot(G.P.x-G.AUTO.ax,G.P.y-G.AUTO.ay)<G.AUTO.R+60"),'tự động: không đi ra khỏi vùng')
+        ok(pg.evaluate("G.AUTO.R>=700"),'tự động: không giới hạn vùng')
         pg.screenshot(path=S.replace('game.html','mon_auto.png'))
         # tự động đánh quái + linh thú hỗ trợ
         pg.evaluate("""(()=>{const m=G.mons2.find(o=>o.id=='moc');G.mons2.filter(o=>o.id=='moc').forEach(o=>{o.hold=1e12;o.hp=o.maxHp=400});G.P.x=m.x-60;G.P.y=m.y;G.AUTO.ax=G.P.x;G.AUTO.ay=G.P.y;G.setPets(['hoa']);G.cam.x=G.P.x;G.cam.y=G.P.y;G.P.hp=118;G.P.maxHp=1e6;G.P.hp=1e6;
