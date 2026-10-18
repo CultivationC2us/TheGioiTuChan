@@ -2248,7 +2248,7 @@ function drawNode(n,t){const g=n.g;let fi=0;
   const f=RMETA[g.id][fi],sc=g.sc;ctx.drawImage(IMG.res,f[0],f[1],f[2],f[3],n.x+f[4]*sc,n.y+f[5]*sc,f[2]*sc,f[3]*sc);}
 function drawDrops(t){for(const d of drops){const y=d.y-4+Math.sin(t/260)*2;if(d.exp&&d.exp-t<10000&&Math.floor(t/150)%2)continue;
   const pb=TD.byPearl[d.n],pc=pb?TD.PEARL[pb.el]:{col:'#e8fbff',glow:'#4aa8ff'};
-  {const ic=TD.ICO[d.n],lf=ic&&ic.charAt(1)===':'&&GLM[ic.slice(2)];if(lf&&IMG.gl.complete){const k=.62,w=lf[2]*k,h=lf[3]*k;ctx.save();ctx.globalAlpha=.35;ctx.fillStyle='#000';ctx.beginPath();ctx.ellipse(d.x,d.y+5,w*.35,2,0,0,7);ctx.fill();ctx.restore();ctx.imageSmoothingEnabled=false;ctx.drawImage(IMG.gl,lf[0],lf[1],lf[2],lf[3],d.x-w/2,y-h+2,w,h);continue;}}
+  {const ic=TD.ICO[d.n],lf=ic&&ic.charAt(1)===':'&&GLM[ic.slice(2)];if(lf&&IMG.gl.complete){const k=.3,w=lf[2]*k,h=lf[3]*k;ctx.save();ctx.globalAlpha=.35;ctx.fillStyle='#000';ctx.beginPath();ctx.ellipse(d.x,d.y+5,w*.35,2,0,0,7);ctx.fill();ctx.restore();ctx.imageSmoothingEnabled=false;ctx.drawImage(IMG.gl,lf[0],lf[1],lf[2],lf[3],d.x-w/2,y-h+2,w,h);continue;}}
   if(d.ic){const f=RMETA[d.ic][3],sc=.8333,w=f[2]*sc,h=f[3]*sc;ctx.save();ctx.globalAlpha=.35;ctx.fillStyle='#000';ctx.beginPath();ctx.ellipse(d.x,d.y+5,w*.35,2,0,0,7);ctx.fill();ctx.restore();
     ctx.drawImage(IMG.res,f[0],f[1],f[2],f[3],d.x-w/2,y-h+2,w,h);continue;}const g=ctx.createRadialGradient(d.x,y,1,d.x,y,10);g.addColorStop(0,pc.col+'e6');g.addColorStop(1,pc.glow+'00');
   ctx.fillStyle=g;ctx.beginPath();ctx.arc(d.x,y,10,0,7);ctx.fill();ctx.fillStyle=pc.col;ctx.fillRect(d.x-2,y-2,4,4);ctx.fillStyle=pc.glow;ctx.fillRect(d.x-2,y+1,4,1);ctx.fillRect(d.x-2,y-2,1,4);}}
@@ -2889,7 +2889,7 @@ pn.innerHTML=
 '<div class="box"><div class="hd"><span id="setIc"></span><h2 data-i18n="set.title"></h2><button id="setX" type="button" data-i18n="bag.close"></button></div>'+
 '<h3 data-i18n="set.lang"></h3><div class="langs" id="setL"></div><div class="note" data-i18n="set.langnote"></div>'+
 '<h3 data-i18n="set.code"></h3><div class="codeRow"><input id="setCode" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false"><button id="setCodeGo" type="button" data-i18n="set.code.go"></button></div><div class="note" id="setCodeMsg"></div>'+
-'<h3 data-i18n="set.account"></h3><div id="setA"></div><div class="note" style="text-align:center;margin-top:14px">v1018.1618</div></div>';
+'<h3 data-i18n="set.account"></h3><div id="setA"></div><div class="note" style="text-align:center;margin-top:14px">v1018.1622</div></div>';
 document.body.appendChild(pn);
 $('setIc').appendChild(gear(2));
 
@@ -3329,7 +3329,7 @@ ov.innerHTML=
 '<div class="err" id="aErr"></div>'+
 '<button class="go" id="aGo" type="submit"></button>'+
 '<div class="note" data-i18n-html="auth.note"></div>'+
-'<div class="note" style="opacity:.7">v1018.1618</div>'+
+'<div class="note" style="opacity:.7">v1018.1622</div>'+
 '</form>';
 document.body.appendChild(ov);
 var acc=document.createElement('div');acc.id='acc';acc.innerHTML='<span id="accN"></span> · <span id="accS"></span>';
