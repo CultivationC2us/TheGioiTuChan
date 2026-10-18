@@ -14,6 +14,7 @@ with sync_playwright() as p:
     ok(pg.evaluate("G.critP()")==.05 and pg.evaluate("G.cdmgV()")==1.5,'gốc: 5% chí mạng, ×1.5')
     ok(pg.evaluate("document.getElementById('skBar').style.display")!='flex','chưa học → chưa có nút')
     pg.evaluate("G.redeem('tuchan')")
+    ok(pg.evaluate("G.itemInfo('sk.hoa').use"),'sách có nút Sử dụng bật')
     ok(all(pg.evaluate(f"G.loot['sk.{e}']>0") for e in ['hoa','thuy','tho','moc','kim']),'quà tặng có đủ 5 sách')
     for e in ['hoa','thuy','tho','moc','kim']: pg.evaluate(f"G.useItem('sk.{e}')")
     ok(pg.evaluate("G.cult.sk.length")==5 and not pg.evaluate("G.loot['sk.hoa']"),'học sách → học được, sách mất')
@@ -57,6 +58,7 @@ with sync_playwright() as p:
     # panel chỉ số
     pg.evaluate("G.P.mp=G.P.maxMp"); pg.evaluate("document.getElementById('tabS').click()"); pg.wait_for_timeout(300)
     t=pg.inner_text('#bagS'); ok('Tỉ lệ chí mạng' in t and 'Sát thương chí mạng' in t and 'Linh lực' in t,'panel nhân vật có chí mạng + linh lực')
+    ok('Công pháp' in t and 'Vạn Kiếm' in t,'panel nhân vật liệt kê công pháp đã học')
     pg.screenshot(path='sk_panel.png')
     ok(not errs,f'không lỗi JS {errs}')
     print('TỔNG',sum(res),'/',len(res))

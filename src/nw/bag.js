@@ -469,6 +469,11 @@ function updChTop(){
   b.firstChild.style.width=(C.aw?(mx?100:Math.min(100,C.qi/nd*100)):0)+'%';
   b.lastChild.textContent=C.aw?(T('realm.exp')+' '+Math.floor(C.qi)+(mx?'':' / '+nd)):T('hud.asleep');
 }
+function skillRow(){
+  var C=G.cult,h='<div class="row2" style="flex-wrap:wrap"><span class="lb" style="width:100%">'+esc(T('sx.skills'))+'</span>';
+  if(!C.sk.length)return h+'<span class="vv" style="opacity:.7;font-size:12px">'+esc(T('sx.skills.none'))+'</span></div>';
+  C.sk.forEach(function(id){var k=G.TD.bySkill[id];h+='<span class="vv" style="display:inline-flex;align-items:center;gap:4px;margin-right:8px"><span style="width:20px;height:20px;border-radius:4px;background:#10161f;box-shadow:0 0 0 1px #e8bb48;display:inline-block;overflow:hidden" data-sk="'+id+'"></span>'+esc(T('skill.'+id))+'</span>';});
+  return h+'</div>';}
 function renderStats(){
   var P=G.P,S=G.S,C=G.cult,N=I18N.lang==='vi'?function(x){return String(x).replace('.',',');}:function(x){return String(x);};
   updChTop();
@@ -482,6 +487,7 @@ function renderStats(){
    rb('st_hp',T('sx.hp'),Math.round(P.hp)+' / '+P.maxHp,P.hp/P.maxHp*100,'linear-gradient(#ff7a58 0 30%,#c02f2c 30% 70%,#6a1418 70%)')+
    rb('st_qi',T('realm.exp'),C.aw?(Math.floor(C.qi)+(nd?' / '+nd:'')):T('j.asleep'),C.aw&&nd?C.qi/nd*100:(C.aw?100:0),'linear-gradient(#d8f6ff 0 30%,#1f9be0 30% 70%,#1b3a8a 70%)')+
    rb('st_qi',T('st.mp'),Math.floor(P.mp)+' / '+P.maxMp,P.mp/P.maxMp*100,'linear-gradient(#e2d4ff 0 30%,#8a5cff 30% 70%,#3a1f8a 70%)')+
+   skillRow()+
    r2('st_atk',T('sx.atk'),Math.round((7+S.dmg+G.wAtk())*m)+' – '+Math.round((12+S.dmg+G.wAtk())*m))+
    r2('st_def',T('sx.def'),G.defVal())+
    r2('st_spd',T('sx.run'),N((100*(1+G.GS.spd)).toFixed(0))+'%')+
@@ -499,6 +505,7 @@ function renderStats(){
    row('sx.roots',G.TD.EL.map(function(e){return T('el.'+e.id)+' '+C.r[e.id];}).join(' · '))+
    '<div class="row" style="border-top:1px solid #2a4663"><span>'+T('sx.pearls')+'</span></div>'+pl+
    row('sx.pets',pets)+row('sx.kills',G.stats.kills)+row('sx.lt',G.loot.lt|0);
+  [].forEach.call($('bagS').querySelectorAll('[data-sk]'),function(e){var c=G.iconCanvas('sk.'+e.dataset.sk,2);if(c){c.style.cssText='width:100%;height:100%;object-fit:contain;image-rendering:pixelated';e.appendChild(c);}});
 }
 function refresh(){if(tab==='T')renderStage();else if(tab==='R')renderRoot();else if(tab==='S')renderStats();updBadge();}
 function updBadge(){var n=Object.keys(G.loot).filter(function(k){return G.loot[k]>0;}).length;cnt.textContent=n;cnt.style.display=n?'block':'none';}

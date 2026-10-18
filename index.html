@@ -453,7 +453,7 @@ var SKBD=[
  ['Sách {n}','《{n}》秘籍','《{n}》秘籍'],
  ['Học để dùng công pháp {n}: tốn {mp} linh lực mỗi lần, hồi chiêu {cd}s, sát thương gấp ×{m} công kích cơ bản (có thể chí mạng). Học xong sách biến mất. Rơi từ quái cùng hệ.','學會後可施展{n}：每次耗 {mp} 靈力，冷卻 {cd} 秒，傷害為基礎攻擊的 ×{m}（可暴擊）。學會後秘籍消失。由同系妖獸掉落。','学会后可施展{n}：每次耗 {mp} 灵力，冷却 {cd} 秒，伤害为基础攻击的 ×{m}（可暴击）。学会后秘籍消失。由同系妖兽掉落。']];
 var SKT=[['hud.mp','Linh lực {a} / {b}','靈力 {a} / {b}','灵力 {a} / {b}'],['skill.nomp','Không đủ linh lực','靈力不足','灵力不足'],['skill.learn','Đã học công pháp: {name}','已學會功法：{name}','已学会功法：{name}'],['skill.known','Đã học công pháp này rồi','已學會此功法','已学会此功法'],['skill.crit','Chí mạng!','暴擊！','暴击！'],
- ['st.mp','Linh lực','靈力','灵力'],['st.crit.b','Chí mạng','暴擊','暴击']];
+ ['st.mp','Linh lực','靈力','灵力'],['sx.skills','Công pháp','功法','功法'],['sx.skills.none','Chưa học (dùng Sách Kỹ Năng)','尚未學習（使用功法秘籍）','尚未学习（使用功法秘籍）'],['st.crit.b','Chí mạng','暴擊','暴击']];
 for(var k3=0;k3<3;k3++){var ad={};SKT.forEach(function(r){ad[r[0]]=r[k3+1];});
   SKILLS.forEach(function(k){var nm=k.n[k3];ad['skill.'+k.id]=nm;ad['item.sk.'+k.id]=SKBD[0][k3].replace('{n}',nm);
     ad['itemdesc.sk.'+k.id]=SKBD[1][k3].replace('{n}',nm).replace('{mp}',k.mp).replace('{cd}',k.cd/1000).replace('{m}',String(k.mult).replace('.',k3?'.':','));});
@@ -828,7 +828,7 @@ function refineEl(el){ /* nguyên liệu hệ el → điểm hệ el (tối đa 
   return gain;
 }
 function lootDec(n){loot[n]--;if(!(loot[n]>0)){delete loot[n];if(cult.eq.w===n){cult.eq.w=null;recalc();}['o','h','g','r','l'].forEach(k=>{if(cult.eq[k]===n){cult.eq[k]=null;recalc();}});}}
-function itemInfo(n){const g=TD.byItem[n],m=TD.misc[n],p=pearlInfo(n);return {use:!!g||!!(p&&p.can)||!!TD.RECIPES[n]||!!TD.DAN[n]||!!TD.byWeapon[n]||!!TD.byOutfit[n]||!!TD.byMount[n],dec:g?g.ls:(m?m.dec:0),pearl:p,fuse:!!(p&&p.next),keep:!!(m&&m.keep),recipe:!!TD.RECIPES[n],weapon:!!TD.byWeapon[n]||!!TD.byOutfit[n],outfit:!!TD.byOutfit[n],equipped:['w','o','h','g','r','l'].some(k=>cult.eq[k]===n),mount:!!TD.byMount[n],mounted:P.mt===n};}
+function itemInfo(n){const g=TD.byItem[n],m=TD.misc[n],p=pearlInfo(n);return {use:!!g||!!(p&&p.can)||!!TD.RECIPES[n]||!!TD.DAN[n]||!!TD.byWeapon[n]||!!TD.byOutfit[n]||!!TD.byMount[n]||!!TD.bookOf[n],dec:g?g.ls:(m?m.dec:0),pearl:p,fuse:!!(p&&p.next),keep:!!(m&&m.keep),recipe:!!TD.RECIPES[n],weapon:!!TD.byWeapon[n]||!!TD.byOutfit[n],outfit:!!TD.byOutfit[n],equipped:['w','o','h','g','r','l'].some(k=>cult.eq[k]===n),mount:!!TD.byMount[n],mounted:P.mt===n};}
 function useItem(n){ /* nguyên liệu: luyện hóa 1 cái vào hệ của nó */
   const g=TD.byItem[n];if(!g)return TD.byPearl[n]?swallow(n):TD.DAN[n]?eatDan(n):(TD.byWeapon[n]||TD.byOutfit[n])?equipToggle(n):TD.byMount[n]?rideToggle(n):TD.bookOf[n]?learnBook(n):TD.RECIPES[n]?true:false;if(!(loot[n]>0))return false;
   if(cult.r[g.el]>=TD.NEED){toast(T('toast.full',{el:T('el.'+g.el)}));return false;}
@@ -2771,6 +2771,11 @@ function updChTop(){
   b.firstChild.style.width=(C.aw?(mx?100:Math.min(100,C.qi/nd*100)):0)+'%';
   b.lastChild.textContent=C.aw?(T('realm.exp')+' '+Math.floor(C.qi)+(mx?'':' / '+nd)):T('hud.asleep');
 }
+function skillRow(){
+  var C=G.cult,h='<div class="row2" style="flex-wrap:wrap"><span class="lb" style="width:100%">'+esc(T('sx.skills'))+'</span>';
+  if(!C.sk.length)return h+'<span class="vv" style="opacity:.7;font-size:12px">'+esc(T('sx.skills.none'))+'</span></div>';
+  C.sk.forEach(function(id){var k=G.TD.bySkill[id];h+='<span class="vv" style="display:inline-flex;align-items:center;gap:4px;margin-right:8px"><span style="width:20px;height:20px;border-radius:4px;background:#10161f;box-shadow:0 0 0 1px #e8bb48;display:inline-block;overflow:hidden" data-sk="'+id+'"></span>'+esc(T('skill.'+id))+'</span>';});
+  return h+'</div>';}
 function renderStats(){
   var P=G.P,S=G.S,C=G.cult,N=I18N.lang==='vi'?function(x){return String(x).replace('.',',');}:function(x){return String(x);};
   updChTop();
@@ -2784,6 +2789,7 @@ function renderStats(){
    rb('st_hp',T('sx.hp'),Math.round(P.hp)+' / '+P.maxHp,P.hp/P.maxHp*100,'linear-gradient(#ff7a58 0 30%,#c02f2c 30% 70%,#6a1418 70%)')+
    rb('st_qi',T('realm.exp'),C.aw?(Math.floor(C.qi)+(nd?' / '+nd:'')):T('j.asleep'),C.aw&&nd?C.qi/nd*100:(C.aw?100:0),'linear-gradient(#d8f6ff 0 30%,#1f9be0 30% 70%,#1b3a8a 70%)')+
    rb('st_qi',T('st.mp'),Math.floor(P.mp)+' / '+P.maxMp,P.mp/P.maxMp*100,'linear-gradient(#e2d4ff 0 30%,#8a5cff 30% 70%,#3a1f8a 70%)')+
+   skillRow()+
    r2('st_atk',T('sx.atk'),Math.round((7+S.dmg+G.wAtk())*m)+' – '+Math.round((12+S.dmg+G.wAtk())*m))+
    r2('st_def',T('sx.def'),G.defVal())+
    r2('st_spd',T('sx.run'),N((100*(1+G.GS.spd)).toFixed(0))+'%')+
@@ -2801,6 +2807,7 @@ function renderStats(){
    row('sx.roots',G.TD.EL.map(function(e){return T('el.'+e.id)+' '+C.r[e.id];}).join(' · '))+
    '<div class="row" style="border-top:1px solid #2a4663"><span>'+T('sx.pearls')+'</span></div>'+pl+
    row('sx.pets',pets)+row('sx.kills',G.stats.kills)+row('sx.lt',G.loot.lt|0);
+  [].forEach.call($('bagS').querySelectorAll('[data-sk]'),function(e){var c=G.iconCanvas('sk.'+e.dataset.sk,2);if(c){c.style.cssText='width:100%;height:100%;object-fit:contain;image-rendering:pixelated';e.appendChild(c);}});
 }
 function refresh(){if(tab==='T')renderStage();else if(tab==='R')renderRoot();else if(tab==='S')renderStats();updBadge();}
 function updBadge(){var n=Object.keys(G.loot).filter(function(k){return G.loot[k]>0;}).length;cnt.textContent=n;cnt.style.display=n?'block':'none';}
@@ -2880,7 +2887,7 @@ pn.innerHTML=
 '<div class="box"><div class="hd"><span id="setIc"></span><h2 data-i18n="set.title"></h2><button id="setX" type="button" data-i18n="bag.close"></button></div>'+
 '<h3 data-i18n="set.lang"></h3><div class="langs" id="setL"></div><div class="note" data-i18n="set.langnote"></div>'+
 '<h3 data-i18n="set.code"></h3><div class="codeRow"><input id="setCode" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false"><button id="setCodeGo" type="button" data-i18n="set.code.go"></button></div><div class="note" id="setCodeMsg"></div>'+
-'<h3 data-i18n="set.account"></h3><div id="setA"></div><div class="note" style="text-align:center;margin-top:14px">v1018.1123</div></div>';
+'<h3 data-i18n="set.account"></h3><div id="setA"></div><div class="note" style="text-align:center;margin-top:14px">v1018.1140</div></div>';
 document.body.appendChild(pn);
 $('setIc').appendChild(gear(2));
 
@@ -3260,7 +3267,13 @@ window.TTRank={
 var lastSt=null;
 function status(k,p,bad){lastSt=[k,p,bad];var e=$('accS');if(e){e.textContent=I18N.t(k,p);e.style.color=bad?'#ffb0a0':'#bfe6ff';}}
 function hh(){var d=new Date();return ('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2);}
+var again=false;
 function push(keep,force){
+  if(!S)return Promise.resolve();
+  if(pushing){localSet(S.uid,{t:Date.now(),d:collect()});again=true;return Promise.resolve();}   /* đang lưu dở: ghi cục bộ ngay, lưu lại sau khi xong */
+  return push1(keep,force).then(function(){if(again&&!pushing){again=false;push(keep,false);}});
+}
+function push1(keep,force){
   if(!S||pushing)return Promise.resolve();
   var d=collect(),j=JSON.stringify(d);
   localSet(S.uid,{t:Date.now(),d:d});
@@ -3313,7 +3326,7 @@ ov.innerHTML=
 '<div class="err" id="aErr"></div>'+
 '<button class="go" id="aGo" type="submit"></button>'+
 '<div class="note" data-i18n-html="auth.note"></div>'+
-'<div class="note" style="opacity:.7">v1018.1123</div>'+
+'<div class="note" style="opacity:.7">v1018.1140</div>'+
 '</form>';
 document.body.appendChild(ov);
 var acc=document.createElement('div');acc.id='acc';acc.innerHTML='<span id="accN"></span> · <span id="accS"></span>';

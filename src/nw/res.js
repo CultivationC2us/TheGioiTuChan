@@ -199,7 +199,7 @@ var SKBD=[
  ['Sách {n}','《{n}》秘籍','《{n}》秘籍'],
  ['Học để dùng công pháp {n}: tốn {mp} linh lực mỗi lần, hồi chiêu {cd}s, sát thương gấp ×{m} công kích cơ bản (có thể chí mạng). Học xong sách biến mất. Rơi từ quái cùng hệ.','學會後可施展{n}：每次耗 {mp} 靈力，冷卻 {cd} 秒，傷害為基礎攻擊的 ×{m}（可暴擊）。學會後秘籍消失。由同系妖獸掉落。','学会后可施展{n}：每次耗 {mp} 灵力，冷却 {cd} 秒，伤害为基础攻击的 ×{m}（可暴击）。学会后秘籍消失。由同系妖兽掉落。']];
 var SKT=[['hud.mp','Linh lực {a} / {b}','靈力 {a} / {b}','灵力 {a} / {b}'],['skill.nomp','Không đủ linh lực','靈力不足','灵力不足'],['skill.learn','Đã học công pháp: {name}','已學會功法：{name}','已学会功法：{name}'],['skill.known','Đã học công pháp này rồi','已學會此功法','已学会此功法'],['skill.crit','Chí mạng!','暴擊！','暴击！'],
- ['st.mp','Linh lực','靈力','灵力'],['st.crit.b','Chí mạng','暴擊','暴击']];
+ ['st.mp','Linh lực','靈力','灵力'],['sx.skills','Công pháp','功法','功法'],['sx.skills.none','Chưa học (dùng Sách Kỹ Năng)','尚未學習（使用功法秘籍）','尚未学习（使用功法秘籍）'],['st.crit.b','Chí mạng','暴擊','暴击']];
 for(var k3=0;k3<3;k3++){var ad={};SKT.forEach(function(r){ad[r[0]]=r[k3+1];});
   SKILLS.forEach(function(k){var nm=k.n[k3];ad['skill.'+k.id]=nm;ad['item.sk.'+k.id]=SKBD[0][k3].replace('{n}',nm);
     ad['itemdesc.sk.'+k.id]=SKBD[1][k3].replace('{n}',nm).replace('{mp}',k.mp).replace('{cd}',k.cd/1000).replace('{m}',String(k.mult).replace('.',k3?'.':','));});

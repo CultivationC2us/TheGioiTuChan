@@ -191,7 +191,7 @@ function refineEl(el){ /* nguyên liệu hệ el → điểm hệ el (tối đa 
   return gain;
 }
 function lootDec(n){loot[n]--;if(!(loot[n]>0)){delete loot[n];if(cult.eq.w===n){cult.eq.w=null;recalc();}['o','h','g','r','l'].forEach(k=>{if(cult.eq[k]===n){cult.eq[k]=null;recalc();}});}}
-function itemInfo(n){const g=TD.byItem[n],m=TD.misc[n],p=pearlInfo(n);return {use:!!g||!!(p&&p.can)||!!TD.RECIPES[n]||!!TD.DAN[n]||!!TD.byWeapon[n]||!!TD.byOutfit[n]||!!TD.byMount[n],dec:g?g.ls:(m?m.dec:0),pearl:p,fuse:!!(p&&p.next),keep:!!(m&&m.keep),recipe:!!TD.RECIPES[n],weapon:!!TD.byWeapon[n]||!!TD.byOutfit[n],outfit:!!TD.byOutfit[n],equipped:['w','o','h','g','r','l'].some(k=>cult.eq[k]===n),mount:!!TD.byMount[n],mounted:P.mt===n};}
+function itemInfo(n){const g=TD.byItem[n],m=TD.misc[n],p=pearlInfo(n);return {use:!!g||!!(p&&p.can)||!!TD.RECIPES[n]||!!TD.DAN[n]||!!TD.byWeapon[n]||!!TD.byOutfit[n]||!!TD.byMount[n]||!!TD.bookOf[n],dec:g?g.ls:(m?m.dec:0),pearl:p,fuse:!!(p&&p.next),keep:!!(m&&m.keep),recipe:!!TD.RECIPES[n],weapon:!!TD.byWeapon[n]||!!TD.byOutfit[n],outfit:!!TD.byOutfit[n],equipped:['w','o','h','g','r','l'].some(k=>cult.eq[k]===n),mount:!!TD.byMount[n],mounted:P.mt===n};}
 function useItem(n){ /* nguyên liệu: luyện hóa 1 cái vào hệ của nó */
   const g=TD.byItem[n];if(!g)return TD.byPearl[n]?swallow(n):TD.DAN[n]?eatDan(n):(TD.byWeapon[n]||TD.byOutfit[n])?equipToggle(n):TD.byMount[n]?rideToggle(n):TD.bookOf[n]?learnBook(n):TD.RECIPES[n]?true:false;if(!(loot[n]>0))return false;
   if(cult.r[g.el]>=TD.NEED){toast(T('toast.full',{el:T('el.'+g.el)}));return false;}

@@ -144,7 +144,13 @@ window.TTRank={
 var lastSt=null;
 function status(k,p,bad){lastSt=[k,p,bad];var e=$('accS');if(e){e.textContent=I18N.t(k,p);e.style.color=bad?'#ffb0a0':'#bfe6ff';}}
 function hh(){var d=new Date();return ('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2);}
+var again=false;
 function push(keep,force){
+  if(!S)return Promise.resolve();
+  if(pushing){localSet(S.uid,{t:Date.now(),d:collect()});again=true;return Promise.resolve();}   /* đang lưu dở: ghi cục bộ ngay, lưu lại sau khi xong */
+  return push1(keep,force).then(function(){if(again&&!pushing){again=false;push(keep,false);}});
+}
+function push1(keep,force){
   if(!S||pushing)return Promise.resolve();
   var d=collect(),j=JSON.stringify(d);
   localSet(S.uid,{t:Date.now(),d:d});
