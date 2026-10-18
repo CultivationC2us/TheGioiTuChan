@@ -35,7 +35,7 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block;image-renderi
 I18N.apply();const T=(k,p)=>I18N.t(k,p);
 window.addEventListener('error',function(e){try{var p=document.createElement('pre');p.style.cssText='position:fixed;left:0;top:0;right:0;z-index:99999;background:#400;color:#fff;font:11px monospace;padding:6px;margin:0;white-space:pre-wrap';p.textContent='LỖI: '+e.message+' @'+e.lineno;document.body.appendChild(p);}catch(_){}});
 const PX=0.5,DPX=0.8333,TILE=16,MW=500,MH=500,ZOOM=1.0;
-const IMG={};let ready=0;const NEED=17;
+const IMG={};let ready=0;const NEED=18;
 function load(k,src){const i=new Image();i.onload=()=>{ready++;};i.src=src;IMG[k]=i;}
 load('player','data:image/webp;base64,{{PLAYER}}');
 load('dragon','data:image/webp;base64,{{DRAGON}}');
@@ -46,13 +46,14 @@ load('res','data:image/webp;base64,{{RESATLAS}}');
 load('mnt','data:image/webp;base64,{{MNTATLAS}}');   /* linh thú cưỡi (mnt/extract_m.py) */
 load('it','data:image/webp;base64,{{ITATLAS}}');
 load('cat','data:image/webp;base64,{{CATATLAS}}');   /* Hắc Miêu (lib/extract_cat.py) */
+load('nat','data:image/webp;base64,{{NATATLAS}}');   /* cây, bụi, đá, cột đá, tinh thể… cắt từ ảnh người dùng (lib/extract_nat.py + build_nat.py) */
 load('sk','data:image/webp;base64,{{SKATLAS}}');   /* hiệu ứng công pháp (lib/extract_skill.py) */
 load('gl','data:image/webp;base64,{{GLATLAS}}');   /* thư viện đá/linh thạch (lib/extract_all.py) */
 load('uia','data:image/webp;base64,{{UIAATLAS}}');
 load('uih','data:image/webp;base64,{{UIHATLAS}}'); /* icon UI độ phân giải cao (tên 'h<số>') */ /* thư viện UI mới: nút, khung, icon (lib/extract_all.py) */
 load('outfit','data:image/webp;base64,{{OFATLAS}}');load('outfit2','data:image/webp;base64,{{OF2ATLAS}}');load('rings','data:image/webp;base64,{{RINGS}}');load('aura','data:image/webp;base64,{{AURA}}');   /* trang phục (outfit/build_atlas.py) */   /* vũ khí · cuộn · sách · ngọc/bình (it/extract_it.py) */
-const SKM={{SKMETA}};const CATM={{CATMETA}};const ITM={{ITMETA}};const GLM={{GLMETA}};const UIAM={{UIAMETA}};const UIHM={{UIHMETA}};
-const TILEIMG={grass:'{{T_GRASS}}',t4:'{{T_T4}}',t3:'{{T_T3}}',t2:'{{T_T2}}',t16:'{{T_T16}}',t5:'{{T_T5}}',sand:'{{T_SAND}}',snow:'{{T_SNOW}}',forest:'{{T_FOREST}}',mud:'{{T_MUD}}',cliff:'{{T_CLIFF}}'};
+const NATM={{NATMETA}};const SKM={{SKMETA}};const CATM={{CATMETA}};const ITM={{ITMETA}};const GLM={{GLMETA}};const UIAM={{UIAMETA}};const UIHM={{UIHMETA}};
+const TILEIMG={grass:'{{T_GRASS}}',t4:'{{T_T4}}',t3:'{{T_T3}}',t2:'{{T_T2}}',t16:'{{T_T16}}',t5:'{{T_T5}}',sand:'{{T_SAND}}',snow:'{{T_SNOW}}',forest:'{{T_FOREST}}',mud:'{{T_MUD}}',};
 let tilesLoaded=0;for(const k in TILEIMG){const i=new Image();i.onload=()=>{tilesLoaded++;};i.src='data:image/webp;base64,'+TILEIMG[k];IMG['tile_'+k]=i;}
 ready++; // tile counter dùng riêng
 
@@ -120,36 +121,43 @@ const SPAWN={x:100,y:100},LAKE={x:119,y:100,rx:8,ry:6};
     const bi=BIO[cy*MW+cx],el=['moc','hoa','thuy','kim','moc','kim'][bi]||'moc';
     for(let a=-5;a<=5;a++)for(let b=-5;b<=5;b++)if(a*a+b*b<=28)tiles[cy+b][cx+a]=D;
     TRIBES.push({x:cx,y:cy,el,bio:bi});
-    for(let k=0;k<4;k++){const an=k*1.571+.4;decoAdd({k:'tent',x:(cx+Math.cos(an)*3.4)*TILE+8,y:(cy+Math.sin(an)*2.6)*TILE+10,s:1,h:k});}
-    decoAdd({k:'fire',x:cx*TILE+8,y:cy*TILE+10,s:1});decoAdd({k:'totem',x:(cx+1.6)*TILE+8,y:(cy-3.4)*TILE+12,s:1,h:bi});
+    /* trại: hàng rào, đèn, bảng hiệu, khúc gỗ, gốc cây (sprite từ ảnh) */
+    const CP=[[268,-4.2,-2.6],[268,-1.4,-3.4],[265,1.4,-3.4],[266,4.2,-2.6],[281,-4.6,0.6],[282,4.6,0.8],[269,-3,3.4],[276,0,4.2],[270,3,3.4],[247,-1.6,-0.6],[234,1.8,0.6],[244,0,1.8]];
+    for(const q of CP)decoAdd({k:'n'+q[0],x:(cx+q[1])*TILE+8,y:(cy+q[2])*TILE+10,s:1});
   }
-  /* cây cối, xương rồng, đá, sậy… rải theo vùng */
-  for(let y=0;y<MH;y++)for(let x=0;x<MW;x++){const t=tiles[y][x],h=hash(x*3+7,y*5+1),h2=hash(x+91,y*7+3);let k=null;
-    if(t===T_FOR){if(h<.20)k='tree';else if(h<.23)k='rock';}
-    else if(t===T_SAND){if(h<.014)k='cactus';else if(h<.019)k='bones';else if(h<.03)k='rock';}
-    else if(t===T_MUD){if(h<.07)k='reed';else if(h<.09)k='shroom';}
-    else if(t===T_SNOW){if(h<.035)k='pine';else if(h<.05)k='rock';}
-    else if(t===R&&BIO[y*MW+x]===3){if(h<.04)k='pine';else if(h<.07)k='rock';}
-    if(k&&!TRIBES.some(o=>Math.abs(o.x-x)<8&&Math.abs(o.y-y)<8))decoAdd({k,x:x*TILE+4+h2*8,y:y*TILE+10+h*6,s:.8+hash(x,y+13)*.5,h:h2});}
+  /* cây cối, đá, hoa cỏ, nấm, tinh thể… rải theo vùng — toàn bộ là sprite cắt từ ảnh người dùng */
+  const L=(a,h)=>'n'+a[Math.floor(h*a.length)%a.length];
+  const TR_BIG=[137,137,142,198,199,200,201,202,203],TR_EXO=[135,136,138,139,140,141],TR_SM=[144,145,146,147,148,149,151],BUSH=[164,165,166,252],
+        FLW=[167,169,170,179,180,181,182,183,184,185,186,187],TUFT=[161,163,177,178],MSH=[188,189,190,191],ROCK=[204,205,206,207,254,258,271,272,208,209],
+        CRY_W=[223,232,233,228],CRY_A=[224,226,225],CRY_M=[221,226,227,228,229,230],LOG=[234,235,236,247,250],STUMP=[215,216,244],
+        PIL=[213,257,260,261,262,264,273,274,275,211];
+  for(let y=0;y<MH;y++)for(let x=0;x<MW;x++){const t=tiles[y][x],h=hash(x*3+7,y*5+1),h2=hash(x+91,y*7+3),h3=hash(x*11+5,y+37);let k=null;
+    const near=TRIBES.some(o=>Math.abs(o.x-x)<8&&Math.abs(o.y-y)<8);if(near)continue;
+    if(t===T_CLF){k=L(PIL,h2);}                                       /* vách đá → hàng cột đá (chặn đường) */
+    else if(t===T_FOR){if(h<.10)k=L(h2<.07?TR_EXO:TR_BIG,h3);else if(h<.14)k=L(h2<.5?TR_SM:BUSH,h3);else if(h<.22)k=L(h2<.5?FLW:TUFT,h3);else if(h<.235)k=L(h2<.4?MSH:h2<.7?LOG:STUMP,h3);else if(h<.25)k=L(ROCK,h3);}
+    else if(t===T_SAND){if(h<.012)k=L(ROCK.slice(0,8),h3);else if(h<.02)k=L([245,246],h3);else if(h<.026)k=L(CRY_A,h3);else if(h<.029)k='n162';else if(h<.04)k=L([161,163],h3);}
+    else if(t===T_MUD){if(h<.06)k=L([175,176],h3);else if(h<.085)k=L(MSH,h3);else if(h<.092)k=L([140,141],h3);else if(h<.10)k=L([245,246,250,248],h3);else if(h<.12)k=L([172,173],h3);else if(h<.135)k=L([185,186,177],h3);}
+    else if(t===T_SNOW){if(h<.04)k='n143';else if(h<.055)k=L(ROCK.slice(0,6),h3);else if(h<.063)k=L(CRY_W,h3);}
+    else if(t===R&&BIO[y*MW+x]===3){if(h<.04)k=L(ROCK,h3);else if(h<.055)k='n143';else if(h<.063)k=L(CRY_M,h3);else if(h<.067)k=L([255,256],h3);}
+    else if(t===G&&tdist(x,y,SPAWN.x,SPAWN.y)>16){if(h<.022)k=L(h2<.5?FLW:TUFT,h3);else if(h<.034)k=L(h2<.6?BUSH:TR_SM,h3);else if(h<.044)k=L(h2<.8?TR_BIG:TR_EXO,h3);else if(h<.050)k=L(STUMP.concat(LOG),h3);}
+    if(k&&NATM[k])decoAdd({k,x:x*TILE+(t===T_CLF?8:4+h2*8),y:y*TILE+(t===T_CLF?14:10+h*6),s:t===T_CLF?.9+h3*.25:.9+h3*.2});}
 })();
 function decoAdd(o){DECO.push(o);const k=(o.x/TILE>>3)+','+(o.y/TILE>>3);let a=decoCell.get(k);if(!a)decoCell.set(k,a=[]);a.push(o);}
 const isCliff=(x,y)=>{const tx=((Math.floor(x/TILE)%MW)+MW)%MW,ty=((Math.floor(y/TILE)%MH)+MH)%MH;return tiles[ty][tx]===T_CLF;};
 const isWater=(x,y)=>{const tx=((Math.floor(x/TILE)%MW)+MW)%MW,ty=((Math.floor(y/TILE)%MH)+MH)%MH;return tiles[ty][tx]===W;};
 /* nền: cắt ô từ ảnh */
-const TEX={};function texInit(){if(TEX.ok)return true;if(tilesLoaded<11)return false;
+const TEX={};function texInit(){if(TEX.ok)return true;if(tilesLoaded<10)return false;
   const mk=(k,n)=>{const c=document.createElement('canvas');c.width=c.height=n;c.getContext('2d').drawImage(IMG['tile_'+k],0,0,n,n);return c;};
-  TEX.g=mk('grass',64);TEX.d=mk('t4',128);TEX.r=mk('t3',128);TEX.s=mk('t2',128);TEX.b=mk('t16',128);TEX.w=mk('t5',128);TEX.sand=mk('sand',128);TEX.snow=mk('snow',128);TEX.for=mk('forest',128);TEX.mud=mk('mud',128);TEX.clf=mk('cliff',128);TEX.ok=1;return true;}
+  TEX.g=mk('grass',64);TEX.d=mk('t4',128);TEX.r=mk('t3',128);TEX.s=mk('t2',128);TEX.b=mk('t16',128);TEX.w=mk('t5',128);TEX.sand=mk('sand',128);TEX.snow=mk('snow',128);TEX.for=mk('forest',128);TEX.mud=mk('mud',128);TEX.ok=1;return true;}
 function drawTile(t,tx,ty){const px=tx*TILE,py=ty*TILE;
   if(t===G){ctx.drawImage(TEX.g,(tx&1)*32,(ty&1)*32,32,32,px,py,16.5,16.5);return;}
-  const c=t===D?TEX.d:t===R?TEX.r:t===S?TEX.s:t===B?TEX.b:t===T_SAND?TEX.sand:t===T_MUD?TEX.mud:t===T_SNOW?TEX.snow:t===T_FOR?TEX.for:t===T_CLF?TEX.clf:TEX.w;
+  const c=t===D?TEX.d:t===R?TEX.r:t===S?TEX.s:t===B?TEX.b:t===T_SAND?TEX.sand:t===T_MUD?TEX.mud:t===T_SNOW?TEX.snow:t===T_FOR?TEX.for:t===T_CLF?TEX.r:TEX.w;
   ctx.drawImage(c,(tx&3)*32,(ty&3)*32,32,32,px,py,16.5,16.5);}
 function tileDeco(t,x,y,tm){const px=x*TILE,py=y*TILE;const nb=(dx,dy)=>tiles[(y+dy+MH)%MH][(x+dx+MW)%MW];
   if(t===W){
     if((x*3+y*5)%4===0){ctx.strokeStyle='rgba(255,255,255,.45)';ctx.lineWidth=1.2;ctx.beginPath();const o=Math.sin(tm+x)*3;ctx.moveTo(px+3+o,py+8);ctx.quadraticCurveTo(px+7+o,py+5,px+11+o,py+8);ctx.stroke();}
     ctx.fillStyle='rgba(255,255,255,.7)';
     if(nb(0,-1)!==W)ctx.fillRect(px,py,TILE,2);if(nb(0,1)!==W)ctx.fillRect(px,py+TILE-2,TILE,2);if(nb(-1,0)!==W)ctx.fillRect(px,py,2,TILE);if(nb(1,0)!==W)ctx.fillRect(px+TILE-2,py,2,TILE);
-  }else if(t===T_CLF){ctx.fillStyle='rgba(0,0,0,.38)';ctx.fillRect(px,py+TILE-4,TILE,4);ctx.fillStyle='rgba(255,255,255,.18)';ctx.fillRect(px,py,TILE,2);ctx.fillStyle='rgba(0,0,0,.25)';if(nb(-1,0)!==T_CLF)ctx.fillRect(px,py,2,TILE);if(nb(1,0)!==T_CLF)ctx.fillRect(px+TILE-2,py,2,TILE);
-  }else if(t===T_MUD){const h=hash(x*5+1,y*3+9);if(h<.10){ctx.fillStyle='rgba(60,105,110,.6)';ctx.beginPath();ctx.ellipse(px+8,py+9,5+h*20,2.5+h*10,0,0,7);ctx.fill();ctx.fillStyle='rgba(255,255,255,.25)';ctx.fillRect(px+5,py+8,3,1);}
   }else if(t===D){ctx.fillStyle='rgba(120,80,40,.35)';if(nb(0,-1)!==D)ctx.fillRect(px,py,TILE,1.5);if(nb(0,1)!==D)ctx.fillRect(px,py+TILE-1.5,TILE,1.5);if(nb(-1,0)!==D)ctx.fillRect(px,py,1.5,TILE);if(nb(1,0)!==D)ctx.fillRect(px+TILE-1.5,py,1.5,TILE);}
 }
 
@@ -572,23 +580,10 @@ function drawDrops(t){for(const d of drops){const y=d.y-4+Math.sin(t/260)*2;if(d
   ctx.save();ctx.globalAlpha=.35;ctx.fillStyle='#000';ctx.beginPath();ctx.ellipse(d.x,d.y+5,5,1.6,0,0,7);ctx.fill();ctx.restore();   /* ngọc: viên cầu có bóng đổ */
   const og=ctx.createRadialGradient(d.x-2,y-3,.5,d.x,y-1,6.5);og.addColorStop(0,'#fff');og.addColorStop(.35,pc.col);og.addColorStop(1,pc.glow);
   ctx.fillStyle=og;ctx.beginPath();ctx.arc(d.x,y-1,6,0,7);ctx.fill();ctx.strokeStyle='#0008';ctx.lineWidth=.8;ctx.stroke();}}
-function drawDeco(o,t){const x=o.x,y=o.y,s=o.s;ctx.save();
-  const sh=(w)=>{ctx.fillStyle='rgba(0,0,0,.25)';ctx.beginPath();ctx.ellipse(x,y,w,w*.32,0,0,7);ctx.fill();};
-  switch(o.k){
-   case'tree':sh(6*s);ctx.fillStyle='#4a3220';ctx.fillRect(x-1.5*s,y-8*s,3*s,8*s);
-     ctx.fillStyle='#1f5a34';ctx.beginPath();ctx.arc(x,y-15*s,8*s,0,7);ctx.fill();ctx.fillStyle='#2b7a44';ctx.beginPath();ctx.arc(x-2*s,y-17*s,5.5*s,0,7);ctx.fill();ctx.fillStyle='#4aa05a';ctx.beginPath();ctx.arc(x-3*s,y-19*s,2.6*s,0,7);ctx.fill();break;
-   case'pine':sh(5*s);ctx.fillStyle='#3a2a1c';ctx.fillRect(x-1*s,y-5*s,2*s,5*s);
-     for(let i=0;i<3;i++){const w=(8-i*2)*s,yy=y-5*s-i*6*s;ctx.fillStyle=i%2?'#2e6a46':'#255a3a';ctx.beginPath();ctx.moveTo(x-w,yy);ctx.lineTo(x+w,yy);ctx.lineTo(x,yy-9*s);ctx.fill();ctx.fillStyle='rgba(255,255,255,.55)';ctx.beginPath();ctx.moveTo(x-w*.45,yy-4*s);ctx.lineTo(x+w*.45,yy-4*s);ctx.lineTo(x,yy-9*s);ctx.fill();}break;
-   case'cactus':sh(5*s);ctx.fillStyle='#3c8a4a';ctx.fillRect(x-2*s,y-14*s,4*s,14*s);ctx.fillRect(x-6*s,y-10*s,4*s,2*s);ctx.fillRect(x-6*s,y-14*s,2*s,6*s);ctx.fillRect(x+2*s,y-8*s,4*s,2*s);ctx.fillRect(x+4*s,y-12*s,2*s,6*s);ctx.fillStyle='#62b968';ctx.fillRect(x-1*s,y-14*s,1*s,14*s);break;
-   case'rock':sh(6*s);ctx.fillStyle='#6b6f78';ctx.beginPath();ctx.ellipse(x,y-3*s,6*s,4.2*s,0,0,7);ctx.fill();ctx.fillStyle='#8a8f99';ctx.beginPath();ctx.ellipse(x-1.5*s,y-4.5*s,3.4*s,2.2*s,0,0,7);ctx.fill();break;
-   case'bones':ctx.fillStyle='#e9e2cf';ctx.fillRect(x-5*s,y-2*s,10*s,2*s);ctx.beginPath();ctx.arc(x-5*s,y-3*s,1.6*s,0,7);ctx.arc(x+5*s,y-3*s,1.6*s,0,7);ctx.fill();ctx.fillRect(x-2*s,y-5*s,2*s,4*s);break;
-   case'reed':ctx.strokeStyle='#7a8f3c';ctx.lineWidth=1.2;for(let i=-1;i<=1;i++){ctx.beginPath();ctx.moveTo(x+i*2.5,y);ctx.quadraticCurveTo(x+i*3.5+Math.sin(t/700+x)*1.2,y-6*s,x+i*4+Math.sin(t/700+x)*2,y-11*s);ctx.stroke();ctx.fillStyle='#5b3a22';ctx.fillRect(x+i*4+Math.sin(t/700+x)*2-.8,y-13*s,1.6,3.5*s);}break;
-   case'shroom':ctx.fillStyle='#e9ddc4';ctx.fillRect(x-1.2*s,y-5*s,2.4*s,5*s);ctx.fillStyle='#b8343a';ctx.beginPath();ctx.ellipse(x,y-6*s,4.5*s,3.2*s,0,Math.PI,0);ctx.fill();ctx.fillStyle='#fff';ctx.fillRect(x-2*s,y-8*s,1.4,1.4);ctx.fillRect(x+1*s,y-7.4*s,1.4,1.4);break;
-   case'tent':{const c=['#a46a3a','#8c5a32','#b27a46','#7e5230'][o.h&3];sh(10);ctx.fillStyle=c;ctx.beginPath();ctx.moveTo(x-10,y);ctx.lineTo(x+10,y);ctx.lineTo(x,y-17);ctx.fill();ctx.fillStyle='rgba(0,0,0,.28)';ctx.beginPath();ctx.moveTo(x-2.5,y);ctx.lineTo(x+2.5,y);ctx.lineTo(x,y-9);ctx.fill();ctx.strokeStyle='#3a2616';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(x-10,y);ctx.lineTo(x,y-17);ctx.lineTo(x+10,y);ctx.stroke();ctx.fillStyle='#e8d9a8';ctx.fillRect(x-.6,y-19,1.2,4);break;}
-   case'fire':{sh(6);ctx.fillStyle='#3a2616';ctx.fillRect(x-5,y-2,10,2);const f=Math.sin(t/90+x)*1.2;ctx.fillStyle='#e0561f';ctx.beginPath();ctx.moveTo(x-4,y-2);ctx.lineTo(x+4,y-2);ctx.lineTo(x+f,y-12);ctx.fill();ctx.fillStyle='#ffb347';ctx.beginPath();ctx.moveTo(x-2.5,y-2);ctx.lineTo(x+2.5,y-2);ctx.lineTo(x+f*.6,y-8);ctx.fill();ctx.fillStyle='rgba(255,170,60,.12)';ctx.beginPath();ctx.arc(x,y-4,15+Math.sin(t/150)*1.5,0,7);ctx.fill();break;}
-   case'totem':{sh(5);ctx.fillStyle='#6a4426';ctx.fillRect(x-3,y-24,6,24);const C=['#c2412d','#e0a02a','#3a8fb0','#d8d8e0','#5aa04a','#c8d8f0'][o.h|0]||'#c2412d';ctx.fillStyle=C;ctx.fillRect(x-4,y-22,8,5);ctx.fillRect(x-4,y-12,8,5);ctx.fillStyle='#10121a';ctx.fillRect(x-2.5,y-21,1.6,1.6);ctx.fillRect(x+1,y-21,1.6,1.6);ctx.fillRect(x-2.5,y-11,1.6,1.6);ctx.fillRect(x+1,y-11,1.6,1.6);ctx.fillStyle='#e8d9a8';ctx.fillRect(x-1,y-26,2,3);break;}
-  }
-  ctx.restore();}
+function drawDeco(o,t){const fr=NATM[o.k];if(!fr)return;const sc=.5*o.s;
+  ctx.save();ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';
+  ctx.globalAlpha=.22;ctx.fillStyle='#000';ctx.beginPath();ctx.ellipse(o.x,o.y,fr[2]*sc*.32,fr[2]*sc*.1,0,0,7);ctx.fill();ctx.globalAlpha=1;
+  ctx.drawImage(IMG.nat,fr[0],fr[1],fr[2],fr[3],o.x+fr[4]*sc,o.y+fr[5]*sc,fr[2]*sc,fr[3]*sc);ctx.restore();}
 function drawWorld(t,hw,hh,ph){   /* ph=0: mặt đất · ph=1: vật thể (tách 2 lượt để lượt lặp-vòng không đè lên nhân vật/cây sát mép bản đồ) */
   const tm=t/600;
   const hwx=hw,hhx=hh;

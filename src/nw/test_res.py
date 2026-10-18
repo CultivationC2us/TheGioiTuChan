@@ -43,7 +43,7 @@ def run3():
         pg.evaluate("G.P.x=300;G.P.y=300;G.respawnQ.forEach(r=>r.at=G.now()-1)"); pg.wait_for_timeout(300)
         nx,ny=pg.evaluate("[__n.x,__n.y]")
         ok(pg.evaluate("__n.gone")==False and pg.evaluate("__n.h")==0 and abs(nx-ox)+abs(ny-oy)>40 and pg.evaluate("G.nodesNear(__n.x,__n.y,1).includes(__n)"),f'mọc lại ở chỗ khác ({ox:.0f},{oy:.0f}) → ({nx:.0f},{ny:.0f})')
-        ok(pg.evaluate("(()=>{const T=G.tiles,tx=__n.x/16|0,ty=__n.y/16|0;return T[ty][tx]<=2&&Math.hypot(tx-100,ty-100)>=9})()"),'chỗ mới hợp lệ (không nước/đường)')
+        ok(pg.evaluate("(()=>{const T=G.tiles,tx=__n.x/16|0,ty=__n.y/16|0;return ![3,4,5,10].includes(T[ty][tx])&&Math.hypot(tx-100,ty-100)>=9})()"),'chỗ mới hợp lệ (không nước/đường)')
         # ---- luyện hóa ----
         pg.evaluate("for(const k in G.loot)delete G.loot[k];G.loot['nl.cay_coi']=30;G.loot['nl.thao_quy']=2;G.lootUI()")
         pg.evaluate("document.getElementById('bagBtn').click()"); pg.evaluate("TTBag.openTab('R')"); pg.wait_for_timeout(300)
