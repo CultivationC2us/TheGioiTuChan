@@ -49,7 +49,7 @@ function drawMounted(t){
   const hv=P.flyH+(P.fly?Math.sin(t/240)*1.2:0),ax=F[4],ay=F[5],gy=F[6];
   ctx.save();ctx.imageSmoothingEnabled=false;
   /* bóng trên đất */
-  if(!auraShadow(P.x,P.y+1,((P.fly?10:13)-hv*.12)*MS,P.fly?.28:.55)){ctx.fillStyle='rgba(0,0,0,'+(P.fly?.18:.28)+')';ctx.beginPath();ctx.ellipse(P.x,P.y+1,((P.fly?10:13)-hv*.12)*MS,(P.fly?2.2:3)*MS,0,0,7);ctx.fill();}
+  if(!auraShadow(P.x,P.y+1,((P.fly?10:13)-hv*.12)*MS,P.fly?.2:.4)){ctx.fillStyle='rgba(0,0,0,'+(P.fly?.18:.28)+')';ctx.beginPath();ctx.ellipse(P.x,P.y+1,((P.fly?10:13)-hv*.12)*MS,(P.fly?2.2:3)*MS,0,0,7);ctx.fill();}
   /* mây theo sau */
   for(const c of MTP){const e=(t-c.t0)/800;mDraw(c.k,c.x-(MTM[c.k][2]*PX*(.6+e*.5))/2,c.y-MTM[c.k][3]*PX*(.6+e*.5)/2,.6+e*.5,Math.max(0,.9*(1-e)));}
   {const m=ctx.getTransform(),X=m.a*P.x+m.e,Y=m.d*(P.y-hv)+m.f;   /* làm tròn về điểm ảnh màn hình → hết sọc/giật khi di chuyển + chém */

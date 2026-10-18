@@ -457,7 +457,7 @@ function drawPlayer(t){
   else if(P.mv){row=NC.rows.walk;fr=Math.floor(t/95)%8;}
   else{row=NC.rows.idle;fr=ncIdle(t);}
   const wd=isWater(P.x,P.y+6);
-  ctx.save();if(!wd&&!auraShadow(P.x,P.y+1,8,.58)){ctx.fillStyle='rgba(0,0,0,.28)';ctx.beginPath();ctx.ellipse(P.x,P.y+1,8,2.6,0,0,7);ctx.fill();}
+  ctx.save();if(!wd&&!auraShadow(P.x,P.y+1,8,.42)){ctx.fillStyle='rgba(0,0,0,.28)';ctx.beginPath();ctx.ellipse(P.x,P.y+1,8,2.6,0,0,7);ctx.fill();}
   if(wd){ctx.beginPath();ctx.rect(P.x-60,P.y-120,120,120+0);ctx.clip();}
   if(P.dead)ctx.globalAlpha=Math.max(.15,1-(t-P.dead)/2200);
   else if(P.inv>0&&Math.floor(t/70)%2)ctx.globalAlpha=.55;
