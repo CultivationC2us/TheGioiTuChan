@@ -5,11 +5,11 @@
    Sprite: lib/extract_skill.py → atlas 'sk' (SKM, tên '<hệ>_<số>').
    ============================================================ */
 const SKCFG={
-  hoa:{type:'proj',fly:[1,2,3,4,5,6,7],burst:[8,9,10],bms:170,sc:1.76,fsc:1.4,r:92,hits:[0],hold:200,yoff:0},
-  thuy:{type:'proj',fly:[1,2,3,4],burst:[5,6,7,8,9,10,11],bms:95,sc:1.76,fsc:1.4,r:96,hits:[120],hold:200,yoff:0},
-  tho:{type:'proj',fly:[3,4,5,6],burst:[7,8,9],bms:190,sc:1.76,fsc:1.4,r:92,hits:[150],hold:200,yoff:-32},
-  moc:{type:'proj',fly:[1,2,3,4,5],burst:[6,7,8,9,10,11],bms:130,sc:1.76,fsc:1.4,r:96,hits:[0,430],hold:250,yoff:0},
-  kim:{type:'zone',burst:[1,2,3,4,5,6,7,8,9,10,11,12,13],bms:85,sc:2.04,r:116,hits:[840],hold:250,yoff:0}
+  hoa:{type:'proj',fly:[1,2,3,4,5,6,7],burst:[8,9,10],bms:170,sc:3.52,fsc:2.8,r:184,hits:[0],hold:200,yoff:0},
+  thuy:{type:'proj',fly:[1,2,3,4],burst:[5,6,7,8,9,10,11],bms:95,sc:3.52,fsc:2.8,r:192,hits:[120],hold:200,yoff:0},
+  tho:{type:'proj',fly:[3,4,5,6],burst:[7,8,9],bms:190,sc:3.52,fsc:2.8,r:184,hits:[150],hold:200,yoff:-64},
+  moc:{type:'proj',fly:[1,2,3,4,5],burst:[6,7,8,9,10,11],bms:130,sc:3.52,fsc:2.8,r:192,hits:[0,430],hold:250,yoff:0},
+  kim:{type:'zone',burst:[1,2,3,4,5,6,7,8,9,10,11,12,13],bms:85,sc:4.08,r:232,hits:[840],hold:250,yoff:0}
 };
 const skCd={},skFx=[];
 cult.sk=[];P.mp=60;P.maxMp=60;
@@ -22,7 +22,7 @@ function skHitArea(f){
   f.n++;return any;
 }
 function skTarget(){
-  let best=null,bd=1e9;const R=240;
+  let best=null,bd=1e9;const R=300;
   for(const m of mons2){if(!monAlive(m))continue;const dx=(m.x-P.x)*P.f,d=Math.hypot(m.x-P.x,m.y-P.y);if(dx>-24&&d<R&&d<bd){best={x:m.x,y:m.y,o:m};bd=d;}}
   for(const d of DRG){withDr(d,()=>{if(mTargetable()&&M.st!=='die'){const dx=(M.x-P.x)*P.f,q=Math.hypot(M.x-P.x,M.y-P.y);if(dx>-24&&q<R&&q<bd){best={x:M.x,y:M.y,o:d};bd=q;}}});}
   return best;
@@ -33,7 +33,7 @@ function castSkill(id,auto){
   if(P.mp<sk.mp){if(!auto)toast(T('skill.nomp'));return false;}
   P.mp-=sk.mp;skCd[id]=t+sk.cd;
   const tg=skTarget();let tx,ty;
-  if(tg){tx=tg.x;ty=tg.y;}else{tx=P.x+P.f*(cfg.type==='zone'?110:130);ty=P.y+4;}
+  if(tg){tx=tg.x;ty=tg.y;}else{tx=P.x+P.f*(cfg.type==='zone'?150:170);ty=P.y+4;}
   if(Math.abs(tx-P.x)>4)P.f=tx>P.x?1:-1;
   P.atkT=t;P.hitDone=true;P.fxDone=true;
   const ox=P.x+P.f*12,oy=P.y-16;
