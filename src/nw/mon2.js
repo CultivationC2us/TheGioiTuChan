@@ -38,7 +38,9 @@ function qiTick(dt){
   if(cult.aw&&cult.rl>=TD.REALM.max&&!cult.dp2){cult.dp2=true;loot['dp.trucco']=Math.max(1,loot['dp.trucco']|0);lootUI();toast(T('toast.tc.recipe'));}   /* Luyện Khí viên mãn: tặng Đan Phương Trúc Cơ Đan (1 lần) */
   if(!cult.aw)return;const nd=qiNeed();if(nd===Infinity)return;if(cult.qi<nd)cult.qi=Math.min(nd,cult.qi+dt*qiRate());
 }
-function rankStat(){let s=0;for(let l=1;l<cult.rl;l++)s+=realmNeed(l);return{realm:cult.rl|0,qi_total:Math.round(s+(cult.aw?cult.qi:0)),kills:stats.kills|0};}
+function rankStat(){let s=0;for(let l=1;l<cult.rl;l++)s+=realmNeed(l);const tc=cult.tc|0;if(tc>=2)s+=TD.TC.qi[0];if(tc>=3)s+=TD.TC.qi[1];   /* liên tục khi lên cảnh giới → không bị chống gian lận nghi ngờ */
+  return{realm:(cult.rl|0)+tc,qi_total:Math.round(s+(cult.aw?cult.qi:0)),kills:stats.kills|0};}
+const realmLabel=n=>n>TD.REALM.max?T('realm.tc'+Math.min(3,n-TD.REALM.max)):T('realm.n',{n});   /* nhãn cảnh giới từ số 'realm' của xếp hạng */
 function breakthrough(){
   if(cult.aw&&cult.rl>=TD.REALM.max){
     if(KIE.on)return false;

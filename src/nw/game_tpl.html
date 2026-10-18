@@ -457,7 +457,7 @@ function drawPlayer(t){
   else if(P.mv){row=NC.rows.walk;fr=Math.floor(t/95)%8;}
   else{row=NC.rows.idle;fr=ncIdle(t);}
   const wd=isWater(P.x,P.y+6);
-  ctx.save();if(!wd){ctx.fillStyle='rgba(0,0,0,.28)';ctx.beginPath();ctx.ellipse(P.x,P.y+1,8,2.6,0,0,7);ctx.fill();}
+  ctx.save();if(!wd&&!auraShadow(P.x,P.y+1,8,.58)){ctx.fillStyle='rgba(0,0,0,.28)';ctx.beginPath();ctx.ellipse(P.x,P.y+1,8,2.6,0,0,7);ctx.fill();}
   if(wd){ctx.beginPath();ctx.rect(P.x-60,P.y-120,120,120+0);ctx.clip();}
   if(P.dead)ctx.globalAlpha=Math.max(.15,1-(t-P.dead)/2200);
   else if(P.inv>0&&Math.floor(t/70)%2)ctx.globalAlpha=.55;
@@ -485,7 +485,7 @@ function realmTxt(){return realmName();}
 function drawTag(t,lift){
   if(NPD)return;
   const nm=(window.G&&window.G.pname)||'';const top=P.y-26-lift-(P.flyH||0);
-  tagBox(Math.round(P.x),Math.round(top)-5,22,P.hp/P.maxHp,nm,realmTxt());
+  tagBox(Math.round(P.x),Math.round(top)-5,22,P.hp/P.maxHp,nm,realmTxt(),null,(cult.tc|0)>0?'#8fc8ff':null);   /* Trúc Cơ: chữ cảnh giới màu lam */
 }
 function drawDog(t){
   const f=(dog.run?4:0)+(Math.floor(t/(dog.run?95:260))%4),b=dog.run?Math.abs(Math.sin(t/72*Math.PI/2))*.2:Math.sin(t/104)*.1;
@@ -634,7 +634,7 @@ function loop(n){const dt=Math.min(.05,(n-last)/1000);last=n;if(window.__pause){
 requestAnimationFrame(loop);
 function catIcon(s){const f=CATM['idle_1'],c=document.createElement('canvas');c.width=f[2]*s/3|0||16;c.height=f[3]*s/3|0||16;const x=c.getContext('2d');x.imageSmoothingEnabled=true;if(IMG.cat&&IMG.cat.complete)x.drawImage(IMG.cat,f[0],f[1],f[2],f[3],0,0,c.width,c.height);return c;}
 function dogIcon(s){const c=document.createElement('canvas');c.width=26*s/3|0||26;c.height=24*s/3|0||24;const x=c.getContext('2d');x.imageSmoothingEnabled=true;if(IMG.dog&&IMG.dog.complete)x.drawImage(IMG.dog,0,0,64,59,0,0,c.width,c.height);return c;}
-window.G={rNeed,pcap,realmName,KIE,kieChance,qiNeed,BIO,TRIBES,LAIRS,DECO,tdist,isCliff,hitNpcs,npcHurt,catIcon,critP,cdmgV,castSkill,skFx,skCd,MMETA,UIA:window.UIA,rankStat,npcRank,DRG,withDr,NPCS,npcShop,dogIcon,GS,setEq,awakenGear,awakeCost,gearRec,gearBase,lineText,saveEq,loadEq,atkCd,regIns,mkGear,baseId,OF,rideToggle,dismount,flyToggle,dashGo,MTM,P,M:M0,dog,fx:()=>fxs,drops,update,draw,tiles,cam,now,attack,setSt,mHit,DR,loot,SPAWN,LAKE,HOME,toast,keys,joy,lootUI,stats,cult,nodes,IMG,redeem,breakthrough,craft,ingHave,equipToggle,wAtk,bagUsed,bagFree,itemSize,defVal,BAG:()=>({cap:TD.BAG.cap+(cult.bc|0)+GS.bag}),craftMax,realmNeed,realmMul,qiRate,respawnQ,S:STT,recalc,pearlInfo,swallow,fuse,mons2,MD,petObjs,PETS,addPet,setPets,tameRoll,AUTO,setAuto,monHit,fx2,projs,setTameP:v=>{TAME_P=v;},useItem,decompose,dropItem,itemInfo,RES:TD.RES,TD,RMETA,harvest,refineEl,awaken,canAwake,iconCanvas,nodesNear};
+window.G={realmLabel,rNeed,pcap,realmName,KIE,kieChance,qiNeed,BIO,TRIBES,LAIRS,DECO,tdist,isCliff,hitNpcs,npcHurt,catIcon,critP,cdmgV,castSkill,skFx,skCd,MMETA,UIA:window.UIA,rankStat,npcRank,DRG,withDr,NPCS,npcShop,dogIcon,GS,setEq,awakenGear,awakeCost,gearRec,gearBase,lineText,saveEq,loadEq,atkCd,regIns,mkGear,baseId,OF,rideToggle,dismount,flyToggle,dashGo,MTM,P,M:M0,dog,fx:()=>fxs,drops,update,draw,tiles,cam,now,attack,setSt,mHit,DR,loot,SPAWN,LAKE,HOME,toast,keys,joy,lootUI,stats,cult,nodes,IMG,redeem,breakthrough,craft,ingHave,equipToggle,wAtk,bagUsed,bagFree,itemSize,defVal,BAG:()=>({cap:TD.BAG.cap+(cult.bc|0)+GS.bag}),craftMax,realmNeed,realmMul,qiRate,respawnQ,S:STT,recalc,pearlInfo,swallow,fuse,mons2,MD,petObjs,PETS,addPet,setPets,tameRoll,AUTO,setAuto,monHit,fx2,projs,setTameP:v=>{TAME_P=v;},useItem,decompose,dropItem,itemInfo,RES:TD.RES,TD,RMETA,harvest,refineEl,awaken,canAwake,iconCanvas,nodesNear};
 toast(T('toast.welcome'));
 })();
 </script>

@@ -92,7 +92,7 @@ function drawSkFx(t){
   ctx.restore();
 }
 /* ----- nút kỹ năng: xếp vòng cung quanh nút ĐÁNH (trái + trên) như game MOBA; kéo để NGẮM HƯỚNG, chạm nhanh = tự nhắm ----- */
-const SK_AR=124,SK_SZ=46,SK_RANGE={proj:290,zone:200},SK_MAXPX=64,SK_DEAD=14;   /* bán kính cung · cỡ nút · tầm ngắm tối đa (px thế giới) · kéo tối đa (px màn hình) */
+const SK_AR=140,SK_SZ=44,SK_RANGE={proj:290,zone:200},SK_MAXPX=64,SK_DEAD=14;   /* bán kính cung · cỡ nút · tầm ngắm tối đa (px thế giới) · kéo tối đa (px màn hình) */
 const SKAIM={on:false,id:null,dx:0,dy:0,len:0,moved:false,pid:null,ox:0,oy:0};
 const skBar=document.createElement('div');skBar.id='skBar';
 {const st=document.createElement('style');st.textContent=
@@ -104,9 +104,11 @@ const skBar=document.createElement('div');skBar.id='skBar';
  '#skBar .skb.no b{color:#ff8a8a}#skBar .skb.aim{box-shadow:0 0 0 3px #fff,0 0 14px 3px #ffd54a;transform:scale(1.12)}'+
  '#skBar .skb u{position:absolute;left:3px;top:1px;font-size:9px;font-weight:900;color:#fff;text-decoration:none;text-shadow:0 0 2px #000,0 0 2px #000;pointer-events:none}'+
  /* nút cưỡi/bay/lướt dời lên cột bên phải để nhường chỗ cho vòng cung kỹ năng */
- 'body #mtRide{right:calc(env(safe-area-inset-right,0px) + 14px)!important;bottom:calc(env(safe-area-inset-bottom,0px) + 238px)!important}'+
- 'body #mtFly{right:calc(env(safe-area-inset-right,0px) + 14px)!important;bottom:calc(env(safe-area-inset-bottom,0px) + 298px)!important}'+
- 'body #mtDash{right:calc(env(safe-area-inset-right,0px) + 14px)!important;bottom:calc(env(safe-area-inset-bottom,0px) + 358px)!important}';
+ /* cột bên phải phía trên vòng cung: TỰ ĐỘNG đứng đúng chỗ cũ của nút CƯỠI (cùng cỡ 54px), các nút thú cưỡi dời lên trên */
+ 'body #autoBtn{right:calc(env(safe-area-inset-right,0px) + 14px)!important;bottom:calc(env(safe-area-inset-bottom,0px) + 246px)!important;width:54px!important;height:54px!important}'+
+ 'body #mtRide{right:calc(env(safe-area-inset-right,0px) + 14px)!important;bottom:calc(env(safe-area-inset-bottom,0px) + 308px)!important}'+
+ 'body #mtFly{right:calc(env(safe-area-inset-right,0px) + 14px)!important;bottom:calc(env(safe-area-inset-bottom,0px) + 370px)!important}'+
+ 'body #mtDash{right:calc(env(safe-area-inset-right,0px) + 14px)!important;bottom:calc(env(safe-area-inset-bottom,0px) + 432px)!important}';
  document.head.appendChild(st);document.body.appendChild(skBar);}
 let skSig='';
 function skSlot(n){   /* tâm nút n (0..4) trên cung: φ=0 là ngay bên trái nút ĐÁNH, φ=90 là ngay phía trên */

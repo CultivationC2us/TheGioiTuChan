@@ -78,3 +78,14 @@ function drawKie(t){
   }
   ctx.restore();
 }
+
+/* Bóng dưới chân của người đã Trúc Cơ: vòng pháp trận lam (ảnh người dùng) thay cho bóng đen, mờ nhẹ. Trả true nếu đã vẽ. */
+function auraShadow(x,y,rx,al){
+  if(!((cult.tc|0)>0))return false;
+  const A=IMG.kie,m=KIEM.aura&&KIEM.aura[0];if(!A||!A.complete||!m)return false;
+  const w=rx*2*2.8,s=w/m[2],h=m[3]*s;
+  ctx.save();ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';
+  ctx.globalAlpha=al*(.92+.08*Math.sin(now()/700));
+  ctx.drawImage(A,m[0],m[1],m[2],m[3],x-m[4]*s,y-h*.56,w,h);   /* tâm elip của vòng nằm ở ~56% chiều cao ảnh */
+  ctx.restore();return true;
+}

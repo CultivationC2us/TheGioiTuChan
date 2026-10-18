@@ -52,7 +52,7 @@ create or replace function public.lb_guard() returns trigger language plpgsql se
 declare dt numeric; max_k int; max_q bigint; dk int; dq bigint; susp boolean:=false; why text:='';
 begin
   new.pid := 'TC-' || upper(substr(replace(new.user_id::text,'-',''),1,6));
-  new.realm    := least(10, greatest(1, coalesce(new.realm,1)));
+  new.realm    := least(13, greatest(1, coalesce(new.realm,1)));   -- 1..10 Luyện Khí tầng · 11/12/13 = Trúc Cơ sơ/trung/hậu kỳ
   new.qi_total := greatest(0, coalesce(new.qi_total,0));
   new.kills    := greatest(0, coalesce(new.kills,0));
   if tg_op = 'UPDATE' then

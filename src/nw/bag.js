@@ -201,7 +201,7 @@ function renderRank(rows,off){
   var h=off?'<div class="msg">'+esc(T('rank.off'))+'</div>':'';
   all.slice(0,100).forEach(function(r,i){
     h+='<div class="rw r'+(i+1)+(r.me?' me':'')+'"><div class="rn">'+(i+1)+'</div><div class="nm">'+esc(r.name)+(r.me?'<span class="tg" style="color:#ffd54a">'+esc(T('rank.me'))+'</span>':'')+'<small>ID '+esc(r.pid||'')+'</small></div>'+
-      '<div class="vl">'+rkVal(r,rkTab)+'<small>'+esc(T('rank.rl',{n:r.realm})+' · '+T('rank.k',{n:r.kills}))+'</small></div></div>';});
+      '<div class="vl">'+rkVal(r,rkTab)+'<small>'+esc(G.realmLabel(r.realm)+' · '+T('rank.k',{n:r.kills}))+'</small></div></div>';});
   L.innerHTML=h||'<div class="msg">'+esc(T('rank.empty'))+'</div>';
 }
 function loadRank(){

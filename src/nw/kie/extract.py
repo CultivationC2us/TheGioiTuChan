@@ -77,6 +77,18 @@ for (y0,y1,name,anc) in bands:
         crop=rgba[y0+t:y0+b,l:r].copy();crop[~part[t:b,l:r]]=0
         fr.append((crop,cx[k]-l,b,)) # anchor x (rel), bottom
     out[name]=fr;print(name,len(cx),len(fr),[c[0].shape[:2] for c in fr][:3])
+
+# ---- aura: vòng tròn lam (góc trái dưới) từ ảnh 2 — dùng làm bóng dưới chân nhân vật Trúc Cơ
+im2=Image.open('/root/.claude/uploads/3557922d-097f-524e-bc43-9c215c1e40de/ca7bce72-image.png').convert('RGB')
+b=np.asarray(im2).astype(float);r2,g2,bb=b[...,0],b[...,1],b[...,2]
+m2=np.clip((np.minimum(r2,bb)-g2)/255,0,1);al2=1-m2;al2=np.where(al2<.07,0,al2);al2=np.clip((al2-.07)/.93,0,1);al2=np.where(m2>.93,0,al2)
+with np.errstate(divide='ignore',invalid='ignore'):
+    C2=(b-(1-al2[...,None])*M)/np.maximum(al2[...,None],.02)
+C2=np.clip(C2,0,255);rg2=np.dstack([C2,al2*255]).astype(np.uint8)
+y0,y1,x0,x1=830,1015,12,262
+reg=al2[y0:y1,x0:x1]>0;ys,xx=np.where(reg);t,bt,l,r=ys.min(),ys.max()+1,xx.min(),xx.max()+1
+crop=rg2[y0+t:y0+bt,x0+l:x0+r].copy();crop[~reg[t:bt,l:r]]=0
+out['aura']=[(crop,(r-l)/2,bt)]
 # pack
 import math
 W=1536;x=y=rowh=0;meta={};pad=2;placed=[]
