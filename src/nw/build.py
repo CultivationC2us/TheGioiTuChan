@@ -1,4 +1,9 @@
-import base64,json
+import base64,json,os
+from pathlib import Path
+
+# Make builds independent of the caller's current working directory.
+ROOT = Path(__file__).resolve().parents[2]
+os.chdir(Path(__file__).resolve().parent.parent)
 def b64(p): return base64.b64encode(open(p,'rb').read()).decode()
 s=open('nw/game_tpl.html',encoding='utf-8').read()
 M={'idx':json.load(open('nw/dr2/idx_trim.json'))}
@@ -23,4 +28,8 @@ for k,v in rep.items():
     s=s.replace(k,v)
 import time
 s=s.replace('{{BUILD}}',time.strftime('%m%d.%H%M',time.gmtime(time.time()+8*3600)))
-open('nw/game.html','w',encoding='utf-8').write(s);print(len(s))
+out = Path('nw/game.html')
+out.write_text(s, encoding='utf-8')
+# GitHub Pages and the documented entry point serve the root bundle.
+(ROOT / 'index.html').write_text(s, encoding='utf-8')
+print(f'Built {out} and {ROOT / "index.html"} ({len(s)} characters)')
