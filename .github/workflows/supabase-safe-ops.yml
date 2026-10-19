@@ -1,0 +1,99 @@
+name: Supabase safe operations
+
+on:
+  workflow_dispatch:
+    inputs:
+      operation:
+        description: "Choose a fixed, reviewed operation"
+        required: true
+        type: choice
+        options:
+          - diagnostics
+          - apply_saves_schema
+          - apply_leaderboard_schema
+      confirm:
+        description: "Type APPLY only when applying a schema script (leave blank for diagnostics)"
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  supabase:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Install PostgreSQL client
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes postgresql-client
+
+      - name: Validate operation and connection secret
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          OPERATION: ${{ inputs.operation }}
+          CONFIRM: ${{ inputs.confirm }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ -z "${SUPABASE_DB_URL:-}" ]]; then
+            echo "::error::Missing GitHub Actions secret SUPABASE_DB_URL. Add the Supabase database connection URI in repository Settings > Secrets and variables > Actions."
+            exit 1
+          fi
+          case "$OPERATION" in
+            diagnostics) ;;
+            apply_saves_schema|apply_leaderboard_schema)
+              if [[ "$CONFIRM" != "APPLY" ]]; then
+                echo "::error::Schema changes require typing APPLY in the confirmation field."
+                exit 1
+              fi
+              ;;
+            *) echo "::error::Unsupported operation"; exit 1 ;;
+          esac
+
+      - name: Read-only database diagnostics
+        if: inputs.operation == 'diagnostics'
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: |
+          set -euo pipefail
+          psql "$SUPABASE_DB_URL" -X -v ON_ERROR_STOP=1 <<'SQL'
+          \pset pager off
+          \echo '=== PUBLIC TABLES AND RLS ==='
+          SELECT schemaname, tablename, rowsecurity
+          FROM pg_tables
+          WHERE schemaname = 'public'
+          ORDER BY tablename;
+          \echo '=== PUBLIC TABLE POLICIES ==='
+          SELECT schemaname, tablename, policyname, permissive, roles, cmd, qual, with_check
+          FROM pg_policies
+          WHERE schemaname = 'public'
+          ORDER BY tablename, policyname;
+          \echo '=== GAME TABLE PRESENCE AND ESTIMATED ROW COUNTS ==='
+          SELECT t.table_name,
+                 to_regclass('public.' || t.table_name) IS NOT NULL AS exists,
+                 COALESCE(s.n_live_tup, 0) AS estimated_rows
+          FROM (VALUES ('saves'), ('leaderboard'), ('lb_history')) AS t(table_name)
+          LEFT JOIN pg_stat_user_tables AS s
+            ON s.schemaname = 'public' AND s.relname = t.table_name
+          ORDER BY t.table_name;
+          SQL
+
+      - name: Apply save schema
+        if: inputs.operation == 'apply_saves_schema'
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: psql "$SUPABASE_DB_URL" -X -v ON_ERROR_STOP=1 -f supabase_saves.sql
+
+      - name: Apply leaderboard schema
+        if: inputs.operation == 'apply_leaderboard_schema'
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: psql "$SUPABASE_DB_URL" -X -v ON_ERROR_STOP=1 -f supabase_leaderboard.sql
