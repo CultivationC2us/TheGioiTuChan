@@ -8,12 +8,7 @@
 (function(){
 'use strict';
 var G=window.G;
-var ITEMS={
-  'Thủy Long Châu':{col:'#7fd8ff',glow:'#3aa9ff'},
-  'lt':{col:'#e8f6ff',glow:'#6fd3ff'},
-  'dp.tukhi':{col:'#ffffff',glow:'#b58cff'},
-  'dan.tukhi':{col:'#b8f5a0',glow:'#2fbf5a'}
-};
+var ITEMS=window.TTBagItemVisuals||{};
 var DEF={col:'#ffe58f',glow:'#ffb347'};
 var T=function(k,p){return I18N.t(k,p);};
 function $(id){return document.getElementById(id);}
