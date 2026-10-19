@@ -17,7 +17,7 @@ Cần Python 3.10+ và checkout đầy đủ repository. Từ bất kỳ thư m�
 python src/nw/build.py
 ```
 
-Lệnh này tạo `src/nw/game.html` (bản dùng cho kiểm thử) và cập nhật `index.html` ở thư mục gốc (bản GitHub Pages đang phục vụ). Hãy commit cả thay đổi source và `index.html` khi phát hành.
+Lệnh này tạo `src/nw/game.html` (bản dùng cho kiểm thử) và cập nhật `index.html` ở thư mục gốc (bản GitHub Pages đang phục vụ). Sau khi thay đổi được đưa vào `main`, GitHub Actions sẽ tự dựng lại và commit bundle `index.html`.
 
 ### Cơ sở dữ liệu Supabase
 
