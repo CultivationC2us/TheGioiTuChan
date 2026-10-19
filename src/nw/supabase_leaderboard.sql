@@ -52,7 +52,7 @@ create or replace function public.lb_guard() returns trigger
 language plpgsql
 security definer
 set search_path = public
-as $
+as $lb_guard$
 declare
   dt numeric;
   max_k bigint;
@@ -126,7 +126,7 @@ begin
        new.score, dt, dq, dk, susp, nullif(why, ''));
   end if;
   return new;
-end $;
+end $lb_guard$;
 drop trigger if exists lb_guard_t on public.leaderboard;
 create trigger lb_guard_t before insert or update on public.leaderboard for each row execute function public.lb_guard();
 
