@@ -76,3 +76,40 @@ Dùng nhánh theo **nhiệm vụ có PR**, không giữ nhiều nhánh subsystem
 - Chưa chạy build/test từ môi trường sạch trong thao tác kiểm kê này.
 - Chưa thay đổi code gameplay, asset, schema Supabase hay dữ liệu người chơi.
 - Chưa xác nhận các file legacy an toàn để xóa.
+
+
+## 7. Dependency map observed in source
+
+### Build composition (verified in `src/nw/build.py`)
+
+The builder reads `nw/game_tpl.html`, reads asset atlases and metadata, replaces template tokens, then writes both `nw/game.html` and root `index.html`. Current explicit injections include:
+
+- Data/catalog: `res.js` → `{{RES_JS}}` and the generated `TTData` global.
+- Localization: `i18n.js` → `{{I18N_JS}}`.
+- Account/cloud sync: `auth.js` → `{{AUTH_JS}}`.
+- Inventory UI: `bag.js` → `{{BAG_JS}}`.
+- HUD: `hud.js` → `{{HUD_JS}}`.
+- Gameplay: `skill.js`, `mon2.js`, `npc.js`, `mnt.js`, `kie.js`, `outfit.js`, `settings.js` via template tokens.
+- Graphics: numerous atlases and JSON metadata are base64-embedded into the final bundle.
+
+This means a file move or module rename requires a coordinated builder + template change; moving only the source file will break build.
+
+### Runtime coupling observed (static source review)
+
+- Several modules use shared globals rather than imports/exports: examples include `window.G`, `window.TTData`, `window.TT`, `window.TTBag`, `window.TTRank`, `window.TTHud`, plus shared state such as `cult`, `loot`, `P`, `IMG`, `TD`, `mons2` and `DRG`.
+- `auth.js` reads/writes shared gameplay state for cloud saves and applies loaded save data. This is a boundary between persistence and game-domain state, not a standalone auth-only concern yet.
+- `skill.js` depends directly on combat/world globals and item data; it is not independently portable until those dependencies are passed through a small API.
+- `mon2.js` currently includes more than monster rendering: realm progression, qi accumulation, breakthrough, consumables/crafting, derived stats, inventory capacity, equipment stats, gifts and item upgrades are also present. It is a high-risk extraction target and should be split by behavior in small steps, not moved wholesale.
+- `bag.js` constructs UI directly in the DOM and reads global item catalogs/state. Inventory rules and inventory presentation are therefore coupled; extract data operations first while preserving its public UI API.
+- The `*_new.js`, `*_old.js` and `*_oldbase.js` files are not in the builder's explicit injection list above. That is evidence they are not directly bundled by the current build script, but before deleting them check for other scripts/tools, historical workflow use, or external references.
+
+### Safe first extraction order
+
+1. **Create an explicit module manifest** from builder token mappings; use it to fail CI if a required token or source file is missing.
+2. **Capture behavior with tests** before moving runtime logic. Start with pure catalog/format functions, then save migration and inventory operations.
+3. **Separate item definitions from inventory UI** without changing item IDs, save field names, or `window.TTBag` API.
+4. **Separate save serialization from auth UI** behind a stable save adapter; preserve local fallback and current cloud payload format.
+5. **Split `mon2.js` by responsibility** only after tests cover cultivation/realm, combat stats, recipes/consumables, and monster behavior.
+6. **Move to ES modules or a formal module loader only as a dedicated project**. The current global/token-based bundling means mixing a module-system migration into ordinary feature work would multiply risk.
+
+No runtime code was changed by this audit. These are source-level findings, not a claim that all runtime paths have been exercised.
