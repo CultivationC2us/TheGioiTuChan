@@ -31,5 +31,6 @@ s=s.replace('{{BUILD}}',time.strftime('%m%d.%H%M',time.gmtime(time.time()+8*3600
 out = Path('nw/game.html')
 out.write_text(s, encoding='utf-8')
 # GitHub Pages and the documented entry point serve the root bundle.
-(ROOT / 'index.html').write_text(s, encoding='utf-8')
-print(f'Built {out} and {ROOT / "index.html"} ({len(s)} characters)')
+root_out = ROOT / 'index.html'
+root_out.write_text(s, encoding='utf-8')
+print('Built {} and {} ({} characters)'.format(out, root_out, len(s)))
