@@ -43,6 +43,14 @@ def main():
     if template.count("{{BUILD}}") != 1:
         return fail("expected exactly one {{BUILD}} timestamp token")
 
+    # Inventory visual metadata must load before the UI that consumes it.
+    if "'{{BAG_ITEMS_JS}}':open('nw/bag_items.js'" not in builder:
+        return fail("build.py does not bundle nw/bag_items.js")
+    catalog_script = template.find("<script>{{BAG_ITEMS_JS}}</script>")
+    bag_script = template.find("<script>{{BAG_JS}}</script>")
+    if catalog_script < 0 or bag_script < 0 or catalog_script >= bag_script:
+        return fail("BAG_ITEMS_JS must be injected before BAG_JS")
+
     # These are direct, explicit source references used by build.py. Paths are
     # relative to src/, because build.py changes its working directory to src/.
     refs = set(re.findall(r"""(?:open|b64)\(\s*['"]nw/([^'"]+)['"]""", builder))
@@ -52,6 +60,7 @@ def main():
 
     print(f"PASS {len(template_tokens)} direct template tokens accounted for")
     print("PASS nested replacement tokens delegated to the ordered build assertions")
+    print("PASS inventory visual catalog is bundled before bag UI")
     print(f"PASS {len(refs)} explicit builder source paths exist")
     print("PASS build/template token contract is consistent")
     return 0
