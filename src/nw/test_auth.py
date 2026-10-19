@@ -1,7 +1,8 @@
 import json, time, sys
+from pathlib import Path
 from playwright.sync_api import sync_playwright
 
-S = '/tmp/claude-0/-home-claude/3557922d-097f-524e-bc43-9c215c1e40de/scratchpad/nw/game.html'
+S = str(Path(__file__).resolve().with_name('game.html'))
 HOST = 'ehrknssxyojpncqtimfq.supabase.co'
 CORS = {'access-control-allow-origin': '*', 'access-control-allow-headers': '*', 'access-control-allow-methods': '*'}
 
