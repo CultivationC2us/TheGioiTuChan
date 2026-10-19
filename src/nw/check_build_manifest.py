@@ -33,11 +33,13 @@ def main():
     replacement_tokens = set(keys)
     special_tokens = {"{{BUILD}}"}
     missing_replacements = sorted(template_tokens - replacement_tokens - special_tokens)
-    unused_replacements = sorted(replacement_tokens - template_tokens)
+    # Some tokens are nested inside injected source modules (for example,
+    # game_tpl.html injects mon2.js, which itself contains asset tokens). Those
+    # keys will not appear in the original template but are consumed after an
+    # earlier replacement. Validate direct template coverage here; build.py's
+    # own ordered assertions validate nested tokens during the real build.
     if missing_replacements:
         return fail("template tokens without replacement: " + ", ".join(missing_replacements))
-    if unused_replacements:
-        return fail("replacement keys absent from template: " + ", ".join(unused_replacements))
     if template.count("{{BUILD}}") != 1:
         return fail("expected exactly one {{BUILD}} timestamp token")
 
@@ -48,7 +50,8 @@ def main():
     if missing_files:
         return fail("builder references missing source files: " + ", ".join(missing_files))
 
-    print(f"PASS {len(template_tokens)} template tokens accounted for")
+    print(f"PASS {len(template_tokens)} direct template tokens accounted for")
+    print("PASS nested replacement tokens delegated to the ordered build assertions")
     print(f"PASS {len(refs)} explicit builder source paths exist")
     print("PASS build/template token contract is consistent")
     return 0
