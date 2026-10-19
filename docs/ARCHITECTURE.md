@@ -50,10 +50,12 @@ Dùng nhánh theo **nhiệm vụ có PR**, không giữ nhiều nhánh subsystem
 ### Giai đoạn A — kiểm kê (đang thực hiện)
 - [x] Ghi nhận cây thư mục, entrypoint, build và các nhóm module/asset.
 - [x] Ghi nhận vùng legacy cần xác minh trước khi xóa.
-- [ ] Lập sơ đồ phụ thuộc thực tế giữa template và các module.
-- [ ] Xác định module nào build thật sự nhúng vào bundle, module nào chỉ là bản cũ/công cụ.
+- [x] Lập sơ đồ phụ thuộc tĩnh giữa template, builder và các module được nhúng.
+- [x] Xác định các module được builder nhúng trực tiếp; các file legacy chưa được xóa.
 
 ### Giai đoạn B — khóa hành vi hiện có
+- [x] Thêm `check_build_manifest.py` và gọi từ CI để kiểm tra token template, replacement key và các đường dẫn nguồn tĩnh.
+- Tận dụng các bài test Playwright hiện có; sau khi CI chạy, đánh giá độ phủ và lỗi thực tế trước khi thêm kiểm tra mới.
 - Tạo smoke/regression checks cho build, đăng nhập, save/load, túi đồ, chiến đấu, tu luyện, tài nguyên và localization.
 - Chụp baseline bundle và xác minh đường build sạch tái lập được.
 - Giữ nguyên API lưu dữ liệu và ID vật phẩm trong đợt refactor đầu.
