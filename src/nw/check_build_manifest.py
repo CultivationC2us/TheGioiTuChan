@@ -40,8 +40,10 @@ def main():
     # own ordered assertions validate nested tokens during the real build.
     if missing_replacements:
         return fail("template tokens without replacement: " + ", ".join(missing_replacements))
-    if template.count("{{BUILD}}") != 1:
-        return fail("expected exactly one {{BUILD}} timestamp token")
+    # BUILD is introduced by an injected source module, not necessarily present
+    # in the raw HTML template. The bundler must replace it exactly once in code.
+    if builder.count("s=s.replace('{{BUILD}}'") != 1:
+        return fail("expected one builder replacement for the {{BUILD}} timestamp token")
 
     # Inventory visual metadata must load before the UI that consumes it.
     if "'{{BAG_ITEMS_JS}}':open('nw/bag_items.js'" not in builder:
