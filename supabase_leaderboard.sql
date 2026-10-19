@@ -82,13 +82,14 @@ begin
     dk := 0;
     dq := 0;
   else
-    dt := greatest(extract(epoch from (now() - old.updated_at)), 1);
+    dt := greatest(extract(epoch from (clock_timestamp() - old.updated_at)), 0);
     -- Không cho tụt chỉ số và giới hạn tốc độ tăng giữa hai lần ghi.
     new.qi_total := greatest(new.qi_total, old.qi_total);
     new.kills := greatest(new.kills, old.kills);
     new.realm := greatest(new.realm, old.realm);
-    max_k := floor(dt * 4 + 5);
-    max_q := floor(dt * 5 + 100);
+    -- No fixed per-request allowance: rapid repeated requests cannot farm a bonus.
+    max_k := floor(dt * 4);
+    max_q := floor(dt * 5);
     dk := new.kills::bigint - old.kills::bigint;
     dq := new.qi_total - old.qi_total;
 
@@ -104,10 +105,14 @@ begin
       new.qi_total := old.qi_total + max_q;
       dq := max_q;
     end if;
-    if new.realm - old.realm > 2 then
+    if new.realm > old.realm and dt < 60 then
+      susp := true;
+      why := why || 'realm advanced too quickly; ';
+      new.realm := old.realm;
+    elsif new.realm - old.realm > 1 then
       susp := true;
       why := why || 'realm jump; ';
-      new.realm := old.realm + 2;
+      new.realm := old.realm + 1;
     end if;
 
     -- Không tin flags/flag_note do client gửi lên.
