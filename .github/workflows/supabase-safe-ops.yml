@@ -76,12 +76,14 @@ jobs:
           FROM pg_policies
           WHERE schemaname = 'public'
           ORDER BY tablename, policyname;
-          \echo '=== GAME TABLE ROW COUNTS ==='
-          SELECT 'saves' AS table_name, count(*) AS row_count FROM public.saves
-          UNION ALL
-          SELECT 'leaderboard', count(*) FROM public.leaderboard
-          UNION ALL
-          SELECT 'lb_history', count(*) FROM public.lb_history;
+          \echo '=== GAME TABLE PRESENCE AND ESTIMATED ROW COUNTS ==='
+          SELECT t.table_name,
+                 to_regclass('public.' || t.table_name) IS NOT NULL AS exists,
+                 COALESCE(s.n_live_tup, 0) AS estimated_rows
+          FROM (VALUES ('saves'), ('leaderboard'), ('lb_history')) AS t(table_name)
+          LEFT JOIN pg_stat_user_tables AS s
+            ON s.schemaname = 'public' AND s.relname = t.table_name
+          ORDER BY t.table_name;
           SQL
 
       - name: Apply save schema
