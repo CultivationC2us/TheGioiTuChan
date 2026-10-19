@@ -31,8 +31,23 @@ jobs:
           test -s index.html
           test -s src/nw/game.html
           ! grep -q '{{[A-Z0-9_]*}}' index.html
+
+      - name: Check build manifest
+        run: python src/nw/check_build_manifest.py
       - name: Test login and save flow
         run: python src/nw/test_auth.py
+
+      - name: Test inventory UI and persistence
+        run: python src/nw/test_bag.py
+
+      - name: Test cultivation and crafting
+        run: python src/nw/test_realm.py
+
+      - name: Test skills and equipment awakening
+        run: python src/nw/test_skill.py
+
+      - name: Test world, NPCs and combat
+        run: python src/nw/test_world.py
 
       - name: Commit rebuilt GitHub Pages bundle
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'

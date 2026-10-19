@@ -80,3 +80,4 @@ with sync_playwright() as p:
     ok(pg.evaluate("G.P.maxMp")==60+30,'dòng linh lực +30 → tối đa '+str(pg.evaluate("G.P.maxMp")))
     ok(pg.evaluate("G.lineText('mp',20)")=='+30 Linh lực','hiển thị: '+pg.evaluate("G.lineText('mp',20)"))
     print('TỔNG',sum(res),'/',len(res))
+    sys.exit(0 if all(res) else 1)
