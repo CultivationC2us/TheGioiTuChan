@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   build-and-smoke-test:
@@ -33,3 +33,16 @@ jobs:
           ! grep -q '{{[A-Z0-9_]*}}' index.html
       - name: Test login and save flow
         run: python src/nw/test_auth.py
+
+      - name: Commit rebuilt GitHub Pages bundle
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          if git diff --cached --quiet; then
+            echo "index.html is already up to date"
+          else
+            git commit -m "[build] Regenerate game bundle"
+            git push
+          fi
