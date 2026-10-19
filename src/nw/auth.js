@@ -133,9 +133,16 @@ window.TTRank={
   me:function(){return S?{name:S.name,pid:pubId()}:null;},
   fetch:function(order,cb){
     if(lbOff)return cb({off:1});
-    req('/rest/v1/leaderboard?select=name,pid,realm,qi_total,kills,score&order='+order+'.desc,updated_at.desc&limit=100','GET',null,S&&S.at).then(function(r){
-      if(r.ok&&Array.isArray(r.j))cb({rows:r.j});
-      else{if(r.status===404||/relation|schema cache|leaderboard/i.test(rawErr(r)))lbOff=true;cb({off:1});}
+    /* A player may have reached a new realm since their last save. Refresh their
+       own leaderboard row whenever the board is opened, then read the public list.
+       This is self-row upsert only; it never reads or writes another player's save. */
+    var sync=S?Promise.resolve().then(function(){pushRank(false);}):Promise.resolve();
+    sync.then(function(){
+      if(lbOff)return cb({off:1});
+      return req('/rest/v1/leaderboard?select=name,pid,realm,qi_total,kills,score&order='+order+'.desc,updated_at.desc&limit=100','GET',null,S&&S.at).then(function(r){
+        if(r.ok&&Array.isArray(r.j))cb({rows:r.j});
+        else{if(r.status===404||/relation|schema cache|leaderboard/i.test(rawErr(r)))lbOff=true;cb({off:1});}
+      },function(){cb({off:1,net:1});});
     },function(){cb({off:1,net:1});});
   },
   push:pushRank
