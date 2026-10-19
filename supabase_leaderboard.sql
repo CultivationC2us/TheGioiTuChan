@@ -51,7 +51,7 @@ create policy lbh_own on public.lb_history  for select to authenticated using (a
 create or replace function public.lb_guard() returns trigger
 language plpgsql
 security definer
-set search_path = public
+set search_path = ''
 as $lb_guard$
 declare
   dt numeric;
@@ -68,26 +68,28 @@ begin
   new.kills := greatest(0, coalesce(new.kills, 0));
 
   if tg_op = 'INSERT' then
-    -- Các ngưỡng này chỉ giới hạn số liệu khởi tạo; không phải trần tiến trình lâu dài.
-    if new.kills > 20000 or new.qi_total > 2000000 then
-      susp := true;
-      why := 'giá trị khởi tạo vượt ngưỡng; đã giới hạn';
-      new.kills := least(new.kills, 20000);
-      new.qi_total := least(new.qi_total, 2000000);
+    -- Không tin số liệu khởi tạo do client gửi. Khởi tạo mốc điểm ở 0;
+    -- các lần cập nhật sau sẽ đi qua giới hạn tốc độ bên dưới.
+    if coalesce(new.kills, 0) > 0 or coalesce(new.qi_total, 0) > 0 or coalesce(new.realm, 1) > 1 then
+      why := 'initial client stats ignored; server baseline initialized';
     end if;
-    new.flags := case when susp then 1 else 0 end;
-    new.flag_note := nullif(why, '');
+    new.kills := 0;
+    new.qi_total := 0;
+    new.realm := 1;
+    new.flags := 0;
+    new.flag_note := null;
     dt := null;
-    dk := new.kills;
-    dq := new.qi_total;
+    dk := 0;
+    dq := 0;
   else
-    dt := greatest(extract(epoch from (now() - old.updated_at)), 1);
+    dt := greatest(extract(epoch from (clock_timestamp() - old.updated_at)), 0);
     -- Không cho tụt chỉ số và giới hạn tốc độ tăng giữa hai lần ghi.
     new.qi_total := greatest(new.qi_total, old.qi_total);
     new.kills := greatest(new.kills, old.kills);
     new.realm := greatest(new.realm, old.realm);
-    max_k := floor(dt * 4 + 25);
-    max_q := floor(dt * 5 + 4000);
+    -- No fixed per-request allowance: rapid repeated requests cannot farm a bonus.
+    max_k := floor(dt * 4);
+    max_q := floor(dt * 5);
     dk := new.kills::bigint - old.kills::bigint;
     dq := new.qi_total - old.qi_total;
 
@@ -103,10 +105,14 @@ begin
       new.qi_total := old.qi_total + max_q;
       dq := max_q;
     end if;
-    if new.realm - old.realm > 2 then
+    if new.realm > old.realm and dt < 60 then
+      susp := true;
+      why := why || 'realm advanced too quickly; ';
+      new.realm := old.realm;
+    elsif new.realm - old.realm > 1 then
       susp := true;
       why := why || 'realm jump; ';
-      new.realm := old.realm + 2;
+      new.realm := old.realm + 1;
     end if;
 
     -- Không tin flags/flag_note do client gửi lên.
