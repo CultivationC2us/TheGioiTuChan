@@ -56,7 +56,7 @@ Dùng nhánh theo **nhiệm vụ có PR**, không giữ nhiều nhánh subsystem
 ### Giai đoạn B — khóa hành vi hiện có
 - [x] Thêm `check_build_manifest.py` và gọi từ CI để kiểm tra token template, replacement key và các đường dẫn nguồn tĩnh.
 - [x] Gắn bài test Playwright đăng nhập/lưu, túi đồ/lưu trữ và tu luyện/chế tạo vào CI; kết quả chạy thực tế vẫn cần xác nhận.
-- Tiếp tục bổ sung kiểm tra cho chiến đấu, thế giới/NPC và localization sau khi xác nhận các test hiện tại ổn định.
+- [x] Gắn test công pháp/trang bị (`test_skill.py`) và thế giới/NPC/chiến đấu (`test_world.py`) vào CI; cả hai script đều trả mã lỗi khi có assertion thất bại.
 - Chụp baseline bundle và xác minh đường build sạch tái lập được.
 - Giữ nguyên API lưu dữ liệu và ID vật phẩm trong đợt refactor đầu.
 
