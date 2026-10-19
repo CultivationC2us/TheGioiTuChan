@@ -10,6 +10,7 @@ def run2():
         pg=ctx.new_page(); errs=[]; pg.on('pageerror',lambda e:errs.append(str(e)))
         pg.goto('file://'+S); pg.wait_for_timeout(300)
         ok(not pg.is_visible('#bagBtn'),'túi ẩn khi chưa đăng nhập')
+        ok(pg.evaluate("!!window.TTBagItemVisuals && window.TTBagItemVisuals['Thủy Long Châu'].col==='#7fd8ff' && window.TTBagItemVisuals['dp.tukhi'].glow==='#b58cff'"),'catalog hiển thị vật phẩm được nạp trước túi đồ')
         pg.click('#tReg'); pg.fill('#aName','bag_test'); pg.fill('#aPw','abcdef'); pg.fill('#aPw2','abcdef'); pg.click('#aGo'); pg.wait_for_timeout(800); pg.evaluate("delete G.loot['dp.tukhi'];delete G.loot['cg.tuyet_van'];G.cult.dpg=true;G.lootUI()")
         ok(pg.is_visible('#hMenu .mb:nth-child(1)'),'nút Túi (HUD) hiện sau đăng nhập')
         nz=pg.evaluate("(()=>{const c=document.querySelector('#bagBtn canvas');const d=c.getContext('2d').getImageData(0,0,c.width,c.height).data;let n=0;for(let i=3;i<d.length;i+=4)if(d[i]>0)n++;return n})()")
