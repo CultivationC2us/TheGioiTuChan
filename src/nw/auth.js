@@ -125,9 +125,15 @@ function fetchSave(){
 var lbOff=false,lbLast='';
 function pubId(){return S?'TC-'+String(S.uid).replace(/-/g,'').slice(0,6).toUpperCase():'';}
 function pushRank(keep){
-  if(!S||lbOff||!G.rankStat)return;var r=G.rankStat(),j=r.realm+'|'+r.qi_total+'|'+r.kills;if(j===lbLast)return;
-  req('/rest/v1/leaderboard?on_conflict=user_id','POST',{user_id:S.uid,name:S.name,pid:pubId(),realm:r.realm,qi_total:r.qi_total,kills:r.kills},S.at,keep,'resolution=merge-duplicates,return=minimal')
-    .then(function(x){if(x.ok)lbLast=j;else if(x.status===404||x.status===400&&/relation|schema cache|leaderboard/i.test(rawErr(x)))lbOff=true;},function(){});
+  if(!S||lbOff||!G.rankStat)return Promise.resolve(false);
+  var r=G.rankStat(),j=r.realm+'|'+r.qi_total+'|'+r.kills;
+  if(j===lbLast)return Promise.resolve(true);
+  return req('/rest/v1/leaderboard?on_conflict=user_id','POST',{user_id:S.uid,name:S.name,pid:pubId(),realm:r.realm,qi_total:r.qi_total,kills:r.kills},S.at,keep,'resolution=merge-duplicates,return=minimal')
+    .then(function(x){
+      if(x.ok){lbLast=j;return true;}
+      if(x.status===404||x.status===400&&/relation|schema cache|leaderboard/i.test(rawErr(x)))lbOff=true;
+      return false;
+    },function(){return false;});
 }
 window.TTRank={
   me:function(){return S?{name:S.name,pid:pubId()}:null;},
@@ -136,7 +142,7 @@ window.TTRank={
     /* A player may have reached a new realm since their last save. Refresh their
        own leaderboard row whenever the board is opened, then read the public list.
        This is self-row upsert only; it never reads or writes another player's save. */
-    var sync=S?Promise.resolve().then(function(){pushRank(false);}):Promise.resolve();
+    var sync=S?pushRank(false):Promise.resolve(true);
     sync.then(function(){
       if(lbOff)return cb({off:1});
       return req('/rest/v1/leaderboard?select=name,pid,realm,qi_total,kills,score&order='+order+'.desc,updated_at.desc&limit=100','GET',null,S&&S.at).then(function(r){
