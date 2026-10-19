@@ -61,3 +61,4 @@ with sync_playwright() as p:
     ok(pg.evaluate(f"G.P.x<{c[0]*16+14}"),'vách đá chặn đường')
     ok(not errs,f'không lỗi JS {errs[:2]}')
 print('TỔNG',P_,'/',P_+F_)
+sys.exit(0 if F_==0 else 1)
