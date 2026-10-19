@@ -36,6 +36,12 @@ jobs:
       - name: Test login and save flow
         run: python src/nw/test_auth.py
 
+      - name: Test inventory UI and persistence
+        run: python src/nw/test_bag.py
+
+      - name: Test cultivation and crafting
+        run: python src/nw/test_realm.py
+
       - name: Commit rebuilt GitHub Pages bundle
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: |
